@@ -1,0 +1,23 @@
+project:
+  type: book
+
+book:
+  title: "Multi-omic Analyses for Precision Health"
+  author: "Jesse Goodrich, Hongxu Wang, Qiran Jia, and David Conti"
+  date: "8/7/2023"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+editor: visual
+
