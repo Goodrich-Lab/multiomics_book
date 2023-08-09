@@ -1,0 +1,132 @@
+# Lucid Early Integration
+
+```{r lucid early integration setup, include = FALSE, echo = FALSE}
+source(fs::path(here::here(),"0_project_setup","libraries.R"))
+source(fs::path(here::here(),"0_project_setup","directories.R"))
+source(fs::path(here::here(),"0_project_setup","load_simu_data.R"))
+source(fs::path(here::here(), "0_project_setup", "functions","lucid_reorder_plot_without_y.R"))
+source(fs::path(here::here(), "0_project_setup", "functions",
+                "LUCIDus Early Integration Sankey fxn.R"))
+source(fs::path(here::here(), 
+                "0_project_setup", "functions", "LUCIDus",
+                "dependency.R"))
+library(htmlwidgets)
+options(knitr.table.format = "html")
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.height= 15, fig.width= 12)
+```
+
+```{r analysis data preparation}
+# Three omics layers, Methylation (CpG), Transcriptome and miRNA
+omics_df_analysis <- omics_df %>% 
+  select(contains("cg"), contains("TC"), contains("hsa"))
+```
+
+### Analysis: LUCID with early integration
+
+**Exposure: Hg (Mercury)**
+
+**Omics: Methylation (CpG), Transcriptome, miRNA**
+
+**Outcome: c18_scld**
+
+**Covars: sex, age, ?**
+
+```{r LUCID model 1 early integration, fig.height= 15, fig.width= 12}
+G = exposure %>%
+  as.matrix()
+Z = omics_df_analysis %>% 
+  as.matrix()
+
+fit1 <- estimate_lucid(lucid_model = "early",
+              G = G,
+              Z = Z,
+              Y = outcome, 
+              K = 2,
+              CoY = covs,
+              CoG = covs,
+              useY = TRUE,
+              init_par = "random",
+              family = "normal",
+              # family = "binary",
+              # modelName = rep("VEI", 1)
+              # Rho_Z_Mu = 6,
+              # Rho_Z_Cov = .3
+              ) # JG added, originally 10
+
+# plot_lucid(fit1)
+# summary_lucid(fit1)
+# fit <- reorder_lucid(fit1, c(2,1))
+# (p1 <- plot_lucid_without_outcome(fit1,fontsize = 15))
+# p1 <- plot_lucid(fit, fontsize = 20)
+# p1
+# summary_lucid(fit1)   
+
+# Colors ----
+col_pal <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")
+
+# Color pallet for sankey
+sankey_colors <- matrix(c("exposure", col_pal[6],
+                          "lc1",      col_pal[1],
+                          "lc2",      col_pal[2],
+                          "lc3",      col_pal[3],
+                          "lc4",      col_pal[4],
+                          "layer1",   col_pal[1],
+                          "layer2",   col_pal[2],
+                          "layer3",   col_pal[3],
+                          "layer4",   col_pal[4],
+                          "Outcome",  col_pal[8],
+                          "TRUE",     "#6372e0", # Blue
+                          "FALSE",    "#d1d4ff", # Light grey
+                          "pos_clus_to_out", "red", 
+                          "neg_clus_to_out", "#e4e5f2"), 
+                        byrow = TRUE, nrow = 14) |> 
+  as_tibble(.name_repair = "universal") |>
+  janitor::clean_names() |>
+  rename("domain" = x1, 
+         "range" = x2)
+
+(p1 <- sankey_early_integration(fit1, text_size = 20))
+
+# saveWidget(p1, file = fs::path(dir_figs,"4_integrated_latent_unknown_clusters/lucid_early_integration.html"))
+```
+
+### Omics profiles for each cluster predicted by LUCID
+
+```{r early integration omics profiles, fig.height= 10, fig.width= 10}
+M_mean = as.data.frame(fit1$pars$mu)
+# g_mean = as.data.frame(fit$pars$beta)
+# M_mean <- bind_cols(M_mean, g_mean) |> select(-intercept)
+M_mean$cluster = as.factor(1:2)
+M_mean_melt = reshape::melt(M_mean, id.vars = "cluster") 
+M_mean_melt <- M_mean_melt %>% 
+  mutate(cluster = ifelse(cluster == 2, "High Risk", "Low Risk"))
+# add color label for omics layer
+M_mean_melt = M_mean_melt |>
+  mutate(color_label = case_when(str_detect(variable,  "cg") ~ "1", 
+                                 str_detect(variable, "TC") ~ "2", 
+                                 TRUE ~ "3"))
+
+ggplot(M_mean_melt, aes(fill = color_label, y = value, x = variable)) +
+  geom_bar(position="dodge", stat="identity") +
+  ggtitle("Omics profiles for 2 latent clusters - Lucid early integration") +
+  # facet_wrap(~(cluster)) +
+  facet_grid(rows = vars(cluster), scales = "free_y") +
+  theme(legend.position="none") +
+  geom_hline(yintercept = 0) +
+  xlab("") +
+  theme(text = element_text(size=10),
+        axis.text.x = element_text(angle = 90, vjust = 1,
+                                   hjust = 1),
+        plot.margin = margin(10, 10, 10, 80),
+        panel.background = element_rect(fill="white"), 
+        strip.background = element_rect(fill = "white"),
+        axis.line.x = element_line(color = "black"),
+        axis.line.y = element_line(color = "black"),) +
+  scale_fill_manual(values = c("#2fa4da", "#A77E69", "#e7b6c1"))
+  
+
+# ggsave(filename = fs::path(dir_figs,
+#                            "lucid_early_integration",
+#                            "omics_profile_early_integration.png"),
+#        width = 8, height = 6, dpi = 300, bg = "white")
+```
