@@ -30,8 +30,8 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 meta_df <- data.frame(ftr_name = c(colnames(omics_lst$methylome),
                                    colnames(omics_lst$transcriptome),
                                    colnames(omics_lst$miRNA))) %>%
-  mutate(omic_layer = get_omic_layer_lowercase(ftr_name) ) |>
-  tidylog::left_join(omics_names |> dplyr::select(-omic_layer))  |>
+  mutate(omic_layer = get_omic_layer_lowercase(ftr_name) ) %>%
+  tidylog::left_join(omics_names %>% dplyr::select(-omic_layer))  %>%
   select(ftr_name_for_plots, ftr_name, omic_layer) 
 
 methylation_meta_df <- meta_df %>% filter(omic_layer == "methylome")
@@ -92,7 +92,7 @@ M_mean =    as_tibble(fit$res_Mu_Sigma$Mu[[1]], rownames = "variable") %>%
   bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[3]], rownames = "variable"))
 
 # g_mean = as.data.frame(fit$pars$beta)
-# M_mean <- bind_cols(M_mean, g_mean) |> select(-intercept)
+# M_mean <- bind_cols(M_mean, g_mean) %>% select(-intercept)
 # M_mean$cluster = as.factor(1:2)
 # M_mean_melt = reshape::melt(M_mean, id.vars = "cluster") 
 
@@ -110,28 +110,28 @@ M_mean_l <- M_mean1 %>%
                values_to = "value")
 
 # add color label for omics layer
-M_mean2 = M_mean_l |>
+M_mean2 = M_mean_l %>%
   mutate(color_label = case_when(omic_layer == "methylome" ~ "1", 
                                  omic_layer == "transcriptome" ~ "2", 
                                  omic_layer == "mirna" ~ "3"), 
          low_high = if_else(str_detect(cluster, "Low"), 0,1),
          omic = if_else(omic_layer == "mirna", 
                         "miR",
-                        str_sub(omic_layer, end = 1) |> toupper()),
+                        str_sub(omic_layer, end = 1) %>% toupper()),
          omic_cluster = str_c(omic, low_high))
 
 # Filter only the top ## differential expressed features 
-M_mean2_top <- M_mean2 |> 
-  group_by(variable) |> 
-  tidylog::filter(abs(value) == max(abs(value))) |> 
-  ungroup() |> 
-  arrange(max(abs(value))) |> 
-  group_by(omic_layer) |> 
-  tidylog::slice_head(n=12) |>
+M_mean2_top <- M_mean2 %>% 
+  group_by(variable) %>% 
+  tidylog::filter(abs(value) == max(abs(value))) %>% 
+  ungroup() %>% 
+  arrange(max(abs(value))) %>% 
+  group_by(omic_layer) %>% 
+  tidylog::slice_head(n=12) %>%
   ungroup()
 
 # Plots top 12 features
-ggplot(M_mean2  |> filter(variable %in% M_mean2_top$variable),
+ggplot(M_mean2  %>% filter(variable %in% M_mean2_top$variable),
        aes(fill = color_label, y = value, x = variable)) +
   geom_bar(position="dodge", stat="identity") +
   ggtitle("Omics profiles for 2 latent clusters - Lucid in Parallel") +
@@ -154,7 +154,7 @@ ggplot(M_mean2  |> filter(variable %in% M_mean2_top$variable),
 ### Calculate PIPs and determine cluster assignment for each participant
 
 ```{r get pips}
-lucid_pips <- get_pips(fit) |> as_tibble()
+lucid_pips <- get_pips(fit) %>% as_tibble()
 
 # Add rownames, exposures, and outcome
 lucid_pips$helixid <- outcomes$helixid
@@ -162,7 +162,7 @@ lucid_pips$exposure <- exposure
 lucid_pips$outcome <- outcome
 
 # Create variable for combinations of clusters 
-lucid_pips <- lucid_pips |> 
+lucid_pips <- lucid_pips %>% 
   mutate(cluster_assignment = paste0("M", l1_pred, "_T", l2_pred, "_miR", l3_pred))
 ```
 
@@ -170,39 +170,39 @@ lucid_pips <- lucid_pips |>
 
 ```{r pips with exposure and outcome}
 # Association of each cluster with the exposure
-exposures_per_group <- lm(exposure ~ cluster_assignment - 1, data = lucid_pips) |>
-  tidy(conf.int = TRUE) |>
+exposures_per_group <- lm(exposure ~ cluster_assignment - 1, data = lucid_pips) %>%
+  tidy(conf.int = TRUE) %>%
   mutate(term = str_remove(term, "cluster_assignment"),
-         exp_out = "exposure")  |>
+         exp_out = "exposure")  %>%
   rename(cluster_assignment = term)
 
 # Association of each cluster with the outcome
-outcomes_per_group <- lm(outcome ~ cluster_assignment - 1, data = lucid_pips) |>
-  tidy(conf.int = TRUE) |> 
+outcomes_per_group <- lm(outcome ~ cluster_assignment - 1, data = lucid_pips) %>%
+  tidy(conf.int = TRUE) %>% 
   mutate(term = str_remove(term, "cluster_assignment"), 
-         exp_out = "outcome")  |>
+         exp_out = "outcome")  %>%
   rename(cluster_assignment = term)
 
 # Combine Exposures and outcomes
 exp_out_by_group <- bind_rows(exposures_per_group, outcomes_per_group)
 
 # Get sample size per cluster 
-lucid_clusters_sample_size <- lucid_pips |> 
-  group_by(cluster_assignment) |>
-  summarise(n = length(cluster_assignment)) |> 
+lucid_clusters_sample_size <- lucid_pips %>% 
+  group_by(cluster_assignment) %>%
+  summarise(n = length(cluster_assignment)) %>% 
   ungroup()
 
 # Combine PIPs with sample size per cluster 
-lucid_clusters <- lucid_clusters_sample_size |>
-  tidylog::left_join(exp_out_by_group) |> 
+lucid_clusters <- lucid_clusters_sample_size %>%
+  tidylog::left_join(exp_out_by_group) %>% 
   mutate(m = str_sub(cluster_assignment, end = -9), 
          t = str_sub(cluster_assignment, start = 4, end = 5),
-         p = str_sub(cluster_assignment, start = 7)) |>
-  select(m, t, p, everything()) |>
+         p = str_sub(cluster_assignment, start = 7)) %>%
+  select(m, t, p, everything()) %>%
   janitor::clean_names()
 
 # Make group names
-lucid_clusters <- lucid_clusters |> 
+lucid_clusters <- lucid_clusters %>% 
   mutate(
     group_name = case_when(
       cluster_assignment == "M0_T0_miR1" ~ "Group 1",
@@ -216,7 +216,7 @@ lucid_clusters <- lucid_clusters |>
 
 
 # Pivot wider on exposures and outcomes
-lucid_clusters_w <- lucid_clusters |>
+lucid_clusters_w <- lucid_clusters %>%
   tidylog::pivot_wider(names_from = "exp_out", 
                        values_from = c(estimate:conf_high))
 
@@ -229,7 +229,7 @@ ggplot(lucid_clusters_w,
   ggrepel::geom_label_repel(aes(label = cluster_assignment)) 
 
 # Combine individual level data with summary data 
-lucid_pips_fin <- lucid_pips |> 
+lucid_pips_fin <- lucid_pips %>% 
   tidylog::left_join(lucid_clusters_w)
 ```
 
@@ -237,31 +237,31 @@ lucid_pips_fin <- lucid_pips |>
 
 ```{r visualize profiles}
 ## MAKE omics profiles for each of the 8 clusters 
-top_ftrs <- M_mean2 |> filter(variable %in% M_mean2_top$variable)
+top_ftrs <- M_mean2 %>% filter(variable %in% M_mean2_top$variable)
 
 # Order omic layers
-top_ftrs <- top_ftrs |> 
+top_ftrs <- top_ftrs %>% 
   mutate(omic_layer = fct_relevel(omic_layer, 
                                   c("methylome", "mirna", "transcriptome")), 
-         omic_cluster_named = paste(cluster, str_to_title(omic_layer))) |>
-  arrange(omic_layer) |> 
+         omic_cluster_named = paste(cluster, str_to_title(omic_layer))) %>%
+  arrange(omic_layer) %>% 
   mutate(omic_cluster_named = fct_inorder(omic_cluster_named))
 
 
 # Sort by the magnitude of association with high risk cluster
-top_ftrs <- top_ftrs |> 
-  arrange(-low_high) |> 
-  group_by(variable) |>
-  mutate(high_risk_value = value[1]) |>
-  ungroup() |>
-  arrange(omic_cluster_named, high_risk_value) |> 
+top_ftrs <- top_ftrs %>% 
+  arrange(-low_high) %>% 
+  group_by(variable) %>%
+  mutate(high_risk_value = value[1]) %>%
+  ungroup() %>%
+  arrange(omic_cluster_named, high_risk_value) %>% 
   mutate(variable = fct_inorder(variable))
 
 # Plot omics profile ----
 omics_profile_plot <- function(clusters_to_include, 
                                vjust = 0, 
                                text_size = 4.5){
-  ggplot(top_ftrs |> filter(omic_cluster %in% clusters_to_include), 
+  ggplot(top_ftrs %>% filter(omic_cluster %in% clusters_to_include), 
          aes(fill = color_label, x = value, y = fct_rev(variable))) +
     geom_bar(position="dodge", stat="identity") + #, color = "white"
     geom_vline(xintercept = 0, color = "grey50") +
@@ -317,7 +317,7 @@ gp8_omics = omics_profile_plot(c("M1", "T1", "miR1"), vjust = vjust_profile_nms)
 group_to_plot <- "Group 1"
 exposure_plot_fxn  <- function(group_to_plot, text_just = -.15, size = 4.7) {
   ( base_plot <- ggplot(lucid_clusters %>% 
-                          filter(group_name == group_to_plot) |> 
+                          filter(group_name == group_to_plot) %>% 
                           mutate(estimate = if_else(estimate>1.3, 1.3, estimate)),
                         aes(y = fct_rev(str_to_sentence(exp_out)),
                             x = estimate,
@@ -399,7 +399,7 @@ V(g_full)$cluster_assignment <- lucid_pips_fin$cluster_assignment
 V(g_full)$group_name <- lucid_pips_fin$group_name
 
 # Delete edges
-g <- g_full |> 
+g <- g_full %>% 
   delete_edges(which(E(g_full)$weight > .7)) 
 
 # Backbone layout
@@ -423,8 +423,8 @@ actual_centroids <- lapply(unique(V(g)$group_name), function(cluster) {
 names(actual_centroids) <- unique(V(g)$group_name)
 
 # # Specify the desired centroid of each cluster
-centroid_list <- lucid_clusters_w |>
-  dplyr::select(estimate_exposure, estimate_outcome) |>
+centroid_list <- lucid_clusters_w %>%
+  dplyr::select(estimate_exposure, estimate_outcome) %>%
   as.matrix()
 desired_centroids <-  split(f = lucid_clusters_w$group_name, 
                             x = (((log(centroid_list+2))*30)))

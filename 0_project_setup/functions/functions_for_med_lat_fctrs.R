@@ -26,16 +26,16 @@ run_pca <- function(mat, omic_name) {
   # determine the number of principal components needed to explain 80% of the variance
   n_80_pct <- min((1:length(cum_props))[cum_props > 0.8])
   # create a dataframe of scores for the principal components and scale them
-  PCs <- pca$x[, 1:n_80_pct] |> scale() |> as.data.frame()
+  PCs <- pca$x[, 1:n_80_pct] %>% scale() %>% as.data.frame()
   colnames(PCs) <- paste0(omic_name, "_", colnames(PCs))
   # create a dataframe of loadings for the principal components and scale them
-  loadings_df <- pca$rotation[, 1:n_80_pct] |> scale() |> as.data.frame()
+  loadings_df <- pca$rotation[, 1:n_80_pct] %>% scale() %>% as.data.frame()
   colnames(loadings_df) <- paste0(omic_name, "_", colnames(loadings_df))
   loadings_df <- rownames_to_column(loadings_df, "feature")
   
   # Including all PCs 
   # create a dataframe of scores for the principal components and scale them
-  PCs_full <- pca$x |> scale() |> as.data.frame()
+  PCs_full <- pca$x %>% scale() %>% as.data.frame()
   colnames(PCs_full) <- paste0(omic_name, "_", colnames(PCs_full))
   
   # create a dataframe of proportion of variance explained by each principal component
@@ -90,7 +90,7 @@ get_PCs_jive <- function (result){
     }
   }
   # Rename PCs
-  rownames(PCs) <- PC_names |>
+  rownames(PCs) <- PC_names %>%
     str_replace("  ", "_")
   # Transpose and change to data.frame
   out <- as.data.frame(t(PCs))

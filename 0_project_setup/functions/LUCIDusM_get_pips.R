@@ -32,7 +32,7 @@ get_pips <- function(lucid_fit, exposure){
                           z_margin_3)
   
   # Remove cluster 1 pips (they are redundant)
-  lucid_pips <- lucid_pips |> 
+  lucid_pips <- lucid_pips %>% 
     dplyr::select(-contains("c1"))
   
 }

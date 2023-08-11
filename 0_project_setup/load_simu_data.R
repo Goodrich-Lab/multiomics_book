@@ -25,7 +25,6 @@ covs <- helix_dat_reduced[["phenotype"]][covars] %>%
   fastDummies::dummy_cols(remove_selected_columns = TRUE,
                           remove_first_dummy = TRUE) 
 
-
 # Omics data-----
 ## create list of omics data------
 omics_name <- c("methylome", "transcriptome","proteome", "miRNA","metabolome")
@@ -41,16 +40,13 @@ omics_df <- omics_lst_df  %>%
   purrr::reduce(left_join, by = "name") %>%
   column_to_rownames("name")
 
-
 ## Omics annotations -------------
 omics_names <- readRDS(fs::path(dir_data_hg, "feature_metadata_v2.RDS"))
-
-
 
 # Set Color Palettes ----
 col_pal <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")
 
-# Color pallet for sankey
+# Color pallet for 
 sankey_colors <- matrix(c("exposure", col_pal[6],
                           "lc1",      col_pal[1],
                           "lc2",      col_pal[2],
@@ -65,12 +61,13 @@ sankey_colors <- matrix(c("exposure", col_pal[6],
                           "FALSE",    "#d1d4ff", # Light grey
                           "pos_clus_to_out", "red", 
                           "neg_clus_to_out", "#e4e5f2"), 
-                        byrow = TRUE, nrow = 14) |> 
-  as_tibble(.name_repair = "universal") |>
-  janitor::clean_names() |>
-  rename("domain" = x1, 
-         "range" = x2)
+                        byrow = TRUE, nrow = 14)
+# Change to dataframe
+colnames(sankey_colors) <- c("domain", "range")
+sankey_colors <- as_tibble(sankey_colors)
 
+
+# Assign colors to omics layers
 annotation_colors <- list(Type = c(Methylation = sankey_colors$range[2], 
                                    Transcriptome = sankey_colors$range[5], 
                                    miRNA = sankey_colors$range[4], 

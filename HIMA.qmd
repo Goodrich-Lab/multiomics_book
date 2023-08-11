@@ -28,18 +28,13 @@ result_hima_early <- hima_early_integration(exposure = exposure,
                                             M.family = "gaussian")
 
 # Merge results with feature metadata 
-result_hima_early_fin <- result_hima_early |>
-  mutate(ftr_name = str_remove_all(ftr_name, "`")) |>
-  tidylog::left_join(omics_names) |>
-  mutate(across(where(is.character), ~na_if(., ""))) |>
-  janitor::remove_empty(which = "cols") %>%
-  mutate(omic_layer = ifelse(str_detect(ftr_name, "miR"), 
-                             "miRNA",
-                             omic_layer))
+result_hima_early_fin <- result_hima_early %>%
+  tidylog::left_join(omics_names, by = "ftr_name") %>%
+  mutate(across(where(is.character), ~na_if(., "")))
 
 # Filter to significant features only and scale % total effect to 100
-result_hima_early_fin <- result_hima_early_fin |> 
-  tidylog::filter(BH.FDR < 0.05) |>
+result_hima_early_fin <- result_hima_early_fin %>% 
+  tidylog::filter(BH.FDR < 0.05) %>%
   mutate(pte_early = 100*`% total effect`/sum(`% total effect`))
 ```
 
@@ -55,31 +50,28 @@ result_hima_early_fin <- result_hima_early_fin |>
 
 **- Calculate mediation confidence interval for mediator i with:** - alpha = a1 - se of alpha = se of a1 - beta = b2_i - se of beta = se of b2_star_i,
 
-```{r 2. intermediate integration analysis, cache=TRUE}
-# # Run Analysis (takes ~45 minutes)
-# system.time(
+Note: We would normally have n_boot higher (1000 or more), but here it is set to 12 
+to improve speed of the function.
+
+```{r 2. intermediate integration analysis, cache=FALSE}
+# Run Analysis
 result_hima_intermediate <- hima_intermediate_integration(omics_lst = omics_lst,
-                                                 covs = covs,
-                                                 outcome = outcome,
-                                                 exposure = exposure,
-                                                 n_boot = 12,
-                                                 Y.family = "gaussian")
+                                                          covs = covs,
+                                                          outcome = outcome,
+                                                          exposure = exposure,
+                                                          n_boot = 12,
+                                                          Y.family = "gaussian")
 
 
 # Merge results with feature metadata 
-result_hima_intermediate_fin <- result_hima_intermediate |>
-  mutate(ftr_name = str_remove_all(ftr_name, "`")) |>
-  dplyr::select(-omic_layer) |>
-  tidylog::left_join(omics_names) |>
-  mutate(across(where(is.character), ~na_if(., ""))) |>
-  janitor::remove_empty(which = "cols") %>%
-  mutate(omic_layer = ifelse(str_detect(ftr_name, "miR"), 
-                             "miRNA",
-                             omic_layer))
+result_hima_intermediate_fin <- result_hima_intermediate %>%
+  dplyr::select(-omic_layer) %>%
+  tidylog::left_join(omics_names, by = "ftr_name") %>%
+  mutate(across(where(is.character), ~na_if(., "")))
 
 # Filter to significant only and scale % total effect to 100
-result_hima_intermediate_fin <- result_hima_intermediate_fin |> 
-  tidylog::filter(sig_intermediate == 1) |>
+result_hima_intermediate_fin <- result_hima_intermediate_fin %>% 
+  tidylog::filter(sig_intermediate == 1) %>%
   mutate(pte_intermediate = 100*pte_intermediate/sum(pte_intermediate))
 ```
 
@@ -95,15 +87,14 @@ result_hima_late <- hima_late_integration(exposure = exposure,
                                           M.family = "gaussian")
 
 # Merge results with feature metadata 
-result_hima_late_fin <- result_hima_late |>
-  mutate(ftr_name = str_remove_all(ftr_name, "`")) |>
-  tidylog::left_join(omics_names) |>
-  mutate(across(where(is.character), ~na_if(., ""))) |>
-  janitor::remove_empty(which = "cols")
+result_hima_late_fin <- result_hima_late %>% 
+  dplyr::select(-omic_layer) %>%
+  tidylog::left_join(omics_names, by = "ftr_name") %>%
+  mutate(across(where(is.character), ~na_if(., "")))
 
 # Filter to significant features only, scale % total effect to 100
-result_hima_late_fin <- result_hima_late_fin |> 
-  tidylog::filter(BH.FDR < 0.05) |>
+result_hima_late_fin <- result_hima_late_fin %>% 
+  tidylog::filter(BH.FDR < 0.05) %>%
   mutate(pte_late = 100*`% total effect`/sum(`% total effect`))
 ```
 
@@ -112,64 +103,60 @@ result_hima_late_fin <- result_hima_late_fin |>
 ### Prepare data for figures.
 
 ```{r 4. Prepare Results for Figures}
-early <- result_hima_early_fin |>
-  tidylog::filter(BH.FDR < 0.05) |>
-  mutate(sig_early = if_else(BH.FDR < 0.05, 1, 0)) |>
-  select(ftr_name, 'alpha*beta', pte_early, alpha, beta, sig_early) |>
+early <- result_hima_early_fin %>%
+  mutate(sig_early = if_else(BH.FDR < 0.05, 1, 0)) %>%
+  select(ftr_name, 'alpha*beta', pte_early, alpha, beta, sig_early) %>%
   rename(ie_early = 'alpha*beta', 
          alpha_early = alpha, 
          beta_early = beta)
 
-late <- result_hima_late_fin |>
-  tidylog::filter(BH.FDR < 0.05) |>
-  mutate(sig_late = if_else(BH.FDR < 0.05, 1, 0)) |>
-  select(ftr_name, 'alpha*beta', pte_late, alpha, beta, sig_late) |>
+late <- result_hima_late_fin %>%
+  mutate(sig_late = if_else(BH.FDR < 0.05, 1, 0)) %>%
+  select(ftr_name, 'alpha*beta', pte_late, alpha, beta, sig_late) %>%
   rename(ie_late = 'alpha*beta', 
          alpha_late = alpha, 
          beta_late = beta)
 
 # Filter out effect estimate of 0
-intermediate <- result_hima_intermediate_fin |>
-  tidylog::filter(s1 != 0) |>
+intermediate <- result_hima_intermediate_fin %>%
+  tidylog::filter(s1 != 0) %>%
   select(ftr_name, indirect, pte_intermediate, alpha, 
-         beta_bootstrap,  sig_intermediate) |>
+         beta_bootstrap,  sig_intermediate) %>%
   rename(ie_intermediate = indirect, 
          alpha_intermediate = alpha, 
          beta_intermediate = beta_bootstrap)
 
 # Combine all results
-high_dim_res <- tidylog::full_join(early, late) |>
-  tidylog::full_join(intermediate) |>
+high_dim_res <- tidylog::full_join(early, late, by = "ftr_name") %>%
+  tidylog::full_join(intermediate, by = "ftr_name") %>%
   mutate(omic_layer = get_omic_layer(ftr_name), 
          omic_layer = replace_na(omic_layer, "Metabolome"), 
-         across(where(is.numeric), ~replace_na(., 0))) |>  
-  rowwise() |>
+         across(where(is.numeric), ~replace_na(., 0))) %>%  
+  rowwise() %>%
   mutate(sum_pte = sum(c(pte_early + pte_late, pte_intermediate), 
                        na.rm = TRUE),
          sum_ie = sum(c(ie_early + ie_late, ie_intermediate), 
                       na.rm = TRUE),
-         ftr_name = fct_reorder(ftr_name, sum_pte)) |>
+         ftr_name = fct_reorder(ftr_name, sum_pte)) %>%
   ungroup()
 
 # Pivot data longer
-high_dim_res_long <- high_dim_res |>
+high_dim_res_long <- high_dim_res %>%
   pivot_longer(cols = c(ie_early:sig_intermediate), 
                names_to = c(".value", "method"), 
-               names_sep = "_") |>
-  arrange(ftr_name) |>
+               names_sep = "_") %>%
+  arrange(ftr_name) %>%
   mutate(method = str_to_title(method),
-         omic_layer = as.factor(omic_layer) |>
+         omic_layer = as.factor(omic_layer) %>%
            fct_relevel(c("Methylation", 
                          "Transcriptome", 
                          "miRNA", 
                          "Proteins")), 
-         sig_chr = if_else(sig == 1, "*", ""), 
-         ftr_name = rename_ftrs(ftr_name))
+         sig_chr = if_else(sig == 1, "*", ""))
 
 # Add names of features for plotting
-high_dim_res_fin <- high_dim_res_long |>
-  tidylog::left_join(omics_names |> dplyr::select(-omic_layer))
-  # select(ftr_name_for_plots, everything())
+high_dim_res_fin <- high_dim_res_long %>%
+  tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), by = "ftr_name")
 ```
 
 ### Figure. Correlation plot
@@ -178,20 +165,17 @@ high_dim_res_fin <- high_dim_res_long |>
 # Select the unique features from high dimensional mediation results
 omics_df_subset <- omics_df %>%
   select(unique(high_dim_res_fin$ftr_name)) 
-high_dim_res_fin$ftr_name[!(high_dim_res_fin$ftr_name %in% colnames(omics_df))]
-
-
 
 # Create an annotation dataframe for the selected features
-# Each feature name is annotated with its corresponding omic layer
-annotation <- data.frame(
-  ftr_name = colnames(omics_df_subset)) %>%
+annotation <- omics_names %>% 
+  tidylog::filter(ftr_name %in% unique(high_dim_res_fin$ftr_name)) %>%
   mutate(Type = get_omic_layer(ftr_name))
 
 # Rename columns of the omics dataframe using feature names meant for plots
-setnames(omics_df_subset, old = colnames(omics_df_subset), 
-         new = c(unique(high_dim_res_fin$ftr_name_for_plots)))
-
+setnames(omics_df_subset, 
+         old = colnames(omics_df_subset), 
+         new = annotation$ftr_name_for_plots)
+length(unique(omics_names$ftr_name_for_plots))
 # Compute the correlation matrix for the omics dataframe
 cormat <- cor(omics_df_subset)
 
@@ -205,8 +189,8 @@ p <- ComplexHeatmap::Heatmap(cormat,
                              heatmap_legend_param = list(title = "Correlation"))
 
 # Extract the order of the features from the heatmap and combine into a single vector
-feature_order <- c(ComplexHeatmap::row_order(p)$Methylation, 
-                   ComplexHeatmap::row_order(p)$Transcriptome)
+suppressWarnings(feature_order <- c(ComplexHeatmap::row_order(p)$Methylation, 
+                                    ComplexHeatmap::row_order(p)$Transcriptome))
 
 # Reorder feature names based on the feature order vector
 feature_name_reorder <- colnames(omics_df_subset)[feature_order]
@@ -262,110 +246,67 @@ ggsave(p, filename = fs::path(dir_figs,
 **High dimensional mediation with early (a), intermediate (b), and late (c) integration**
 
 ```{r 6. HIMA plot, fig.height=10}
-# Early integration Plot
-early_plot <- high_dim_res_fin %>% 
-  filter(method == "Early") %>% 
+# Pivot longer for figure
+hima_plot_dat <- high_dim_res_fin %>% 
   pivot_longer(cols = pte:beta) %>% 
   mutate(name = case_when(name == "alpha"~ "Alpha",
                           name == "beta" ~ "Beta",
-                          name == "pte" ~ "TE (%)")) %>%
-  ggplot(aes(x = factor(ftr_name_for_plots, 
-                        levels = c(feature_name_reorder)), 
-             y = value,
-             fill = omic_layer, 
-             alpha = sig_chr,
-             label = sig_chr)) + 
-  geom_bar(stat = "identity") +
-  facet_grid(name ~ ., scales = "free", space = "free_x") +
-  scale_fill_manual(values = c(sankey_colors$range[2], 
-                               sankey_colors$range[5], 
-                               sankey_colors$range[4], 
-                               sankey_colors$range[3])) +
-  scale_alpha_manual(values = c(.25, 1), guide = "none") + 
-  geom_hline(yintercept = 0, linetype = 1, color = "grey50") + 
-  ylab(NULL) + xlab(NULL) +
-  theme(
-    strip.background = element_blank(),
-    strip.text.x = element_blank(),
-    axis.text.x = element_blank(),
-    # axis.text.x = element_text(angle = 90, hjust = 1),
-    legend.title = element_blank(), 
-    legend.position = "none", # Place the legend at the bottom
-    legend.box = "horizontal", # Align the legend horizontally
-    legend.margin = margin(0, 0, 0, 0), # Remove extra margins around the legend
-    legend.box.margin = margin(0, 0, 0, 0), # Adjust legend box margin if needed
-    legend.direction = "horizontal", # Align the legend items horizontally
-    legend.justification = c(1, 0))
+                          name == "pte" ~ "TE (%)"))
 
-# Late integration Plot
-late_plot <- high_dim_res_fin %>% 
-  filter(method == "Late") %>% 
-  pivot_longer(cols = pte:beta) %>% 
-  mutate(name = case_when(name == "alpha"~ "Alpha",
-                          name == "beta" ~ "Beta",
-                          name == "pte" ~ "TE (%)")) %>%
-  ggplot(aes(x = factor(ftr_name_for_plots, levels = c(feature_name_reorder)), 
-             y = value,
-             fill = omic_layer, 
-             alpha = sig_chr,
-             label = sig_chr)) + 
-  geom_bar(stat = "identity") +
-  facet_grid(name ~ .,
-             scales = "free",
-             space = "free_x") + 
-  scale_fill_manual(values = c(sankey_colors$range[2], 
-                               sankey_colors$range[5], 
-                               sankey_colors$range[4], 
-                               sankey_colors$range[3])) +
-  scale_alpha_manual(values = c(.25, 1), guide = "none") + 
-  geom_hline(yintercept = 0, linetype = 1, color = "grey50") + 
-  ylab(NULL) + xlab(NULL) +
-  theme(
-    strip.background = element_blank(),
-    strip.text.x = element_blank(),
-    axis.text.x = element_text(angle = 90, hjust = 0),
-    # axis.text.x = element_blank(),
-    legend.title = element_blank(), 
-    legend.position = "bottom", # Place the legend at the bottom
-    legend.box = "horizontal", # Align the legend horizontally
-    legend.margin = margin(0, 0, 0, 0), # Remove extra margins around the legend
-    legend.box.margin = margin(0, 0, 0, 0), # Adjust legend box margin if needed
-    legend.direction = "horizontal", # Align the legend items horizontally
-    legend.justification = c(1, 0))
+
+hima_plot <- function(data, method, 
+                      legend.position = "none", 
+                      axis.text.x = element_text(angle = 90, hjust = 1)){
+  data %>%
+    filter(method == method) %>% 
+    ggplot(aes(x = ftr_name_for_plots, 
+               y = value,
+               fill = omic_layer, 
+               alpha = sig_chr,
+               label = sig_chr)) + 
+    geom_bar(stat = "identity") +
+    facet_grid(name ~ omic_layer, 
+               scales = "free",
+               space = "free_x") + 
+    scale_fill_manual(values = c(sankey_colors$range[2], 
+                                 sankey_colors$range[5], 
+                                 sankey_colors$range[4], 
+                                 sankey_colors$range[3], 
+                                 sankey_colors$range[6])) +
+    scale_alpha_manual(values = c(.25, 1), guide = "none") + 
+    geom_hline(yintercept = 0, linetype = 1, color = "grey50") + 
+    ylab(NULL) + xlab(NULL) +
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_blank(),
+      axis.text.x = axis.text.x,
+      legend.title = element_blank(), 
+      legend.position = legend.position, # Place the legend at the bottom
+      legend.box = "horizontal", # Align the legend horizontally
+      legend.margin = margin(0, 0, 0, 0), # Remove extra margins around the legend
+      legend.box.margin = margin(0, 0, 0, 0), # Adjust legend box margin if needed
+      legend.direction = "horizontal", # Align the legend items horizontally
+      legend.justification = c(1, 0))
+}
+
+# Early integration Plot
+early_plot <- hima_plot(hima_plot_dat, 
+                        method = "Early",
+                        legend.position = "none", 
+                        axis.text.x = element_blank())
 
 # Intermediate integration Plot
-intermediate_plot <- high_dim_res_fin %>% 
-  filter(method == "Intermediate") %>% 
-  pivot_longer(cols = pte:beta) %>% 
-  mutate(name = case_when(name == "alpha"~ "Alpha",
-                          name == "beta" ~ "Beta",
-                          name == "pte" ~ "TE (%)")) %>%
-  ggplot(aes(x = factor(ftr_name_for_plots, levels = c(feature_name_reorder)), 
-             y = value,
-             fill = omic_layer,
-             alpha = sig_chr,
-             label = sig_chr)) + 
-  geom_bar(stat = "identity") +
-  facet_grid(name ~ ., scales = "free", space = "free_x") + 
-  scale_fill_manual(values = c(sankey_colors$range[2], 
-                               sankey_colors$range[5], 
-                               sankey_colors$range[4], 
-                               sankey_colors$range[3])) +
-  scale_alpha_manual(values = c(.25, 1), guide = "none") + 
-  geom_hline(yintercept = 0, linetype = 1, color = "grey50") + 
-  ylab(NULL) + xlab(NULL) +
-  theme(
-    strip.background = element_blank(),
-    strip.text.x = element_blank(),
-    axis.text.x = element_blank(),
-    legend.title = element_blank(), 
-    legend.position = "none", # Place the legend at the bottom
-    legend.box = "horizontal", # Align the legend horizontally
-    legend.margin = margin(0, 0, 0, 0), # Remove extra margins around the legend
-    legend.box.margin = margin(0, 0, 0, 0), # Adjust legend box margin if needed
-    legend.direction = "horizontal", # Align the legend items horizontally
-    legend.justification = c(1, 0))
+intermediate_plot <- hima_plot(hima_plot_dat, 
+                               method = "Intermediate",
+                               legend.position = "none", 
+                               axis.text.x = element_blank())
 
+# Late integration Plot
+late_plot <- hima_plot(hima_plot_dat,
+                       method = "Late",
+                       legend.position = "bottom")
+
+# Combine Plots
 p <- plot_grid(NULL, early_plot, 
                NULL, intermediate_plot, 
                NULL, late_plot,
@@ -373,10 +314,4 @@ p <- plot_grid(NULL, early_plot,
                rel_heights = c(.03, 0.35, .03, 0.35, 0.03, 0.65),
                labels = c("a) Early", "","b) Intermediate","", "c) Late",""))
 p
-
-# Save Figure 
-ggsave(p, filename = fs::path(dir_figs,
-                              "2_high_dim_multivar_mediation",
-                              "HIMA_plot_070523.jpeg"),
-       width = 10, height = 12, bg = "white")
 ```

@@ -126,14 +126,14 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
       "TC",      sankey_colors$range[sankey_colors$domain == "layer2"],
       "miRNA", sankey_colors$range[sankey_colors$domain == "layer3"],
       "outcome",  sankey_colors$range[sankey_colors$domain == "Outcome"]), 
-    ncol = 2, byrow = TRUE) |>
-    as_tibble(.name_repair = "unique") |> 
-    janitor::clean_names() |>
+    ncol = 2, byrow = TRUE) %>%
+    as_tibble(.name_repair = "unique") %>% 
+    janitor::clean_names() %>%
     dplyr::rename(group = x1, color = x2)
   
   # Add color scheme to nodes
-  nodes_new_plotly <- nodes1 |> 
-    tidylog::left_join(color_pal_sankey) |>
+  nodes_new_plotly <- nodes1 %>% 
+    tidylog::left_join(color_pal_sankey) %>%
     mutate(
       x = case_when(
         group == "exposure" ~ 0,
@@ -144,9 +144,9 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
           str_detect(name, "outcome")~ 2/3
       ))
   
-  nodes_new_plotly1 <- nodes_new_plotly |>
-    tidylog::left_join(omics_names |> dplyr::select(-omic_layer), 
-                       by = c("name" = "ftr_name"))  |>
+  nodes_new_plotly1 <- nodes_new_plotly %>%
+    tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), 
+                       by = c("name" = "ftr_name"))  %>%
     # Modify names of features for plotting
     select(group, color, x, ftr_name_for_plots)%>% 
     rename(name = ftr_name_for_plots) %>%
@@ -157,7 +157,7 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
     
   
   ## 6.2 Get links for Plotly, set color ----
-  links_new <- links1  |>
+  links_new <- links1  %>%
     mutate(
       link_color = case_when(
         # Ref link color
@@ -185,9 +185,9 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
         group == FALSE ~ "#D3D3D3", # Negative association
         group == TRUE ~  "#706C6C")) # Positive association
   
-  links_new1<- links_new |>
-    tidylog::left_join(omics_names |> dplyr::select(-omic_layer), 
-                       by = c("target" = "ftr_name"))  |>
+  links_new1<- links_new %>%
+    tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), 
+                       by = c("target" = "ftr_name"))  %>%
     select(colnames(links_new), ftr_name_for_plots)%>% 
     select(-target) %>%
     rename(target = ftr_name_for_plots)

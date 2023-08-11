@@ -88,28 +88,24 @@ write_rds(s_helix_dat_reduced, file = fs::path(dir_data_hg,
 s_helix_dat_reduced <- readRDS(file = fs::path(dir_data_hg,
                                                "simulate_Hg_ck18_screened_scaled_omics.RDS"))
 # Get all 
-# ftrnms <- lapply(s_helix_dat_reduced[-6], colnames) |> unlist() |> as.character()
+# ftrnms <- lapply(s_helix_dat_reduced[-6], colnames) %>% unlist() %>% as.character()
 # anodat <- readRDS(file = fs::path(dir_data_hg, "all_omics_annotation_v2.RDS"))
 # # Get name to match the column names 
 # anodat$ftr_name_match = str_replace_all(anodat$ftr_name, "-", ".")
 # # Reduce omic metadata to only features in the data
-# anodat_reduced = anodat |>
+# anodat_reduced = anodat %>%
 #   dplyr::filter(ftr_name_match %in% ftrnms)
+# anodat_reduced <- anodat_reduced %>%
+#   mutate(ftr_name = ftr_name_match)  %>%
+#   select(-ftr_name_match)
 # # Save file
 # saveRDS(anodat_reduced, file = fs::path(dir_data_hg, "feature_metadata.RDS"))
 
 ## Read back in
-# anodat_reduced <- readRDS(file = fs::path(dir_data_hg, "feature_metadata.RDS"))
-# anodat_reduced <- anodat_reduced |>
-#   mutate(ftr_name = ftr_name_match)  |>
-#   select(-ftr_name_match)
-# 
-# saveRDS(anodat_reduced, file = fs::path(dir_data_hg, "feature_metadata.RDS"))
-
-
+anodat_reduced <- readRDS(file = fs::path(dir_data_hg, "feature_metadata.RDS"))
 
 # Create omic names for plotting
-anodat_reduced <- anodat_reduced |>
+anodat_reduced <- anodat_reduced %>%
   mutate(ftr_name_for_plots = case_when(
     omic_layer == "miRNA" ~ str_remove(ftr_name, "hsa-"),
     omic_layer == "metabolome" ~ common_name,
@@ -117,16 +113,24 @@ anodat_reduced <- anodat_reduced |>
                                         ftr_name,
                                         gene_names),
     omic_layer == "proteome" ~ str_remove(ftr_name, "pro_"),
-    omic_layer == "transcriptome" ~ gene_assignment)) |>
+    omic_layer == "transcriptome" ~ gene_assignment)) %>%
   mutate(ftr_name_for_plots = case_when(
     ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
     is.na(ftr_name_for_plots)  ~ ftr_name,
     str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
     str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-    TRUE ~ ftr_name_for_plots))
+    TRUE ~ ftr_name_for_plots)) %>%
+  group_by(ftr_name_for_plots) %>% 
+  mutate(ftr_name_for_plots = str_c(ftr_name_for_plots, row_number(), sep = "___")) %>%
+  ungroup() %>%
+  mutate(ftr_name_for_plots = str_replace(ftr_name_for_plots, " ___2", ".2") %>% 
+           str_replace("___2", ".2") %>%
+           str_remove("___1"))
 
 
-anodat_reduced2 <- anodat_reduced |>
+anodat_reduced$ftr_name_for_plots
+
+anodat_reduced2 <- anodat_reduced %>%
   dplyr::select(omic_layer, ftr_name, ftr_name_for_plots)
 
 saveRDS(anodat_reduced2, file = fs::path(dir_data_hg, "feature_metadata_v2.RDS"))

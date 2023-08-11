@@ -61,33 +61,10 @@ fit1 <- estimate_lucid(lucid_model = "early",
 # p1
 # summary_lucid(fit1)   
 
-# Colors ----
-col_pal <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")
-
-# Color pallet for sankey
-sankey_colors <- matrix(c("exposure", col_pal[6],
-                          "lc1",      col_pal[1],
-                          "lc2",      col_pal[2],
-                          "lc3",      col_pal[3],
-                          "lc4",      col_pal[4],
-                          "layer1",   col_pal[1],
-                          "layer2",   col_pal[2],
-                          "layer3",   col_pal[3],
-                          "layer4",   col_pal[4],
-                          "Outcome",  col_pal[8],
-                          "TRUE",     "#6372e0", # Blue
-                          "FALSE",    "#d1d4ff", # Light grey
-                          "pos_clus_to_out", "red", 
-                          "neg_clus_to_out", "#e4e5f2"), 
-                        byrow = TRUE, nrow = 14) |> 
-  as_tibble(.name_repair = "universal") |>
-  janitor::clean_names() |>
-  rename("domain" = x1, 
-         "range" = x2)
-
+# Sankey Diagram
 (p1 <- sankey_early_integration(fit1, text_size = 20))
 
-# saveWidget(p1, file = fs::path(dir_figs,"4_integrated_latent_unknown_clusters/lucid_early_integration.html"))
+p1
 ```
 
 ### Omics profiles for each cluster predicted by LUCID
@@ -95,13 +72,13 @@ sankey_colors <- matrix(c("exposure", col_pal[6],
 ```{r early integration omics profiles, fig.height= 10, fig.width= 10}
 M_mean = as.data.frame(fit1$pars$mu)
 # g_mean = as.data.frame(fit$pars$beta)
-# M_mean <- bind_cols(M_mean, g_mean) |> select(-intercept)
+# M_mean <- bind_cols(M_mean, g_mean) %>% select(-intercept)
 M_mean$cluster = as.factor(1:2)
 M_mean_melt = reshape::melt(M_mean, id.vars = "cluster") 
 M_mean_melt <- M_mean_melt %>% 
   mutate(cluster = ifelse(cluster == 2, "High Risk", "Low Risk"))
 # add color label for omics layer
-M_mean_melt = M_mean_melt |>
+M_mean_melt = M_mean_melt %>%
   mutate(color_label = case_when(str_detect(variable,  "cg") ~ "1", 
                                  str_detect(variable, "TC") ~ "2", 
                                  TRUE ~ "3"))

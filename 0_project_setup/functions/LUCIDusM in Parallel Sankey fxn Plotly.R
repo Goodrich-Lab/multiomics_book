@@ -7,7 +7,7 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
                                          n_z_ftrs_to_plot = NULL){
   # Get number of clusters, layers, etc.
   K <- lucidus_fit$K
-  dimG <- lucidus_fit$res_Beta$Beta[[1]] |> ncol()-1
+  dimG <- lucidus_fit$res_Beta$Beta[[1]] %>% ncol()-1
   n_layers   <- length(lucidus_fit$res_Beta$Beta)
   
   # Get top omics features based on effect size
@@ -29,53 +29,53 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
   mu_lst <- purrr::map(lucidus_fit$res_Mu_Sigma$Mu, 
                        ~as_tibble(.x, rownames = "name"))
   names(mu_lst) <- paste0("layer", c(1:n_layers))
-  dimZ <- purrr::map(mu_lst, ncol) |> as.numeric()-1
-  n_features <- purrr::map(mu_lst, nrow) |> as.numeric()
+  dimZ <- purrr::map(mu_lst, ncol) %>% as.numeric()-1
+  n_features <- purrr::map(mu_lst, nrow) %>% as.numeric()
   names(n_features) <- paste0("layer", c(1:n_layers))
   # Names of features and set order of omics features
-  names_features <- bind_rows(mu_lst, .id = "color_group") |> 
-    rowwise() |>
+  names_features <- bind_rows(mu_lst, .id = "color_group") %>% 
+    rowwise() %>%
     mutate(sum = sum(abs(V1)+abs(V2)), 
-           pos_c2 = if_else(V2>0, "pos", "neg")) |>
-    group_by(color_group, pos_c2) |> arrange(-sum, .by_group = TRUE) |> ungroup() |> 
-    mutate(rnum = row_number()) |>
-    group_by(name) |> slice_head() |> ungroup() |>
-    arrange(color_group, rnum) |>
+           pos_c2 = if_else(V2>0, "pos", "neg")) %>%
+    group_by(color_group, pos_c2) %>% arrange(-sum, .by_group = TRUE) %>% ungroup() %>% 
+    mutate(rnum = row_number()) %>%
+    group_by(name) %>% slice_head() %>% ungroup() %>%
+    arrange(color_group, rnum) %>%
     dplyr::select(name, color_group)
   
   # Values for g --> x association
   valueGtoX <- c(lapply(lucidus_fit$res_Beta$Beta, 
-                        function(x)(x[-1])) |>
+                        function(x)(x[-1])) %>%
                    unlist(), 
                  rep(0, dimG*n_layers))
   
   # For Cluster 2 (which needs effect estimates): 
-  valueGtoX_c1 <- do.call(rbind, lucidus_fit$res_Beta$Beta)[,-1] |>
-    as_tibble() |>
+  valueGtoX_c1 <- do.call(rbind, lucidus_fit$res_Beta$Beta)[,-1] %>%
+    as_tibble() %>%
     dplyr::mutate(layer = str_c("(Layer ", row_number(), ")"),
                   cluster = "Cluster 2") 
   
   # For cluster 1 (ref. cluster, effect est = 0):
-  valueGtoX_c2 <- valueGtoX_c1 |>
+  valueGtoX_c2 <- valueGtoX_c1 %>%
     mutate(across(where(is.numeric), ~0), 
            cluster = "Cluster 1")
   
   # combine, pivot longer, and create source and target columns
-  GtoX <- bind_rows(valueGtoX_c1, valueGtoX_c2) |>
-    mutate(target = str_c(cluster, layer, sep = " ")) |>
+  GtoX <- bind_rows(valueGtoX_c1, valueGtoX_c2) %>%
+    mutate(target = str_c(cluster, layer, sep = " ")) %>%
     pivot_longer(cols = setdiff(colnames(valueGtoX_c1), 
                                 c("layer", "cluster")), 
-                 names_to = "source", values_to = "value") |>
+                 names_to = "source", values_to = "value") %>%
     mutate(color_group = as.factor(value > 0), 
-           value = abs(value)) |>
-    dplyr::select(source, target, value, color_group) |>
+           value = abs(value)) %>%
+    dplyr::select(source, target, value, color_group) %>%
     as.data.frame()
   
   valueXtoZ <- c(lapply(lucidus_fit$res_Mu_Sigma$Mu, 
-                        function(x)x[, 1]) |> 
+                        function(x)x[, 1]) %>% 
                    unlist(), 
                  lapply(lucidus_fit$res_Mu_Sigma$Mu, 
-                        function(x)x[, 2]) |> 
+                        function(x)x[, 2]) %>% 
                    unlist())
   
   valueXtoY <- c(rep(0, n_layers), 
@@ -93,7 +93,7 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
                                 # rep("Cluster 2 (Layer 4)", n_features[4])
   ), 
   target = rep(c(lapply(lucidus_fit$res_Mu_Sigma$Mu,
-                        rownames) |> unlist()),
+                        rownames) %>% unlist()),
                K[1]), 
   value = abs(valueXtoZ), 
   color_group = as.factor(valueXtoZ > 0))
@@ -114,7 +114,7 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
   
   # create Sankey diagram
   # Create Links ----
-  links <- rbind(GtoX, XtoZ, XtoY) |>
+  links <- rbind(GtoX, XtoZ, XtoY) %>%
     mutate(
       # Group: one of exposure, clusters, or outcomes 
       # (doesn't include Z.order by desired order)
@@ -133,29 +133,29 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
       # Source group_ for color (one of: exposure, : lc1-lc4 (for omics layers), outcome, or other 
       color_group_node = if_else(source == "Outcome", 
                                  "Outcome", 
-                                 source_layer)) |>
-    group_by(source_group) |>
-    arrange(source_layer, .by_group = TRUE) |>
-    ungroup() |>
+                                 source_layer)) %>%
+    group_by(source_group) %>%
+    arrange(source_layer, .by_group = TRUE) %>%
+    ungroup() %>%
     dplyr::select(source, target, value, color_group, color_group_node)
   
   
   # Create Nodes ----
-  nodes <- links |>
-    dplyr::select(source, color_group_node) |>
-    mutate(rownum = row_number()) |>
+  nodes <- links %>%
+    dplyr::select(source, color_group_node) %>%
+    mutate(rownum = row_number()) %>%
     rename(name = source, 
-           color_group = color_group_node) |>
+           color_group = color_group_node) %>%
     # Add outcome (only if outcome is on right side)
-    bind_rows(data.frame(name = "Outcome", color_group = "Outcome")) |>
-    group_by(name) |>
-    slice_head() |>
-    ungroup() |>
-    arrange(rownum) |>
-    dplyr::select(-rownum) |>
+    bind_rows(data.frame(name = "Outcome", color_group = "Outcome")) %>%
+    group_by(name) %>%
+    slice_head() %>%
+    ungroup() %>%
+    arrange(rownum) %>%
+    dplyr::select(-rownum) %>%
     # Add feature names
-    bind_rows(names_features) |> 
-    mutate(id = row_number()-1) |>
+    bind_rows(names_features) %>% 
+    mutate(id = row_number()-1) %>%
     tidylog::left_join(sankey_colors, by = c( "color_group"= "domain"))
   
   # Join links and nodes for color names -----
@@ -173,7 +173,7 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
   
     
   # Manually change colors ----
-  links <- links  |>
+  links <- links  %>%
     mutate(
       link_color = case_when(
         # Ref link color
