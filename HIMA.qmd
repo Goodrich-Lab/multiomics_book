@@ -5,14 +5,11 @@ date: "08/10/2023"
 format: 
   html:
     code-fold: true
----
-
-
-
+---   
 
 ## *Set up project for High Dimensional Mediation Analysis*
 
-```{r 0. setup, include = TRUE, echo = FALSE, message=FALSE}
+```{r 0. setup, include = TRUE, echo = TRUE, message=FALSE}
 source(fs::path(here::here(),"0_project_setup","libraries.R"))
 source(fs::path(here::here(),"0_project_setup","directories.R"))
 source(fs::path(here::here(),"0_project_setup","load_simu_data.R"))
@@ -52,54 +49,46 @@ result_hima_early_fin <- result_hima_early_fin %>%
 
 1.  ***Regression 1 (linear regression):***
 
-    ```{=tex}
-    \begin{equation}
-    m_i = a_0 + a_1 \times x
-    \label{eq:reg1}
-    \end{equation}
-    ```
-    *Where:*
-
-    -   *(* $$x$$ *) is exposure.*
-    -   *(* $$m_i$$ *) is each mediator.*
+```{=tex}
+\begin{equation}
+m_i = a_0 + a_1 \times x
+\label{eq:reg1}
+\end{equation}
+``` 
+|    Where $x$ is the exposure and $m_i$ is each mediator.
 
 2.  ***Regression 2 (group lasso):***
 
-    ```{=tex}
-    \begin{equation}
-    y = b_0 + b_1 \times x + b_{2_i} \times M
-    \label{eq:reg2}
-    \end{equation}
-    ```
-    *Where:*
-
-    -   *(* $$y$$ *) is the outcome.*
-    -   *(* $$x$$ *) is exposure.*
-    -   *(* $$M$$ *) is the mediator matrix with corresponding estimate (* $$b_{2_i}$$ *).*
-    -   *The bootstrapped standard error (se) of (* $$b_{2_i}$$ *) is used for calculating mediation confidence intervals.*
+```{=tex}
+\begin{equation}
+y = b_0 + b_1 \times x + b_{2_i} \times M
+\label{eq:reg2}
+\end{equation}
+```
+|    Where $y$ is the outcome, $x$ is the exposure, $M$ is the mediator matrix with corresponding estimate $b_{2_i}$. The bootstrapped standard error (se) of $b_{2_i}$ is used for calculating mediation confidence intervals.
 
 3.  ***Calculate mediation confidence interval for mediator ( i ):***
 
-    ```{=tex}
-    \begin{align}
-    \alpha &= a_1 \label{eq:alpha}\\
-    \text{se of } \alpha &= \text{se of } a_1 \label{eq:se_alpha}\\
-    \beta &= b_{2_i} \label{eq:beta}\\
-    \text{se of } \beta &= \text{se of } b_{2_i} \label{eq:se_beta}
-    \end{align}
-    ```
+```{=tex}
+\begin{align}
+\alpha &= a_1 \label{eq:alpha}\\
+\text{se of } \alpha &= \text{se of } a_1 \label{eq:se_alpha}\\
+\beta &= b_{2_i} \label{eq:beta}\\
+\text{se of } \beta &= \text{se of } b_{2_i} \label{eq:se_beta}
+\end{align}
+```
 
-*Note: We would normally have n_boot higher (1000 or more), but here it is set to 12 to improve speed of the function.*
+*Note: For the following code, we would normally set n_boot to a higher value (1000 or more). Here, it is set to 12 to improve the speed of the function.*
 
-```{r 2. intermediate integration analysis}
+```{r 2. intermediate integration analysis, cache=TRUE}
 # Run Analysis
 result_hima_intermediate <- hima_intermediate_integration(
   omics_lst = omics_lst,
-                                                          covs = covs,
-                                                          outcome = outcome,
-                                                          exposure = exposure,
-                                                          n_boot = 12,
-                                                          Y.family = "gaussian")
+  covs = covs,
+  outcome = outcome,
+  exposure = exposure,
+  n_boot = 12,
+  Y.family = "gaussian")
 
 # Merge results with feature metadata 
 result_hima_intermediate_fin <- result_hima_intermediate %>%
@@ -136,9 +125,9 @@ result_hima_late_fin <- result_hima_late_fin %>%
   mutate(pte_late = 100*`% total effect`/sum(`% total effect`))
 ```
 
-## *Figures: High dimensional mediation plots.*
+## Figures: High dimensional mediation plots.
 
-### *Prepare data for figures.*
+First, prepare the results for figures.
 
 ```{r 4. Prepare Results for Figures}
 early <- result_hima_early_fin %>%
@@ -197,7 +186,7 @@ high_dim_res_fin <- high_dim_res_long %>%
   tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), by = "ftr_name")
 ```
 
-### *Figure. Correlation plot*
+### *Correlation heatmap*
 
 ```{r 5. correlation plot}
 # Select the unique features from high dimensional mediation results
@@ -213,7 +202,7 @@ annotation <- omics_names %>%
 setnames(omics_df_subset, 
          old = colnames(omics_df_subset), 
          new = annotation$ftr_name_for_plots)
-length(unique(omics_names$ftr_name_for_plots))
+
 # Compute the correlation matrix for the omics dataframe
 cormat <- cor(omics_df_subset)
 

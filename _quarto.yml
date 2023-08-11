@@ -4,7 +4,7 @@ project:
 book:
   title: "Multi-omic Analyses for Precision Health"
   author: "Jesse Goodrich, Hongxu Wang, Qiran Jia, and David Conti"
-  date: "8/10/2023"
+  date: "8/7/2023"
   chapters:
     - index.qmd
     - intro.qmd
@@ -12,16 +12,17 @@ book:
     - Lucid Early Integration.qmd
     - Lucid in Parallel.qmd
     - Lucid in Serial.qmd
+    - appendix_code.qmd
     - references.qmd
 
 bibliography: references.bib
 
 format:
   html:
-    embed-resources: true
-    self-contained-math: true
-    self-contained: true
+    code-fold: true
     theme: cosmo
-
+    self-contained: true
+    self-contained-math: true
+  
 editor: visual
 
