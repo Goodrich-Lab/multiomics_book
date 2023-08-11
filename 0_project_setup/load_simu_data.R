@@ -41,7 +41,7 @@ omics_df <- omics_lst_df  %>%
   column_to_rownames("name")
 
 ## Omics annotations -------------
-omics_names <- readRDS(fs::path(dir_data_hg, "feature_metadata_v2.RDS"))
+omics_names <- readRDS(fs::path(dir_data_hg, "feature_metadata.RDS"))
 
 # Set Color Palettes ----
 col_pal <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")

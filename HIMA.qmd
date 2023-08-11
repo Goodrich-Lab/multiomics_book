@@ -233,12 +233,6 @@ p <- ggplot(correlation_matrix_melt,
                        midpoint = 0, limits = c(-1, 1))
 
 p
-
-# Save the ggplot object to a file
-ggsave(p, filename = fs::path(dir_figs,
-                              "2_high_dim_multivar_mediation",
-                              "correlaton_plot_070523.jpeg"),
-       width = 9, height = 9.5, bg = "white")
 ```
 
 ## Figure 4. High dimensional mediation plots.
