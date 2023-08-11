@@ -1,4 +1,11 @@
-# High Dimensional Mediation
+---
+title: "High Dimensional Mediation"
+author: "Jesse Goodrich, Hongxu Wang, Qiran Jia, and David Conti"
+date: "08/10/2023"
+format: 
+  html:
+    code-fold: true
+---
 
 ## *Set up project for High Dimensional Mediation Analysis*
 

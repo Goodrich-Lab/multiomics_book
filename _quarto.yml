@@ -9,6 +9,9 @@ book:
     - index.qmd
     - intro.qmd
     - HIMA.qmd
+    - Lucid Early Integration.qmd
+    - Lucid in Parallel.qmd
+    - Lucid in Serial.qmd
     - appendix_code.qmd
     - references.qmd
 
