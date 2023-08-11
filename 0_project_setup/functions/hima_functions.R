@@ -1,82 +1,5 @@
-# High Dimensional Mediation Analysis Framework Functions
-
-# 1. HIMA with late integration ----
-#' Performs HIMA mediation analysis on multiple omics layers with late integration
-#'
-#' This function uses HIMA (High-dimensional Mediation Analysis) to perform 
-#' mediation analyses on multiple omics layers. For each omics layer, it runs 
-#' HIMA with exposure, outcome, covariates, and that specific omics layer as 
-#' input, and then collects the results as a tibble. The results for each type
-#' of omics layer are stored in a list and then concatenated to form the final 
-#' result. The values are scaled to a percentage of total effect and metadata 
-#' is joined to fill in missing information.
-#'
-#' @param exposure a numeric vector containing exposure measurements
-#' @param outcome a numeric vector containing outcome measurements
-#' @param omics a named list containing multiple omics layers
-#' @param covs a data frame containing covariate information
-#' @param omics_names a data frame with metadata for each omics layer
-#' @return a tibble with High-dimensional Mediation Analysis results, including metadata
-#' @importFrom dplyr mutate select left_join across
-#' @importFrom janitor remove_empty
-#' @importFrom HIMA hima
-#' @importFrom purrr map
-#' @importFrom stats var
-#'
-#' @export
-hima_late_integration <- function(exposure,
-                                  outcome,
-                                  omics_lst,
-                                  covs = NULL, 
-                                  Y.family,
-                                  M.family = "gaussian") {
-  
-  # Get number of omics layers
-  n_omics <- length(omics_lst)
-  omics_name <- names(omics_lst)
-  # Start the computation
-  result_hima_late <- vector(mode = "list", length = n_omics)
-  for(i in 1:n_omics) {
-    cat(paste(names(omics_lst)[i], "start\n"))
-    
-    # Run HIMA with input data
-    result_hima_late[[i]] <- hima(X = exposure,
-                                  Y = outcome,
-                                  M = omics_lst[[i]],
-                                  # COV.XM = covs,
-                                  Y.family = Y.family,
-                                  M.family = M.family, 
-                                  max.iter = 100000, 
-                                  scale = FALSE) %>%
-      as_tibble(rownames = "ftr_name")
-    
-    cat(paste(names(omics_lst)[i], "complete\n"))
-  }
-  
-  # Assign good names
-  names(result_hima_late) <- names(omics_lst)
-  
-  # Concatenate the resulting data frames
-  result_hima_late_df <- bind_rows(result_hima_late, .id = "omic_layer")
-  
-  # Add key details
-  result_hima_late_df <- result_hima_late_df %>%
-    dplyr::mutate(
-      multiomic_mthd = "Late Integration",
-      mediation_mthd = "HIMA") %>%
-    dplyr::select(multiomic_mthd, mediation_mthd, 
-                  omic_layer, ftr_name, 
-                  everything())
-  
-  # Return the final table
-  return(result_hima_late_df)
-}
-
-
-
-
-# 2. HIMA with early integration ----
-#' Conducts HIMA mediation analysis with early integration
+## ---- HIMA_early ----
+#' Conducts High Dimensional Mediation Analysis with Early Integration
 #' 
 #' Given exposure, outcome and multiple omics data,
 #' function runs HIMA mediation analysis with early integration
@@ -142,9 +65,8 @@ hima_early_integration <- function(exposure,
 }
 
 
-
-
-# 3. HIMA with intermediate integration -------
+## ---- HIMA_intermediate ----
+#' Conducts High Dimensional Mediation Analysis with Intermediate Integration
 #' Combines -omic data with covariates to calculate the indirect effect 
 #' of each individial, possible mediating feature on the relationship
 #' between exposure and outcome using cooperative group lasso 
@@ -383,3 +305,71 @@ hima_intermediate_integration <- function(omics_lst,
 }
 
 
+## ---- HIMA_late ----
+#' Conducts High Dimensional Mediation Analysis with Late Integration
+#' Performs HIMA mediation analysis on multiple omics layers with late integration
+#'
+#' This function uses HIMA (High-dimensional Mediation Analysis) to perform 
+#' mediation analyses on multiple omics layers. For each omics layer, it runs 
+#' HIMA with exposure, outcome, covariates, and that specific omics layer as 
+#' input, and then collects the results as a tibble. The results for each type
+#' of omics layer are stored in a list and then concatenated to form the final 
+#' result. The values are scaled to a percentage of total effect and metadata 
+#' is joined to fill in missing information.
+#'
+#' @param exposure a numeric vector containing exposure measurements
+#' @param outcome a numeric vector containing outcome measurements
+#' @param omics a named list containing multiple omics layers
+#' @param covs a data frame containing covariate information
+#' @param omics_names a data frame with metadata for each omics layer
+#' @return a tibble with High-dimensional Mediation Analysis results, including metadata
+#' @importFrom dplyr mutate select left_join across
+#' @importFrom janitor remove_empty
+#' @importFrom HIMA hima
+#' @importFrom purrr map
+#' @importFrom stats var
+#'
+#' @export
+hima_late_integration <- function(exposure,
+                                  outcome,
+                                  omics_lst,
+                                  covs = NULL, 
+                                  Y.family,
+                                  M.family = "gaussian") {
+  
+  # Get number of omics layers
+  n_omics <- length(omics_lst)
+  omics_name <- names(omics_lst)
+  # Start the computation
+  result_hima_late <- vector(mode = "list", length = n_omics)
+  for(i in 1:n_omics) {
+        # Run HIMA with input data
+    result_hima_late[[i]] <- hima(X = exposure,
+                                  Y = outcome,
+                                  M = omics_lst[[i]],
+                                  # COV.XM = covs,
+                                  Y.family = Y.family,
+                                  M.family = M.family, 
+                                  max.iter = 100000, 
+                                  scale = FALSE) %>%
+      as_tibble(rownames = "ftr_name")
+  }
+  
+  # Assign omic names
+  names(result_hima_late) <- names(omics_lst)
+  
+  # Concatenate the resulting data frames
+  result_hima_late_df <- bind_rows(result_hima_late, .id = "omic_layer")
+  
+  # Add key details
+  result_hima_late_df <- result_hima_late_df %>%
+    dplyr::mutate(
+      multiomic_mthd = "Late Integration",
+      mediation_mthd = "HIMA") %>%
+    dplyr::select(multiomic_mthd, mediation_mthd, 
+                  omic_layer, ftr_name, 
+                  everything())
+  
+  # Return the final table
+  return(result_hima_late_df)
+}
