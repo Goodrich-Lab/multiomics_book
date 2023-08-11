@@ -8,16 +8,17 @@ book:
   chapters:
     - index.qmd
     - intro.qmd
-    - summary.qmd
+    - HIMA.qmd
     - references.qmd
 
 bibliography: references.bib
 
 format:
   html:
+    embed-resources: true
+    self-contained-math: true
+    self-contained: true
     theme: cosmo
-  pdf:
-    documentclass: scrreprt
 
 editor: visual
 

@@ -43,8 +43,8 @@ get_omic_layer_numeric <- function(x){
 
 # rename features
 rename_ftrs <- function(x){ 
-  x |> 
-    str_remove("metser_log.") |>
-    str_remove("hsa-") |>
+  x %>% 
+    str_remove("metser_log.") %>%
+    str_remove("hsa-") %>%
     str_remove("pro_")
 }

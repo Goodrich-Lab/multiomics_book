@@ -19,16 +19,8 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 meta_df <- data.frame(ftr_name = c(colnames(omics_lst$methylome),
                                    colnames(omics_lst$transcriptome),
                                    colnames(omics_lst$miRNA))) %>%
-  mutate(omic_layer = get_omic_layer_lowercase(ftr_name) ) |>
-  tidylog::left_join(omics_names |> dplyr::select(-omic_layer))  |>
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name,
-      str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name_for_plots)) |>
+  mutate(omic_layer = get_omic_layer_lowercase(ftr_name) ) %>%
+  tidylog::left_join(omics_names %>% dplyr::select(-omic_layer))  %>%
   select(ftr_name_for_plots, ftr_name, omic_layer) 
 
 
@@ -113,9 +105,9 @@ color_pal_sankey <- matrix(c("exposure", "red",
                                "CpG",       col_pal[1],
                                "miRNA",  col_pal[3],
                                "outcome",  "grey"), 
-                             ncol = 2, byrow = TRUE) |>
-    as_tibble(.name_repair = "unique") |> 
-    janitor::clean_names() |>
+                             ncol = 2, byrow = TRUE) %>%
+    as_tibble(.name_repair = "unique") %>% 
+    janitor::clean_names() %>%
     dplyr::rename(group = x1, color = x2)
   
 (p <- sankey_in_serial(fit1, 

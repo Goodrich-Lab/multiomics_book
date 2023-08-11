@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+*/archive/
 
 # Quarto Book Output
 /.quarto/

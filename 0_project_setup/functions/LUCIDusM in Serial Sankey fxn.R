@@ -110,15 +110,15 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   n_omics_3 <- length(lucid_fit3$var.names$Znames)
   
   # combine link data
-  lnks1_methylation <- sankey_dat1[["links"]] |> mutate(analysis = "1_methylation")
-  lnks2_miRNA  <- sankey_dat2[["links"]] |> mutate(analysis = "2_miRNA")
-  lnks3_transcription    <- sankey_dat3[["links"]] |> mutate(analysis = "3_transcript")
+  lnks1_methylation <- sankey_dat1[["links"]] %>% mutate(analysis = "1_methylation")
+  lnks2_miRNA  <- sankey_dat2[["links"]] %>% mutate(analysis = "2_miRNA")
+  lnks3_transcription    <- sankey_dat3[["links"]] %>% mutate(analysis = "3_transcript")
   links <- bind_rows(lnks1_methylation, lnks2_miRNA, lnks3_transcription)
   
   # combine node data
-  nodes1_methylation <- sankey_dat1[["nodes"]] |> mutate(analysis = "1_methylation")
-  nodes2_miRNA  <- sankey_dat2[["nodes"]] |> mutate(analysis = "2_miRNA")
-  nodes3_transcription    <- sankey_dat3[["nodes"]] |> mutate(analysis = "3_transcript")
+  nodes1_methylation <- sankey_dat1[["nodes"]] %>% mutate(analysis = "1_methylation")
+  nodes2_miRNA  <- sankey_dat2[["nodes"]] %>% mutate(analysis = "2_miRNA")
+  nodes3_transcription    <- sankey_dat3[["nodes"]] %>% mutate(analysis = "3_transcript")
   nodes <- bind_rows(nodes1_methylation, nodes2_miRNA, nodes3_transcription)
   
   
@@ -131,7 +131,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   
   ## 2.2 Change link names ----
   # Change link names and 
-  lnks1_methylation_new <- sankey_dat1[["links"]] |>
+  lnks1_methylation_new <- sankey_dat1[["links"]] %>%
     mutate(
       analysis = "1_methylation",
       source = case_when(
@@ -141,18 +141,18 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
       target = case_when(
         target == names_clusters_1$name_og[1] ~ names_clusters_1$name_new[1],
         target == names_clusters_1$name_og[2] ~ names_clusters_1$name_new[2],
-        TRUE ~ target)) |>
+        TRUE ~ target)) %>%
     tidylog::filter(target != "outcome")
   
   ## 2.3 Change node names ----
   # first, change latent cluster names to analysis specific cluster names
-  nodes1_methylation_new <- sankey_dat1[["nodes"]] |>
+  nodes1_methylation_new <- sankey_dat1[["nodes"]] %>%
     mutate(
       name = case_when(
         name == names_clusters_1$name_og[1] ~ names_clusters_1$name_new[1],
         name == names_clusters_1$name_og[2] ~ names_clusters_1$name_new[2],
         TRUE ~ name), 
-      group = if_else(group == "biomarker", "CpG", as.character(group))) |>
+      group = if_else(group == "biomarker", "CpG", as.character(group))) %>%
     tidylog::filter(group != "outcome")
   
   
@@ -173,7 +173,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
     name_new = c("<b>miRNA\nProfile 0</b>", "<b>miRNA\nProfile 1</b>"))
   
   ## 3.2 Change cluster names ----
-  lnks2_miRNA_new <- sankey_dat2[["links"]] |> 
+  lnks2_miRNA_new <- sankey_dat2[["links"]] %>% 
     mutate(
       analysis = "2_miRNA", 
       source = case_when(
@@ -183,11 +183,11 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
       target = case_when(
         target == names_clusters_2$name_og[1] ~ names_clusters_2$name_new[1], 
         target == names_clusters_2$name_og[2] ~ names_clusters_2$name_new[2], 
-        TRUE ~ target)) |>
+        TRUE ~ target)) %>%
     tidylog::filter(target != "outcome")
   
   ## 3.3 Change node names ----
-  nodes2_miRNA_new <- sankey_dat2[["nodes"]] |> 
+  nodes2_miRNA_new <- sankey_dat2[["nodes"]] %>% 
     mutate(
       name = case_when(
         name == names_clusters_2$name_og[1] ~ names_clusters_2$name_new[1], 
@@ -195,7 +195,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
         TRUE ~ name), 
       group = case_when(group == "exposure" ~ "lc", 
                         group == "biomarker" ~ "miRNA",
-                        TRUE ~ as.character(group))) |>
+                        TRUE ~ as.character(group))) %>%
     tidylog::filter(name != "outcome")
   
   # Visualize
@@ -217,7 +217,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   
   
   ## 4.2 Change cluster names ----
-  lnks3_transcript_new <- sankey_dat3[["links"]] |> 
+  lnks3_transcript_new <- sankey_dat3[["links"]] %>% 
     mutate(
       analysis = "3_transcript", 
       source = case_when(
@@ -230,7 +230,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
         TRUE ~ target))
   
   ## 4.3 Change node names ----
-  nodes3_transcript_new <- sankey_dat3[["nodes"]] |> 
+  nodes3_transcript_new <- sankey_dat3[["nodes"]] %>% 
     mutate(
       name = case_when(
         name == names_clusters_3$name_og[1] ~ names_clusters_3$name_new[1], 
@@ -255,26 +255,26 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   ## 5.1 Final Links ----
   links_all_1 <- bind_rows(lnks1_methylation_new, 
                            lnks2_miRNA_new,
-                           lnks3_transcript_new) |>
+                           lnks3_transcript_new) %>%
     dplyr::select(-IDsource, -IDtarget)
   
   
   ### 5.1.1 Arrange by magnitude ----
-  omics_priority <- links_all_1 |> 
+  omics_priority <- links_all_1 %>% 
     tidylog::filter(str_detect(source, "Profile 0"), 
                     str_detect(target, "Profile 0", negate = TRUE), 
                     str_detect(target, "Profile 1", negate = TRUE), 
-                    str_detect(target, "outcome", negate = TRUE)) |>
-    group_by(source) |>
-    arrange(desc(group), desc(value), .by_group = TRUE) |>
-    mutate(omics_order = row_number()) |>
-    ungroup() |>
+                    str_detect(target, "outcome", negate = TRUE)) %>%
+    group_by(source) %>%
+    arrange(desc(group), desc(value), .by_group = TRUE) %>%
+    mutate(omics_order = row_number()) %>%
+    ungroup() %>%
     tidylog::select(target, omics_order)
   
   
   
-  links_all <- links_all_1 |>
-    tidylog::left_join(omics_priority) |>
+  links_all <- links_all_1 %>%
+    tidylog::left_join(omics_priority) %>%
     mutate(
       # arrange_me = if_else(is.na(omics_order), 
       #                           "dont_arrange", 
@@ -285,37 +285,37 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
       #                              omics_order), 
       row_num_to_add = if_else(is.na(omics_order), 
                                as.numeric(row_num), 
-                               NA_real_) |>
+                               NA_real_) %>%
         zoo::na.locf(),
       order = if_else(is.na(omics_order), 
                       row_num_to_add, 
                       row_num_to_add+omics_order)
-    ) |>
+    ) %>%
     arrange(order)
   
   
   ### 5.1.2 Get new source and target IDs ----
   # First, combine all layers, get unique identifier
   node_ids <- tibble(name = unique(c(unique(links_all$source), 
-                                     unique(links_all$target)))) |>
+                                     unique(links_all$target)))) %>%
     mutate(ID = row_number()-1)
   
   # Then combine with original data 
-  links_new <- links_all |>
-    tidylog::left_join(node_ids, by = c("source" = "name")) |>
-    dplyr::rename(IDsource = ID) |>
-    tidylog::left_join(node_ids, by = c("target" = "name")) |>
+  links_new <- links_all %>%
+    tidylog::left_join(node_ids, by = c("source" = "name")) %>%
+    dplyr::rename(IDsource = ID) %>%
+    tidylog::left_join(node_ids, by = c("target" = "name")) %>%
     dplyr::rename(IDtarget = ID)
   
   
   ## 5.2 Final Nodes ----
-  nodes_new <- node_ids |>
-    tidylog::select(name) |>
+  nodes_new <- node_ids %>%
+    tidylog::select(name) %>%
     tidylog::left_join(bind_rows(nodes1_methylation_new, 
                                  nodes2_miRNA_new,
                                  nodes3_transcript_new))
   # remove duplicates 
-  nodes_new_nodup <- nodes_new[!base::duplicated(nodes_new),] |>
+  nodes_new_nodup <- nodes_new[!base::duplicated(nodes_new),] %>%
     base::as.data.frame()
   
   
@@ -323,8 +323,8 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   library(plotly)
   
   # Add color scheme to nodes
-  nodes_new_plotly <- nodes_new_nodup |> 
-    tidylog::left_join(color_pal_sankey) |>
+  nodes_new_plotly <- nodes_new_nodup %>% 
+    tidylog::left_join(color_pal_sankey) %>%
     mutate(
       x = case_when(
         group == "exposure" ~ 0,
@@ -339,7 +339,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   
   
   ## 6.2 Get links for Plotly, set color ----
-  links_new <- links_new  |>
+  links_new <- links_new  %>%
     mutate(
       link_color = case_when(
         # Ref link color

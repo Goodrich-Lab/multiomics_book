@@ -2,6 +2,7 @@
 
 ## *Set up project for High Dimensional Mediation Analysis*
 
+
 ```{r 0. setup, include = TRUE, echo = FALSE, message=FALSE}
 source(fs::path(here::here(),"0_project_setup","libraries.R"))
 source(fs::path(here::here(),"0_project_setup","directories.R"))
@@ -16,7 +17,9 @@ options(knitr.table.format = "html")
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
+
 ## *Early integration*
+
 
 ```{r 1. early integration analysis}
 # Run Analysis
@@ -38,9 +41,11 @@ result_hima_early_fin <- result_hima_early_fin %>%
   mutate(pte_early = 100*`% total effect`/sum(`% total effect`))
 ```
 
+
 ## *Intermediate Integration*
 
 1.  ***Regression 1 (linear regression):***
+
 
     ```{=tex}
     \begin{equation}
@@ -48,6 +53,7 @@ result_hima_early_fin <- result_hima_early_fin %>%
     \label{eq:reg1}
     \end{equation}
     ```
+
     *Where:*
 
     -   *(* $$x$$ *) is exposure.*
@@ -55,12 +61,14 @@ result_hima_early_fin <- result_hima_early_fin %>%
 
 2.  ***Regression 2 (group lasso):***
 
+
     ```{=tex}
     \begin{equation}
     y = b_0 + b_1 \times x + b_{2_i} \times M
     \label{eq:reg2}
     \end{equation}
     ```
+
     *Where:*
 
     -   *(* $$y$$ *) is the outcome.*
@@ -69,6 +77,7 @@ result_hima_early_fin <- result_hima_early_fin %>%
     -   *The bootstrapped standard error (se) of (* $$b_{2_i}$$ *) is used for calculating mediation confidence intervals.*
 
 3.  ***Calculate mediation confidence interval for mediator ( i ):***
+
 
     ```{=tex}
     \begin{align}
@@ -79,7 +88,9 @@ result_hima_early_fin <- result_hima_early_fin %>%
     \end{align}
     ```
 
+
 *Note: We would normally have n_boot higher (1000 or more), but here it is set to 12 to improve speed of the function.*
+
 
 ```{r 2. intermediate integration analysis}
 # Run Analysis
@@ -103,7 +114,9 @@ result_hima_intermediate_fin <- result_hima_intermediate_fin %>%
   mutate(pte_intermediate = 100*pte_intermediate/sum(pte_intermediate))
 ```
 
+
 ## *Late integration*
+
 
 ```{r 3. late integration analysis}
 # Run Analysis
@@ -126,9 +139,11 @@ result_hima_late_fin <- result_hima_late_fin %>%
   mutate(pte_late = 100*`% total effect`/sum(`% total effect`))
 ```
 
+
 ## *Figures: High dimensional mediation plots.*
 
 ### *Prepare data for figures.*
+
 
 ```{r 4. Prepare Results for Figures}
 early <- result_hima_early_fin %>%
@@ -187,7 +202,9 @@ high_dim_res_fin <- high_dim_res_long %>%
   tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), by = "ftr_name")
 ```
 
+
 ### *Figure. Correlation plot*
+
 
 ```{r 5. correlation plot}
 # Select the unique features from high dimensional mediation results
@@ -263,9 +280,11 @@ p <- ggplot(correlation_matrix_melt,
 p
 ```
 
+
 ## *Figure: High dimensional mediation results*
 
 ***High dimensional mediation with early (a), intermediate (b), and late (c) integration***
+
 
 ```{r 6. HIMA plot, fig.height=10}
 # Pivot longer for figure
@@ -337,3 +356,4 @@ p <- plot_grid(NULL, early_plot,
                labels = c("a) Early", "","b) Intermediate","", "c) Late",""))
 p
 ```
+

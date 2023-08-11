@@ -47,7 +47,7 @@ hima_late_integration <- function(exposure,
                                   Y.family = Y.family,
                                   M.family = M.family, 
                                   max.iter = 100000, 
-                                  scale = FALSE) |>
+                                  scale = FALSE) %>%
       as_tibble(rownames = "ftr_name")
     
     cat(paste(names(omics_lst)[i], "complete\n"))
@@ -60,10 +60,10 @@ hima_late_integration <- function(exposure,
   result_hima_late_df <- bind_rows(result_hima_late, .id = "omic_layer")
   
   # Add key details
-  result_hima_late_df <- result_hima_late_df |>
+  result_hima_late_df <- result_hima_late_df %>%
     dplyr::mutate(
       multiomic_mthd = "Late Integration",
-      mediation_mthd = "HIMA") |>
+      mediation_mthd = "HIMA") %>%
     dplyr::select(multiomic_mthd, mediation_mthd, 
                   omic_layer, ftr_name, 
                   everything())
@@ -123,16 +123,16 @@ hima_early_integration <- function(exposure,
                             M.family = M.family,
                             verbose = FALSE, 
                             max.iter = 100000, 
-                            scale = FALSE) |>
+                            scale = FALSE) %>%
     as_tibble(rownames = "ftr_name")
   
   # Reorders the columns and adds the omics layer information
-  result_hima_early <- result_hima_early |>
+  result_hima_early <- result_hima_early %>%
     dplyr::mutate(
       multiomic_mthd = "Early Integration",
       mediation_mthd = "HIMA",
       outcome = outcome_name,
-      exposure = exposure_name) |>
+      exposure = exposure_name) %>%
     dplyr::select(multiomic_mthd, mediation_mthd, 
                   ftr_name, 
                   everything())
@@ -192,7 +192,7 @@ hima_intermediate_integration <- function(omics_lst,
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
   ## Create data frame of omics data
   omics_df <- omics_lst_df  %>% 
-    purrr::reduce(left_join) %>%
+    purrr::reduce(left_join, by = "name") %>%
     column_to_rownames("name")
   
   # Rename family for xtune function
@@ -201,11 +201,11 @@ hima_intermediate_integration <- function(omics_lst,
   
   # Get dataframe of all data
   full_data <- tibble(outcome = outcome, 
-                      exposure = exposure) |> 
+                      exposure = exposure) %>% 
     bind_cols(omics_df)
   
   # Add covs if not null
-  if(!is.null(covs)) {full_data <- full_data |> bind_cols(covs)}
+  if(!is.null(covs)) {full_data <- full_data %>% bind_cols(covs)}
   
   # Get external information matrix
   # Convert each data frame to a long format and extract the unique column names
@@ -230,8 +230,8 @@ hima_intermediate_integration <- function(omics_lst,
                             omics = rownames(external_info),
                             covars = colnames(covs),
                             var = "exposure",
-                            var_exposure_or_outcome = "exposure") |>
-    dplyr::select(feature_name, estimate, se) |>
+                            var_exposure_or_outcome = "exposure") %>%
+    dplyr::select(feature_name, estimate, se) %>%
     dplyr::rename(alpha = estimate, 
                   alpha_se = se)
   
@@ -248,15 +248,18 @@ hima_intermediate_integration <- function(omics_lst,
   }
   
   # Run xtune
-  xtune.fit_all_data <- xtune(X = X, Y = Y, Z = Z, U = U,
-                     c = 1, 
-                     # epsilon = 15, 
-                     family = "linear")
+  invisible(
+    capture.output(
+    xtune.fit_all_data <- xtune(X = X, Y = Y, Z = Z, U = U,
+                                c = 1, 
+                                family = "linear")
+    )
+  )
   
   # Extract estimates
   xtune_betas_all_data <- as_tibble(as.matrix(xtune.fit_all_data$beta.est),
-                           rownames = "feature_name") |> 
-    mutate(omic_layer = get_omic_layer(feature_name)) |>
+                                    rownames = "feature_name") %>% 
+    mutate(omic_layer = get_omic_layer(feature_name)) %>%
     dplyr::filter(feature_name %in% colnames(omics_df))
   
   # 3) Calculate SE for Model 3: x+m to y reg -----
@@ -275,17 +278,18 @@ hima_intermediate_integration <- function(omics_lst,
     while(!success & attempts < 10) {
       tryCatch({
         # Run xtune
-        xtune.fit <- xtune(X = X, Y = Y, Z = as.matrix(external_info), U = U,
-                           sigma.square = estimateVariance(X,Y), 
-                           c = 0, 
-                           family = "linear")
+          xtune.fit <- xtune(X = X, Y = Y, Z = as.matrix(external_info), U = U,
+                             sigma.square = estimateVariance(X,Y), 
+                             c = 0, 
+                             family = "linear", message = FALSE)
+      
         
         # If the xtune call is successful, proceed with the rest of the code
         # Select betas, drop intercept
         xtune_betas <- as_tibble(as.matrix(xtune.fit$beta.est),
-                                 rownames = "feature_name") |> 
-          dplyr::filter(feature_name %in% colnames(omics_df)) |>
-          dplyr::select(s1) |>
+                                 rownames = "feature_name") %>% 
+          dplyr::filter(feature_name %in% colnames(omics_df)) %>%
+          dplyr::select(s1) %>%
           as.matrix()
         # Fix issue where sometimes lasso returns a null matrix
         if(sum(dim(xtune_betas) == c(nrow(external_info), 1))==2){
@@ -312,13 +316,13 @@ hima_intermediate_integration <- function(omics_lst,
   # 3.2) Run Bootstrap analysis ----------------------
   # Run Bootstrap
   if(is.null(covs)){ 
-  boot_out <- boot(data = full_data,
-                   statistic = group_lasso_boot,
-                   R = n_boot,
-                   # strata = as.numeric(full_data$h_cohort),
-                   ncpus = detectCores(),
-                   parallel = "multicore", 
-                   external_info = external_info)
+    boot_out <- boot(data = full_data,
+                     statistic = group_lasso_boot,
+                     R = n_boot,
+                     # strata = as.numeric(full_data$h_cohort),
+                     ncpus = detectCores(),
+                     parallel = "multicore", 
+                     external_info = external_info)
   } else {
     boot_out <- boot(data = full_data,
                      statistic = group_lasso_boot,
@@ -335,52 +339,44 @@ hima_intermediate_integration <- function(omics_lst,
   glasso_boot_results <- tibble(
     feature_name = rownames(external_info), 
     beta_bootstrap = colMeans(replace_na(boot_out$t, 0)), 
-    beta_se = apply(replace_na(boot_out$t, 0), 2, sd)) |>
+    beta_se = apply(replace_na(boot_out$t, 0), 2, sd)) %>%
     mutate(omic_layer = get_omic_layer(feature_name))
   
   # 3.4) Join unpenalized results with glasso results ----
   int_med_coefs <- dplyr::inner_join(xtune_betas_all_data, glasso_boot_results, 
-                                     by = c("feature_name", "omic_layer")) |>
+                                     by = c("feature_name", "omic_layer")) %>%
     dplyr::inner_join(x_m_reg, by = "feature_name")
   
   # Calculate confidence intervals -----
   # mu.x: a1 from reg m = a0 + a1*X
   # mu.y: b2 from reg y = b0 + b1*X + b2*M
-  # Example of individual analysis:
-  # RMediation::medci(mu.x = int_med_coefs$alpha[1],
-  #                   se.x = int_med_coefs$alpha_se[1],
-  #                   mu.y = int_med_coefs$beta_bootstrap[1],
-  #                   se.y = int_med_coefs$beta_se[1],
-  #                   alpha = 0.05,
-  #                   type = "MC")
-  # Calculate all mediation effect estimates
-  int_med_res <- int_med_coefs |>
-    group_by(feature_name) |> 
-    nest() |>
+  int_med_res <- int_med_coefs %>%
+    group_by(feature_name) %>% 
+    nest() %>%
     mutate(res = purrr::map(data, 
                             ~RMediation::medci(mu.x = .x$alpha, 
                                                se.x = .x$alpha_se, 
                                                mu.y = .x$beta_bootstrap,
                                                se.y = .x$beta_se,  
-                                               type = "dop") |> 
-                              unlist() |> t() |> as_tibble())) |>
-    unnest(c(res, data)) |>
-    ungroup() |>
+                                               type = "dop") %>% 
+                              unlist() %>% t() %>% as_tibble())) %>%
+    unnest(c(res, data)) %>%
+    ungroup() %>%
     janitor::clean_names()
   
   # Modify results 
-  intermediate_int_res <- int_med_res |>
-    janitor::clean_names() |>
+  intermediate_int_res <- int_med_res %>%
+    janitor::clean_names() %>%
     rename(indirect = "estimate", 
            ind_effect_se = "se", 
            lcl = x95_percent_ci1,
-           ucl = x95_percent_ci2) |> 
+           ucl = x95_percent_ci2) %>% 
     mutate(gamma = gamma_est, 
            pte_intermediate = (indirect)/gamma, 
            sig_intermediate = if_else(lcl>0|ucl<0, 1, 0))
   
   # Rename feature name
-  intermediate_int_res <- intermediate_int_res |> 
+  intermediate_int_res <- intermediate_int_res %>% 
     dplyr::rename(ftr_name = feature_name)
   
   return(intermediate_int_res)
