@@ -38,26 +38,13 @@ omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
 # Create data frame of omics data
 # Originally "omics_comb"
 omics_df <- omics_lst_df  %>%
-  purrr::reduce(left_join) %>%
+  purrr::reduce(left_join, by = "name") %>%
   column_to_rownames("name")
 
-rm(omics_lst_df)
-# # Remove "name" from dataframes in list
-# omics_lst_df <- purrr::map(omics_lst_df, ~dplyr::select(.x, -name))
 
 ## Omics annotations -------------
-omics_names <- readRDS(fs::path(dir_data_hg, "feature_metadata.RDS"))
+omics_names <- readRDS(fs::path(dir_data_hg, "feature_metadata_v2.RDS"))
 
-# Create omic names for plotting
-omics_names <- omics_names |>
-  mutate(ftr_name_for_plots = case_when(
-    omic_layer == "miRNA" ~ str_remove(ftr_name, "hsa-"), 
-    omic_layer == "metabolome" ~ common_name, 
-    omic_layer == "methylome" ~ if_else(is.na(gene_names), 
-                                        ftr_name, 
-                                        gene_names),
-    omic_layer == "proteome" ~ str_remove(ftr_name, "pro_"),
-    omic_layer == "transcriptome" ~ gene_assignment))
 
 
 # Set Color Palettes ----

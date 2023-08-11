@@ -131,14 +131,6 @@ panel_b_dat_early_fin_all_ft <- panel_b_dat_early_all_ft |>
 panel_b_dat_early_fin1_all_ft <- panel_b_dat_early_fin_all_ft |>
   rename(ftr_name = feature) |>
   tidylog::left_join(omics_names |> dplyr::select(-omic_layer), by = "ftr_name")  |>
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name,
-      str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name_for_plots)) |>
   select(ftr_name_for_plots, ftr_name:omic_num)
 
 # Select features for plots -------
@@ -160,14 +152,6 @@ meta_ftr_early <- ftr_cor_sig_pcs_top |>
 meta_ftr_plot_early <- meta_ftr_early |>
   rename(ftr_name = feature) |>
   tidylog::left_join(omics_names |> dplyr::select(-omic_layer), by = "ftr_name")  |>
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name,
-      str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name_for_plots)) |>
   select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
 ```
@@ -334,15 +318,6 @@ cor_p_val_data_JIVE_with_zeros1_all <- cor_p_val_data_JIVE_with_zeros_all |>
                        mutate(ftr_name = str_remove(ftr_name, "hsa-") %>% 
                                 str_remove("pro_") %>% 
                                 str_remove("metser_log.")), by = "ftr_name")  |>
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name, 
-      str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name_for_plots)) |>
-  # mutate(ftr_name_for_plots = ifelse(is.na(ftr_name_for_plots), feature_ordered, ftr_name_for_plots))%>%
   select(ftr_name_for_plots, everything()) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots) |>
            fct_reorder(omic_num) |>
@@ -365,16 +340,6 @@ meta_ftr_jive <- ftr_cor_sig_pcs_top10 |>
 meta_ftr_plot_jive <- meta_ftr_jive |>
   rename(ftr_name = feature) |>
   tidylog::left_join(omics_names |> dplyr::select(-omic_layer), by = "ftr_name")  %>%
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name, 
-      str_detect(ftr_name_for_plots, ";") ~ 
-        str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ 
-        str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name_for_plots)) |>
   select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots)) 
 ```
@@ -531,17 +496,6 @@ omics_names1 <- omics_names |> dplyr::select(-omic_layer) %>%
 panel_b_dat_late_fin1_all <- panel_b_dat_late_fin_full |>
   rename(ftr_name = feature) |>
   tidylog::left_join(omics_names1,by = "ftr_name")  |>
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name, 
-      str_detect(ftr_name_for_plots, ";") ~ 
-        str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ 
-        str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name_for_plots)) |>
-  # mutate(ftr_name_for_plots = ifelse(is.na(ftr_name_for_plots), feature_ordered, ftr_name_for_plots))%>%
   select(ftr_name_for_plots, ftr_name:omic_num2) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
 
@@ -573,14 +527,6 @@ meta_ftr_plot_late <- meta_ftr_late |>
   tidylog::left_join(omics_names |> dplyr::select(-omic_layer) %>%
                        mutate(ftr_name = str_remove(ftr_name, "hsa-")),
                      by = "ftr_name")  |>
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name, 
-      str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name_for_plots)) |>
   select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
 ```
@@ -1065,15 +1011,6 @@ data <- early_corr_coef_p_df %>%
 data1 <- data |>
   rename(ftr_name = feature) |>
   tidylog::left_join(omics_names , by = "ftr_name")  |>
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name,
-      str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name_for_plots)) |>
-  # mutate(ftr_name_for_plots = ifelse(is.na(ftr_name_for_plots), feature_ordered, ftr_name_for_plots))%>%
   select(ftr_name_for_plots, everything())
 
 ## Adding id column to be identifiers

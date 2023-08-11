@@ -1,4 +1,4 @@
-# High Dimentional Mediation
+# High Dimensional Mediation
 
 ## Set up project for High Dimensional Mediation Analysis
 
@@ -53,27 +53,18 @@ result_hima_early_fin <- result_hima_early_fin |>
 
 **- Regression 3 (individual linear regressions): y = b0 + b1\*x + b2_star_i\*m_i, where y is outcome, x is exposure, m_i is individual mediator. se of b2_star_i used for calculating mediation confidence intervals**
 
-**- Calculate mediation confidence interval for mediator i with:**  - alpha = a1 - se of alpha = se of a1 - beta = b2_i - se of beta = se of b2_star_i,
+**- Calculate mediation confidence interval for mediator i with:** - alpha = a1 - se of alpha = se of a1 - beta = b2_i - se of beta = se of b2_star_i,
 
-```{r 2. intermediate integration analysis}
+```{r 2. intermediate integration analysis, cache=TRUE}
 # # Run Analysis (takes ~45 minutes)
 # system.time(
-# result_hima_int <- hima_intermediate_integration(omics_lst = omics_lst,
-#                                                  covs = covs,
-#                                                  outcome = outcome,
-#                                                  exposure = exposure,
-#                                                  n_boot = 12,
-#                                                  Y.family = "gaussian")
-# )
-# # saveRDS(result_hima_int,
-#         fs::path(dir_results,
-#                  "2_high_dim_multivar_mediation",
-#                  "HIMA_intermediate_integration_res_Hg_ck18.rds"))
+result_hima_intermediate <- hima_intermediate_integration(omics_lst = omics_lst,
+                                                 covs = covs,
+                                                 outcome = outcome,
+                                                 exposure = exposure,
+                                                 n_boot = 12,
+                                                 Y.family = "gaussian")
 
-result_hima_intermediate <- readRDS(
-  fs::path(dir_results,
-           "2_high_dim_multivar_mediation",
-           "HIMA_intermediate_integration_res_Hg_ck18.rds"))
 
 # Merge results with feature metadata 
 result_hima_intermediate_fin <- result_hima_intermediate |>
@@ -177,19 +168,8 @@ high_dim_res_long <- high_dim_res |>
 
 # Add names of features for plotting
 high_dim_res_fin <- high_dim_res_long |>
-  mutate(ftr_name = if_else(omic_layer == "miRNA", 
-                            paste0("hsa-", ftr_name),
-                            ftr_name)) |>
-  tidylog::left_join(omics_names |> dplyr::select(-omic_layer))  |>
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name, 
-      str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name)) |>
-  select(ftr_name_for_plots, everything())
+  tidylog::left_join(omics_names |> dplyr::select(-omic_layer))
+  # select(ftr_name_for_plots, everything())
 ```
 
 ### Figure. Correlation plot
@@ -198,6 +178,9 @@ high_dim_res_fin <- high_dim_res_long |>
 # Select the unique features from high dimensional mediation results
 omics_df_subset <- omics_df %>%
   select(unique(high_dim_res_fin$ftr_name)) 
+high_dim_res_fin$ftr_name[!(high_dim_res_fin$ftr_name %in% colnames(omics_df))]
+
+
 
 # Create an annotation dataframe for the selected features
 # Each feature name is annotated with its corresponding omic layer

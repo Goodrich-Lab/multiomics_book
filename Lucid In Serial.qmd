@@ -21,14 +21,6 @@ meta_df <- data.frame(ftr_name = c(colnames(omics_lst$methylome),
                                    colnames(omics_lst$miRNA))) %>%
   mutate(omic_layer = get_omic_layer_lowercase(ftr_name) ) |>
   tidylog::left_join(omics_names |> dplyr::select(-omic_layer))  |>
-  # Modify names of features for plotting
-  tidylog::mutate(
-    ftr_name_for_plots = case_when(
-      ftr_name_for_plots == "---" ~ paste0(ftr_name, " (NONCODE)"),
-      ftr_name_for_plots == "" ~ ftr_name,
-      str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-      str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-      TRUE ~ ftr_name_for_plots)) |>
   select(ftr_name_for_plots, ftr_name, omic_layer) 
 
 

@@ -148,13 +148,6 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
     tidylog::left_join(omics_names |> dplyr::select(-omic_layer), 
                        by = c("name" = "ftr_name"))  |>
     # Modify names of features for plotting
-    tidylog::mutate(
-      ftr_name_for_plots = case_when(
-        ftr_name_for_plots == "---" ~ paste0(name, " (NONCODE)"),
-        is.na(ftr_name_for_plots)  ~ name,
-        str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-        str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-        TRUE ~ ftr_name_for_plots)) %>%
     select(group, color, x, ftr_name_for_plots)%>% 
     rename(name = ftr_name_for_plots) %>%
     mutate(name = case_when(name == "value" ~ "<b>Hg</b>",
@@ -195,14 +188,6 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
   links_new1<- links_new |>
     tidylog::left_join(omics_names |> dplyr::select(-omic_layer), 
                        by = c("target" = "ftr_name"))  |>
-    # Modify names of features for plotting
-    tidylog::mutate(
-      ftr_name_for_plots = case_when(
-        ftr_name_for_plots == "---" ~ paste0(target, " (NONCODE)"),
-        is.na(ftr_name_for_plots)  ~ target,
-        str_detect(ftr_name_for_plots, ";") ~ str_split_fixed(ftr_name_for_plots, ";", 2)[,1],
-        str_detect(ftr_name_for_plots, "//") ~ str_split_fixed(ftr_name_for_plots, "//", 3)[,2],
-        TRUE ~ ftr_name_for_plots)) %>%
     select(colnames(links_new), ftr_name_for_plots)%>% 
     select(-target) %>%
     rename(target = ftr_name_for_plots)
