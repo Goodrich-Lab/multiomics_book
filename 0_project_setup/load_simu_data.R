@@ -46,7 +46,7 @@ rm(omics_lst_df)
 # omics_lst_df <- purrr::map(omics_lst_df, ~dplyr::select(.x, -name))
 
 ## Omics annotations -------------
-omics_names <- readRDS(fs::path(dir_data_hg, "all_omics_annotation_v2.RDS"))
+omics_names <- readRDS(fs::path(dir_data_hg, "feature_metadata.RDS"))
 
 # Create omic names for plotting
 omics_names <- omics_names |>
