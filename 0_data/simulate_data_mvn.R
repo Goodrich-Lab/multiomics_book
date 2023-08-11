@@ -84,3 +84,17 @@ write_rds(s_helix_dat_reduced, file = fs::path(dir_data_hg,
                                                "simulate_Hg_ck18_screened_scaled_omics.RDS"))
 
 
+# Reduce annotation dataset to only include simulated data
+s_helix_dat_reduced <- readRDS(file = fs::path(dir_data_hg,
+                                               "simulate_Hg_ck18_screened_scaled_omics.RDS"))
+# Get all 
+ftrnms <- lapply(s_helix_dat_reduced[-6], colnames) |> unlist() |> as.character()
+anodat <- readRDS(file = fs::path(dir_data_hg, "all_omics_annotation_v2.RDS"))
+# Get name to match the column names 
+anodat$ftr_name_match = str_replace_all(anodat$ftr_name, "-", ".")
+# Reduce omic metadata to only features in the data
+anodat_reduced = anodat |>
+  dplyr::filter(ftr_name_match %in% ftrnms)
+# Save file
+saveRDS(anodat_reduced, file = fs::path(dir_data_hg, "feature_metadata.RDS"))
+                  

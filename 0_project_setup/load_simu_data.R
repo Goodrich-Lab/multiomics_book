@@ -9,8 +9,7 @@ helix_dat_reduced <- read_rds(fs::path(dir_data_hg,
 ## Define exposure and outcome name ----
 exposure_name <- "hs_hg_m_scaled"
 outcome_name  <- "ck18_scaled"
-covars <- c(#"h_cohort",
-            "e3_sex_None", 
+covars <- c("e3_sex_None", 
             "hs_child_age_yrs_None", 
             "h_fish_preg_Ter")
 
@@ -47,9 +46,7 @@ rm(omics_lst_df)
 # omics_lst_df <- purrr::map(omics_lst_df, ~dplyr::select(.x, -name))
 
 ## Omics annotations -------------
-omics_names <- readRDS(fs::path(dir_data_hg,
-                                "annotation_data",
-                                "all_omics_annotation_v2.RDS"))
+omics_names <- readRDS(fs::path(dir_data_hg, "all_omics_annotation_v2.RDS"))
 
 # Create omic names for plotting
 omics_names <- omics_names |>
