@@ -9,16 +9,16 @@ book:
     - index.qmd
     - intro.qmd
     - HIMA.qmd
-    - summary.qmd
     - references.qmd
 
 bibliography: references.bib
 
 format:
   html:
+    embed-resources: true
+    self-contained-math: true
+    self-contained: true
     theme: cosmo
-  pdf:
-    documentclass: scrreprt
 
 editor: visual
 

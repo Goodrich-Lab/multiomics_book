@@ -192,7 +192,7 @@ hima_intermediate_integration <- function(omics_lst,
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
   ## Create data frame of omics data
   omics_df <- omics_lst_df  %>% 
-    purrr::reduce(left_join) %>%
+    purrr::reduce(left_join, by = "name") %>%
     column_to_rownames("name")
   
   # Rename family for xtune function
@@ -248,14 +248,17 @@ hima_intermediate_integration <- function(omics_lst,
   }
   
   # Run xtune
-  xtune.fit_all_data <- xtune(X = X, Y = Y, Z = Z, U = U,
-                     c = 1, 
-                     # epsilon = 15, 
-                     family = "linear")
+  invisible(
+    capture.output(
+    xtune.fit_all_data <- xtune(X = X, Y = Y, Z = Z, U = U,
+                                c = 1, 
+                                family = "linear")
+    )
+  )
   
   # Extract estimates
   xtune_betas_all_data <- as_tibble(as.matrix(xtune.fit_all_data$beta.est),
-                           rownames = "feature_name") %>% 
+                                    rownames = "feature_name") %>% 
     mutate(omic_layer = get_omic_layer(feature_name)) %>%
     dplyr::filter(feature_name %in% colnames(omics_df))
   
@@ -275,10 +278,11 @@ hima_intermediate_integration <- function(omics_lst,
     while(!success & attempts < 10) {
       tryCatch({
         # Run xtune
-        xtune.fit <- xtune(X = X, Y = Y, Z = as.matrix(external_info), U = U,
-                           sigma.square = estimateVariance(X,Y), 
-                           c = 0, 
-                           family = "linear")
+          xtune.fit <- xtune(X = X, Y = Y, Z = as.matrix(external_info), U = U,
+                             sigma.square = estimateVariance(X,Y), 
+                             c = 0, 
+                             family = "linear", message = FALSE)
+      
         
         # If the xtune call is successful, proceed with the rest of the code
         # Select betas, drop intercept
@@ -312,13 +316,13 @@ hima_intermediate_integration <- function(omics_lst,
   # 3.2) Run Bootstrap analysis ----------------------
   # Run Bootstrap
   if(is.null(covs)){ 
-  boot_out <- boot(data = full_data,
-                   statistic = group_lasso_boot,
-                   R = n_boot,
-                   # strata = as.numeric(full_data$h_cohort),
-                   ncpus = detectCores(),
-                   parallel = "multicore", 
-                   external_info = external_info)
+    boot_out <- boot(data = full_data,
+                     statistic = group_lasso_boot,
+                     R = n_boot,
+                     # strata = as.numeric(full_data$h_cohort),
+                     ncpus = detectCores(),
+                     parallel = "multicore", 
+                     external_info = external_info)
   } else {
     boot_out <- boot(data = full_data,
                      statistic = group_lasso_boot,
@@ -346,14 +350,6 @@ hima_intermediate_integration <- function(omics_lst,
   # Calculate confidence intervals -----
   # mu.x: a1 from reg m = a0 + a1*X
   # mu.y: b2 from reg y = b0 + b1*X + b2*M
-  # Example of individual analysis:
-  # RMediation::medci(mu.x = int_med_coefs$alpha[1],
-  #                   se.x = int_med_coefs$alpha_se[1],
-  #                   mu.y = int_med_coefs$beta_bootstrap[1],
-  #                   se.y = int_med_coefs$beta_se[1],
-  #                   alpha = 0.05,
-  #                   type = "MC")
-  # Calculate all mediation effect estimates
   int_med_res <- int_med_coefs %>%
     group_by(feature_name) %>% 
     nest() %>%
