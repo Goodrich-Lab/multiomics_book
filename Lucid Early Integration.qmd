@@ -1,5 +1,13 @@
-# Lucid Early Integration
+---
+title: "Lucid Early Integration"
+author: "Jesse Goodrich, Hongxu Wang, Qiran Jia, and David Conti"
+date: "08/10/2023"
+format: 
+  html:
+    code-fold: true
+---
 
+## *Set up project for Lucid Early Integration Analysis*
 ```{r lucid early integration setup, include = FALSE, echo = FALSE}
 source(fs::path(here::here(),"0_project_setup","libraries.R"))
 source(fs::path(here::here(),"0_project_setup","directories.R"))
@@ -11,8 +19,9 @@ source(fs::path(here::here(),
                 "0_project_setup", "functions", "LUCIDus",
                 "dependency.R"))
 library(htmlwidgets)
+#need knitr version 1.42 to be compatible with htmlwidgets when rendering
 options(knitr.table.format = "html")
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.height= 15, fig.width= 12)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.height= 15, fig.width= 12,collapse = TRUE)
 ```
 
 ```{r analysis data preparation}
@@ -21,7 +30,7 @@ omics_df_analysis <- omics_df %>%
   select(contains("cg"), contains("TC"), contains("hsa"))
 ```
 
-### Analysis: LUCID with early integration
+## *Analysis: LUCID with early integration*
 
 **Exposure: Hg (Mercury)**
 
@@ -31,7 +40,7 @@ omics_df_analysis <- omics_df %>%
 
 **Covars: sex, age, ?**
 
-```{r LUCID model 1 early integration, fig.height= 15, fig.width= 12}
+```{r LUCID model 1 early integration, fig.height= 15, fig.width= 12,collapse = TRUE}
 G = exposure %>%
   as.matrix()
 Z = omics_df_analysis %>% 
@@ -46,33 +55,17 @@ fit1 <- estimate_lucid(lucid_model = "early",
               CoG = covs,
               useY = TRUE,
               init_par = "random",
-              family = "normal",
-              # family = "binary",
-              # modelName = rep("VEI", 1)
-              # Rho_Z_Mu = 6,
-              # Rho_Z_Cov = .3
-              ) # JG added, originally 10
+              family = "normal")
 
-# plot_lucid(fit1)
-# summary_lucid(fit1)
-# fit <- reorder_lucid(fit1, c(2,1))
-# (p1 <- plot_lucid_without_outcome(fit1,fontsize = 15))
-# p1 <- plot_lucid(fit, fontsize = 20)
-# p1
-# summary_lucid(fit1)   
 
 # Sankey Diagram
-(p1 <- sankey_early_integration(fit1, text_size = 20))
-
-p1
+sankey_early_integration(fit1, text_size = 20)
 ```
 
-### Omics profiles for each cluster predicted by LUCID
+## *Omics profiles for each cluster predicted by LUCID*
 
 ```{r early integration omics profiles, fig.height= 10, fig.width= 10}
 M_mean = as.data.frame(fit1$pars$mu)
-# g_mean = as.data.frame(fit$pars$beta)
-# M_mean <- bind_cols(M_mean, g_mean) %>% select(-intercept)
 M_mean$cluster = as.factor(1:2)
 M_mean_melt = reshape::melt(M_mean, id.vars = "cluster") 
 M_mean_melt <- M_mean_melt %>% 
@@ -100,10 +93,5 @@ ggplot(M_mean_melt, aes(fill = color_label, y = value, x = variable)) +
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),) +
   scale_fill_manual(values = c("#2fa4da", "#A77E69", "#e7b6c1"))
-  
 
-# ggsave(filename = fs::path(dir_figs,
-#                            "lucid_early_integration",
-#                            "omics_profile_early_integration.png"),
-#        width = 8, height = 6, dpi = 300, bg = "white")
 ```

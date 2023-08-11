@@ -1,5 +1,13 @@
-# Lucid In Parallel
+---
+title: "Lucid in Parallel"
+author: "Jesse Goodrich, Hongxu Wang, Qiran Jia, and David Conti"
+date: "08/10/2023"
+format: 
+  html:
+    code-fold: true
+---
 
+## *Set up project for Lucid in Parallel Analysis*
 ```{r lucid in parallel setup, include = FALSE, echo = FALSE}
 source(fs::path(here::here(),"0_project_setup","libraries.R"))
 source(fs::path(here::here(),"0_project_setup","directories.R"))
@@ -7,7 +15,6 @@ source(fs::path(here::here(),"0_project_setup","load_simu_data.R"))
 # Load functions
 source(fs::path(dir_fxn, "load_functions.R"))
 source(fs::path(dir_fxn, "lucid_reorder_plot_without_y.R"))
-#source(fs::path(dir_fxn, "lucid_parallel.R"))
 source(fs::path(dir_fxn, "LUCIDusM in Parallel Sankey fxn Plotly.R"))
 source(fs::path(dir_fxn, "LUCIDusM_get_pips.R"))
 source(fs::path(dir_fxn, "plot_lucid_networks.R"))
@@ -49,12 +56,12 @@ setnames(omics_lst_nmd_ftr$transcriptome,
          old = c(transcriptome_meta_df$ftr_name),
          new = c(transcriptome_meta_df$ftr_name_for_plots))
 
-#setnames(omics_lst_nmd_ftr$miRNA, 
-         #old = c(mirna_meta_df$ftr_name),
-         #new = c(mirna_meta_df$ftr_name_for_plots))
+setnames(omics_lst_nmd_ftr$miRNA, 
+         old = c(mirna_meta_df$ftr_name),
+         new = c(mirna_meta_df$ftr_name_for_plots))
 ```
 
-### Lucid with 3 omics layers in parallel
+## *Lucid with 3 omics layers in parallel*
 
 ```{r lucid in parallel, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE, fig.height= 15,fig.width= 12}
 G = exposure %>% as.matrix()
@@ -75,7 +82,7 @@ fit <- estimate_lucid(lucid_model = "parallel",
 fit_reordered <- reorder_lucidM(fit, reference = c(1,1,2))
 ```
 
-### Sankey diagram
+## *Sankey diagram*
 
 ```{r sankey diagram plotly lucid in parallel, message = FALSE, warning = FALSE,fig.height= 12, fig.width= 10}
 (fig <- plot_lucid_in_parallel_plotly(fit_reordered,
@@ -84,17 +91,12 @@ fit_reordered <- reorder_lucidM(fit, reference = c(1,1,2))
                                       n_z_ftrs_to_plot = c(7,7,7)))
 ```
 
-### Omics profiles for each cluster predicted by LUCID
+## *Omics profiles for each cluster predicted by LUCID*
 
 ```{r omics profiles lucid in parellel, fig.height= 8, fig.width= 10}
 M_mean =    as_tibble(fit$res_Mu_Sigma$Mu[[1]], rownames = "variable") %>%
   bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[2]], rownames = "variable")) %>%
   bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[3]], rownames = "variable"))
-
-# g_mean = as.data.frame(fit$pars$beta)
-# M_mean <- bind_cols(M_mean, g_mean) %>% select(-intercept)
-# M_mean$cluster = as.factor(1:2)
-# M_mean_melt = reshape::melt(M_mean, id.vars = "cluster") 
 
 # Reorder results because mirna order is reversed
 M_mean1 <- M_mean %>% 
@@ -151,7 +153,7 @@ ggplot(M_mean2  %>% filter(variable %in% M_mean2_top$variable),
   scale_fill_manual(values = c("#2fa4da", "#A77E69", "#e7b6c1"))
 ```
 
-### Calculate PIPs and determine cluster assignment for each participant
+## *Calculate PIPs and determine cluster assignment for each participant*
 
 ```{r get pips}
 lucid_pips <- get_pips(fit) %>% as_tibble()
@@ -233,7 +235,7 @@ lucid_pips_fin <- lucid_pips %>%
   tidylog::left_join(lucid_clusters_w)
 ```
 
-### Visualize Omics Profiles
+## *Visualize Omics Profiles*
 
 ```{r visualize profiles}
 ## MAKE omics profiles for each of the 8 clusters 
@@ -359,12 +361,6 @@ names(eo_figs) <- unique(lucid_clusters$group_name)
              "Group 3", "Group 7", rep("", 4),
              "Group 4", "Group 8", rep("", 4))))
 
-
-# ggsave(profile_fig, 
-#        file = fs::path(dir_figs,
-#                        "4_integrated_latent_unknown_clusters", 
-#                        "Exp_out_Omics_profiles_lucidusM.jpeg"), 
-#        width = 8, height = 9)
 ```
 
 ### Network diagram of participants based on PIPs

@@ -1,6 +1,13 @@
-# Mediation with latent factrs
+---
+title: "Mediation with latent factors"
+author: "Jesse Goodrich, Hongxu Wang, Qiran Jia, and David Conti"
+date: "08/10/2023"
+format: 
+  html:
+    code-fold: true
+---
 
-## Set up project for mediation with latent factors
+## *Set up project for mediation with latent factors*
 
 ```{r set up data, include = FALSE, echo = FALSE}
 source(fs::path(here::here(),"0_project_setup","libraries.R"))
@@ -19,7 +26,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 panel_a_te_lim <- c(-1,55)
 ```
 
-## Analysis: Mediation with latent factors
+## *Analysis: Mediation with latent factors*
 
 **Two step analysis: factorize/cluster mediators (omics data) first, then use the factors/cluster label as latent mediator, and finally conduct mediation analysis**
 
@@ -165,15 +172,6 @@ The steps for intermediate integration start with performing JIVE, then performi
 omics_t <- lapply(omics_lst, t)
 sapply(omics_t, dim)
 names(omics_t) = names(omics_lst)
-
-# Results of permutation identified the best ranks as: 
-# result_jive <- jive(data = omics_t, 
-#                     method = "perm",
-#                     conv = 1e-04,
-#                     maxiter = 100,
-#                     showProgress = TRUE)
-# Re-estimating  joint and individual ranks via permutation...
-# Final joint rank: 3 , final individual ranks: 3 5 4 5 6 
 
 result_jive2 <- jive(data = omics_t,
                      rankJ = 3,
@@ -1171,8 +1169,4 @@ top_pw_l2 <- top_pw_l1 %>%
                              align = "v", axis = "lr"))
 
 
-# ggsave(fig_4, filename = fs::path(dir_figs,
-#                                   "3_high_dim_multivar_mediation_latent_fctrs",
-#                                   "Fig 4 pathway_analysis_figure.jpeg"),
-#        width = 9.5, height = 11, bg = "white")
 ```

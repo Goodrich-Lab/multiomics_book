@@ -1,5 +1,13 @@
-# Lucid In Serial
+---
+title: "Lucid in Serial"
+author: "Jesse Goodrich, Hongxu Wang, Qiran Jia, and David Conti"
+date: "08/10/2023"
+format: 
+  html:
+    code-fold: true
+---
 
+## *Set up project for Lucid in Serial Analysis*
 ```{r lucid in serial setup, include = FALSE, echo = FALSE}
 source(fs::path(here::here(),"0_project_setup","libraries.R"))
 source(fs::path(here::here(),"0_project_setup","directories.R"))
@@ -9,6 +17,10 @@ source(fs::path(here::here(),
                 "0_project_setup", "functions", "lucid_reorder_plot_without_y.R"))
 source(fs::path(here::here(), "0_project_setup", "functions","lucid_reorder_plot_without_y.R"))
 source(fs::path(here::here(), "0_project_setup", "functions","LUCIDusM in Serial Sankey fxn.R"))
+
+source(fs::path(here::here(), 
+                "0_project_setup", "functions", "LUCIDus",
+                "dependency.R"))
 
 library(htmlwidgets)
 options(knitr.table.format = "html")
@@ -43,9 +55,9 @@ setnames(omics_lst_df$transcriptome,
          old = c(transcriptome_meta_df$ftr_name),
          new = c(transcriptome_meta_df$ftr_name_for_plots))
 
-#setnames(omics_lst_df$miRNA, 
-         #old = c(mirna_meta_df$ftr_name),
-         #new = c(mirna_meta_df$ftr_name_for_plots))
+setnames(omics_lst_df$miRNA, 
+         old = c(mirna_meta_df$ftr_name),
+         new = c(mirna_meta_df$ftr_name_for_plots))
 
 ## Extract omics layer dataframe-----
 methylation <- omics_lst_df$methylome %>% column_to_rownames("name")
@@ -53,7 +65,7 @@ transcription <- omics_lst_df$transcriptome %>% column_to_rownames("name")
 miRNA <- omics_lst_df$miRNA %>% column_to_rownames("name")
 ```
 
-### Step 1. Hg + Methylation
+## *Step 1. Hg + Methylation*
 
 **Exposure: Hg (Mercury)**
 
@@ -88,14 +100,13 @@ fit <- estimate_lucid(lucid_model = "serial",
 fit1 <- fit$submodel[[1]]
 # Rename Exposure
 fit1$var.names$Gnames[1] <- "Hg"
-#fit1 <- reorder_lucid(fit1, c(2,1))
 fit2 <- fit$submodel[[2]]
 fit2$var.names$Gnames[1] <- "<b>Methylation\nProfile 1</b>"
 fit3 <- fit$submodel[[3]]
 fit3$var.names$Gnames[1] <- "<b>miRNA\nProfile 1</b>"
 ```
 
-### Sankey Diagram
+## *Sankey Diagram*
 
 ```{r Sankey Diagram lucid in serial, fig.height= 15, fig.width= 12}
 col_pal <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")
@@ -110,12 +121,11 @@ color_pal_sankey <- matrix(c("exposure", "red",
     janitor::clean_names() %>%
     dplyr::rename(group = x1, color = x2)
   
-(p <- sankey_in_serial(fit1, 
+sankey_in_serial(fit1, 
                  fit2, 
                  fit3, 
                  color_pal_sankey,
-                 text_size = 24))
+                 text_size = 24)
 
-# saveWidget(p, file = fs::path(dir_figs, "4_integrated_latent_unknown_clusters/lucid_in_serial_0725.html"))
 
 ```
