@@ -1,0 +1,19 @@
+# Supplemental Code {.unnumbered}
+
+```{r read-in, include=FALSE}
+knitr::read_chunk("0_project_setup/functions/hima_functions.R")
+```
+
+## High Dimensional Mediation Analysis Code
+
+### **Early** Integration of omics datasets
+```{r HIMA_early, eval=FALSE}
+```
+
+### **Intermediate** Integration of omics datasets
+```{r HIMA_intermediate, eval=FALSE}
+```
+
+### **Late** Integration of omics datasets
+```{r HIMA_late, eval=FALSE}
+```
