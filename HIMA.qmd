@@ -1,8 +1,9 @@
 # High Dimensional Mediation
 
 ## Set up project for High Dimensional Mediation Analysis
+```{r 0. setup, include = TRUE, echo = FALSE}
+# Analysis Specific Libraries
 
-```{r 0. setup, include = FALSE, echo = FALSE}
 source(fs::path(here::here(),"0_project_setup","libraries.R"))
 source(fs::path(here::here(),"0_project_setup","directories.R"))
 source(fs::path(here::here(),"0_project_setup","load_simu_data.R"))
@@ -40,15 +41,40 @@ result_hima_early_fin <- result_hima_early_fin %>%
 
 ## Intermediate Integration
 
-**Steps:**
 
-**- Regression 1 (linear regression): m_i = a0 + a1\*x, where x is exposure and m_i is each mediator.**
+1. **Regression 1 (linear regression):**  
 
-**- Regression 2 (group lasso): y = b0 + b1\*x + b2_i\*M, where y is outcome, x is exposure, and M is mediator matrix corresponding estimate b2_i**
+   \begin{equation}
+   m_i = a_0 + a_1 \times x
+   \label{eq:reg1}
+   \end{equation}  
 
-**- Regression 3 (individual linear regressions): y = b0 + b1\*x + b2_star_i\*m_i, where y is outcome, x is exposure, m_i is individual mediator. se of b2_star_i used for calculating mediation confidence intervals**
+   Where:
+    - \( x \) is exposure.
+    - \( m_i \) is each mediator.
 
-**- Calculate mediation confidence interval for mediator i with:** - alpha = a1 - se of alpha = se of a1 - beta = b2_i - se of beta = se of b2_star_i,
+2. **Regression 2 (group lasso):**  
+
+   \begin{equation}
+   y = b_0 + b_1 \times x + b_{2_i} \times M
+   \label{eq:reg2}
+   \end{equation}  
+
+   Where:
+    - \( y \) is the outcome.
+    - \( x \) is exposure.
+    - \( M \) is the mediator matrix with corresponding estimate \( b_{2_i} \).
+   - The bootstrapped standard error (se) of \( b_{2_i} \) is used for calculating mediation confidence intervals.  
+
+3. **Calculate mediation confidence interval for mediator \( i \):**  
+
+   \begin{align}
+   \alpha &= a_1 \label{eq:alpha}\\
+   \text{se of } \alpha &= \text{se of } a_1 \label{eq:se_alpha}\\
+   \beta &= b_{2_i} \label{eq:beta}\\
+   \text{se of } \beta &= \text{se of } b_{2_i} \label{eq:se_beta}
+   \end{align}
+
 
 Note: We would normally have n_boot higher (1000 or more), but here it is set to 12 
 to improve speed of the function.
