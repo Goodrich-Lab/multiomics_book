@@ -1,7 +1,6 @@
 
 # Plot Lucid In Serial Function ------
-source(here::here("0_project_setup", "functions",
-                  "lucid_reorder_plot_without_y.R"))
+source(fs::path(dir_proj, "functions", "lucid_reorder_plot_without_y.R"))
 
 # Get sankey dataframe
 get_sankey_df <- function(x,
