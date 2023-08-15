@@ -1,5 +1,17 @@
 # Introduction
 
+This book has three different sections, corresponding to each of the columns shown in @fig-1. In [Chapter @sec-HIMA], we provide the code for performing high dimensional mediation with early, intermediate, and late integration, illustrated in the first column of @fig-1. In [Chapter @sec-med_lf]
 
-<add intro>
-<add figure 1>
+
+![Figure 1](Multiomic Mediation Framework.png){#fig-1}
+
+## The Data  
+The data used in this project is based off of simulated data from the Human Early Life Exposome (HELIX) cohort [@RN38]. The simulation for this project was performed using **qj add details**. This data can be accessed at @https://github.com/Goodrich-Lab/multiomics_book/tree/main/0_data. The format of this data is a named list with 6 elements. This includes separate numeric matrices for each of the 5 omics layers, as well as the exposure and phenotype data. In all datasets in this list, the rows represent individuals and the columns represent omics features. 
+
+You can read this data into R with **jg to update**: 
+```{r}
+# readRDS("https://raw.githubusercontent.com/Goodrich-Lab/multiomics_book/blob/main/0_data/simulate_Hg_ck18_screened_scaled_omics.RDS")
+```
+
+
+## Mercury exposure and childhood NAFLD risk
