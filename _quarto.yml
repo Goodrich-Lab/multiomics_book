@@ -9,6 +9,7 @@ book:
     - index.qmd
     - intro.qmd
     - HIMA.qmd
+    - High_dim_mediation_latent_fctrs.qmd
     - Lucid Early Integration.qmd
     - Lucid in Parallel.qmd
     - Lucid in Serial.qmd

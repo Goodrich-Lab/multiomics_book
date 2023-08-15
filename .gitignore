@@ -6,8 +6,10 @@
 
 # Ignore Archive and Cache Folders
 */archive/
+archive/
 *cache*/
-HIMA_files
+HIMA_files/
+High_dim_mediation_latent_fctrs_files/
 
 # Ignore figure files
 figures/

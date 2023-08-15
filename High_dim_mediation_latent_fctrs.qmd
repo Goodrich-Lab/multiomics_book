@@ -1,14 +1,14 @@
-# Mediation with latent factrs
+# Mediation with latent factrs {#sec-med_lf}
 
 ## Set up project for mediation with latent factors
 
 ```{r set up data, include = FALSE, echo = FALSE}
-source(fs::path(here::here(),"0_project_setup","libraries.R"))
-source(fs::path(here::here(),"0_project_setup","directories.R"))
-source(fs::path(here::here(),"0_project_setup","load_simu_data.R"))
-source(fs::path(here::here(),"0_project_setup", "functions", 
+source(fs::path(here::here(),"project_setup","directories.R"))
+source(fs::path(dir_proj,"libraries.R"))
+source(fs::path(dir_proj,"load_simu_data.R"))
+source(fs::path(dir_proj, "functions", 
                 "load_functions.R"))
-source(fs::path(here::here(),"0_project_setup",
+source(fs::path(dir_proj,
                 "functions", "functions_for_med_lat_fctrs.R"))
 
 library(ggh4x)
@@ -23,13 +23,11 @@ panel_a_te_lim <- c(-1,55)
 
 **Two step analysis: factorize/cluster mediators (omics data) first, then use the factors/cluster label as latent mediator, and finally conduct mediation analysis**
 
-### 1. Early Integration (all omics combined)
+## *Early integration*
 
-#### a. Analysis: Early integration
+### a. Analysis: Early integration
 
 **Select PCs that can explain 80% of the total variance in the data**
-
-**In our data, 59 PCs were selected as mediators for mediation analysis**
 
 ```{r 1a. early integration analysis}
 # i. Obtain PCs----
@@ -61,7 +59,7 @@ result_hima_comb_pc <- hima(X = exposure,
                             scale = FALSE)
 
 # Modify DF
-(result_hima_pca_early <- result_hima_comb_pc %>%
+result_hima_pca_early <- result_hima_comb_pc %>%
     as_tibble(rownames = "pc_num") %>%
     left_join(props_df) %>% 
     mutate(multiomic_mthd = "Early",
@@ -72,7 +70,7 @@ result_hima_comb_pc <- hima(X = exposure,
                                   `% total effect`)) %>%
     dplyr::select(multiomic_mthd, mediation_mthd, 
                   pc_num, 
-                  everything()))
+                  everything())
 
 # Filter Significant PCs, Create scaled %TE variable
 result_hima_pca_early_sig <- result_hima_pca_early %>% 
@@ -156,67 +154,40 @@ meta_ftr_plot_early <- meta_ftr_early %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
 ```
 
-### 2. Intermediate Integration
+## *Intermediate Integration*
 
-The steps for intermediate integration start with performing JIVE, then performing high dimensional mediation on the resulting factors \##### Step 1. Conduct JIVE
+The steps for intermediate integration start with performing a joint dimensionality reduction step using Joint and Individual Variance Explained (JIVE) [@RN18], and then performing high dimensional mediation on the resulting factors using HIMA [@RN33].
+
+### Conduct JIVE
+
+For this step, JIVE can estimate the optimal number of joint and individual ranks by changing the `method` argument in the function `jive`. For the simulated HELIX data, the optimal number, determined by setting `method = "perm"`, was 19 joint ranks and 7, 8, 3, 5, and 6 ranks for the methylome, transcriptome, miRNA, proteome, and metabolome, respectively.
 
 ```{r JIVE, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
 # conduct JIVE
+# Transpose omics matrices
 omics_t <- lapply(omics_lst, t)
-sapply(omics_t, dim)
+
+# Rename omics datasets
 names(omics_t) = names(omics_lst)
 
-# Results of permutation identified the best ranks as: 
-# result_jive <- jive(data = omics_t, 
-#                     method = "perm",
-#                     conv = 1e-04,
-#                     maxiter = 100,
-#                     showProgress = TRUE)
-# Re-estimating  joint and individual ranks via permutation...
-# Final joint rank: 3 , final individual ranks: 3 5 4 5 6 
-
+# Run JIVE with the optimal ranks provided: 
 result_jive2 <- jive(data = omics_t,
-                     rankJ = 3,
-                     rankA = c(3,5,4,5,6),
+                     rankJ = 19,
+                     rankA = c(7, 8, 3, 5, 6),
                      method = "given",
                      conv = 1e-04,
                      maxiter = 100,
-                     showProgress = TRUE)
-
-
-# Summary of jive model
-summary.jive(result_jive2)
+                     showProgress = FALSE)
 
 # Get the components from JIVE
 factors_jive <- get_PCs_jive(result_jive2) %>% 
   dplyr::mutate(across(everything(), ~as.vector(scale(.))))
-```
 
-#### Step 2. Visualize JIVE results
-
-```{r JIVE visualization,message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
-# # Plot variance explained
-# jpeg(fs::path(dir_figs,
-#               "3_high_dim_multivar_mediation_latent_fctrs",
-#               "JIVE explained_var.jpeg"),
-#      width = 9, height = 4, units = "in",
-#      res = 250, quality = 100)
+# Visualize the variance explained by the joint and individual JIVE components:
 showVarExplained(result_jive2)
-# dev.off()
-# 
-# Plot heatmap
-# jpeg(fs::path(dir_figs,
-#               "3_high_dim_multivar_mediation_latent_fctrs",
-#               "JIVE heatmaps.jpeg"),
-#      width = 10, height = 10, units = "in",
-#      res = 250, quality = 100)
-showHeatmaps(result_jive2)
-# dev.off()
-
-showPCA(result_jive2, n_joint = 5, n_indiv = c(0,0,0,0,0))
 ```
 
-#### Step 3. run mediation analysis
+### Perform mediation analysis
 
 ```{r JIVE mediation,message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
 # run mediation analysis
@@ -344,9 +315,9 @@ meta_ftr_plot_jive <- meta_ftr_jive %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots)) 
 ```
 
-### 3. Late Integration (each omics layer)
+## *Late integration*
 
-#### a. Analysis: PCA and then HIMA (Late integration)
+### a. Analysis: PCA and then HIMA (Late integration)
 
 ```{r pca late integration with HIMA on all omics together, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
 # i. get PCs and HIMA -----
@@ -385,7 +356,7 @@ result_hima_late_integration <- hima(X = exposure,
                                      scale = FALSE) 
 
 # Modify and save DF
-(result_hima_late_integration <- result_hima_late_integration %>%
+result_hima_late_integration <- result_hima_late_integration %>%
     as_tibble(rownames = "pc_num") %>%
     left_join(props_var_pcs) %>% 
     mutate(multiomic_mthd = "Late",
@@ -394,7 +365,7 @@ result_hima_late_integration <- hima(X = exposure,
                                   `% total effect`)) %>%
     dplyr::select(multiomic_mthd, mediation_mthd, 
                   pc_num, 
-                  everything()))
+                  everything())
 
 # Filter significant pcs, create scaled %TE variable
 result_hima_pca_late_sig <- result_hima_late_integration %>% 
@@ -531,7 +502,7 @@ meta_ftr_plot_late <- meta_ftr_late %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
 ```
 
-## FIGURES: Mediation with Latent Factors
+## Figures: Mediation with Latent Factors
 
 ```{r combine data}
 # Combine mediation results into single df
@@ -658,8 +629,6 @@ omics_df_reorder <- omics_df %>%
   rename_with(~str_remove(., 'metser_log.')) %>%
   tidylog::select(all_of(unique(meta_ftr_plot1$ftr_name)))
 
-
-
 # Change names of reordered omics dataframe using the new variable names
 setnames(omics_df_reorder, 
          old = colnames(omics_df_reorder), 
@@ -709,7 +678,7 @@ correlation_matrix_melt <- reshape2::melt(cormat1)[lower.tri(cormat1),] %>%
   mutate(correlation = value)
 
 # Plot correlation matrix
-(p_cormat <- ggplot(correlation_matrix_melt,
+p_cormat <- ggplot(correlation_matrix_melt,
                     aes(x=Var1, y=Var2, fill=correlation)) + 
     geom_tile(aes(fill = value),colour = "white" ) + 
     geom_vline(xintercept = vline_locations$xintercept[1:4]-1, 
@@ -730,7 +699,7 @@ correlation_matrix_melt <- reshape2::melt(cormat1)[lower.tri(cormat1),] %>%
       text = element_text(size = 8)) + 
     scale_y_discrete(position = "right") +
     scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
-                         midpoint = 0, limits = c(-1, 1)))
+                         midpoint = 0, limits = c(-1, 1))
 
 # Save
 ggsave(p_cormat,
@@ -754,7 +723,7 @@ panel_b_dat_early_fin1_all_ft1 <- panel_b_dat_early_fin1_all_ft %>%
                                         TRUE ~ ftr_name_for_plots))
 
 # Plot
-(panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1 %>%
+panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1 %>%
                            filter(ftr_name_for_plots %in% c(feature_name_reorder)),
                          aes(x = factor(ftr_name_for_plots,
                                         levels = c(feature_name_reorder)), 
@@ -778,7 +747,7 @@ panel_b_dat_early_fin1_all_ft1 <- panel_b_dat_early_fin1_all_ft %>%
       axis.ticks.x = element_blank(),
       legend.position = "none",
       # axis.text.y = element_blank(),
-      text = element_text(size = 20)) )
+      text = element_text(size = 20)) 
 
 # Panel B. Intermediate----
 # Combine with reordered factor data
@@ -801,7 +770,7 @@ cor_p_val_data_JIVE_final_for_fin <- cor_p_val_data_JIVE_with_zeros1_all1 %>%
                                         TRUE ~ ftr_name_for_plots))
 
 # Plot
-(panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin %>% 
+panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin %>% 
                           filter(ftr_name_for_plots %in% c(feature_name_reorder)), 
                         aes(x = factor(ftr_name_for_plots, 
                                        levels = c(feature_name_reorder)), 
@@ -826,7 +795,7 @@ cor_p_val_data_JIVE_final_for_fin <- cor_p_val_data_JIVE_with_zeros1_all1 %>%
       # axis.line.x = element_blank(),
       legend.position = "none",
       panel.spacing.y = unit(-.1, "lines"),
-      text = element_text(size = 30)))
+      text = element_text(size = 30))
 
 
 # Panel C. Late Integration----
@@ -840,7 +809,7 @@ panel_b_dat_late_fin1_all1 <- panel_b_dat_late_fin1_all %>%
                                         TRUE ~ ftr_name_for_plots))
 
 
-(panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1 %>% 
+panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1 %>% 
                           filter(ftr_name_for_plots %in% c(feature_name_reorder)), 
                         aes(x = factor(ftr_name_for_plots,
                                        levels = c(feature_name_reorder)), 
@@ -867,7 +836,7 @@ panel_b_dat_late_fin1_all1 <- panel_b_dat_late_fin1_all %>%
       axis.title = element_blank(), 
       # axis.line.x = element_blank(), 
       # axis.ticks = element_blank(),
-      text = element_text(size = 20)))
+      text = element_text(size = 20))
 
 
 # Fig 5a: Join plots ----
@@ -889,290 +858,83 @@ ggsave(fig_5a,
 ## D Combine individual fig plots: Create final figure 5
 
 ```{r final fig 5}
-# Load fig_5a ----
-library(magick)
-img5a <- image_read(fs::path(dir_figs,
-                             "3_high_dim_multivar_mediation_latent_fctrs",
-                             "Fig 5 Heatmap of correlation top 071123.jpeg")) %>%
-  image_rotate(180) %>%
-  # Remove legend
-  image_chop(paste0('0x', 30, '+0+0')) %>% 
-  image_rotate(180) 
-
-
-# Load and Rotate fig 5b ----
-
-# Load correlation matrix
-img <- image_read(fs::path(dir_figs,
-                           "3_high_dim_multivar_mediation_latent_fctrs",
-                           "correlaton_plot_subset_features_071123.jpeg"))
-
-# Get image dimensions
-img_dim <- image_info(img)
-
-# Get legend
-img_lgnd <- image_chop(img, paste0(img_dim$width / 1.2, 'x', 
-                                   img_dim$height / 1.06, '+1000+0'))
-
-# Remove legend, rotate 45 degrees, and remove top half of plot
-img_chopped <- img %>% 
-  image_rotate(180) %>%
-  # Remove legend
-  image_chop(paste0('0x', img_dim$height*0.044, '+0+0')) %>% 
-  image_rotate(180+45) %>% 
-  # Remove top half of rotated plot
-  image_chop(paste0('0x', img_dim$height / 1.772, '+0+0'))
-
-# Crop bottom
-img_chopped2 <- img_chopped %>% 
-  image_rotate(180) %>%
-  # Remove legend
-  image_chop(paste0('0x', img_dim$height*0.17, '+0+0')) %>% 
-  image_rotate(180) 
-
-# Add legend back in
-img5b <- image_composite(img_chopped2, 
-                         image_resize(img_lgnd, "1500x"), offset = "+100+2000")
-
-# Set up justification
-left_just = 265
-right_just = 185
-img5b_1 <- image_border(image = img5b,  color = "white",
-                        geometry = paste0(left_just, "x0")) %>%
-  image_rotate(180) %>%
-  image_chop(paste0(left_just-right_just,'x0+0+0')) %>%
-  image_rotate(180)
-
-
-out <- image_append(image = c(img5a, 
-                              image_resize(img5b_1, "5000x")), stack = TRUE)
-
-out1 <- out %>% 
-  image_annotate(text = "DNA Methylation", location = "+1050+30", 
-                 size = 60) %>%
-  image_annotate(text = "Gene Transcription", location = "+2300+30", 
-                 size = 60) %>%
-  image_annotate(text = "miRNA", location = "+3400+30", 
-                 size = 60) %>%
-  image_annotate(text = "Pro.", location = "+3800+30", 
-                 size = 60) %>%
-  image_annotate(text = "Metabolites", location = "+4025+30", 
-                 size = 60)
-
-# Save Image 
-image_write(out1, 
-            fs::path(dir_figs, 
-                     "3_high_dim_multivar_mediation_latent_fctrs",
-                     "Figure 5_combined_080423.jpeg"))
+# # Load fig_5a ----
+# library(magick)
+# img5a <- image_read(fs::path(dir_figs,
+#                              "3_high_dim_multivar_mediation_latent_fctrs",
+#                              "Fig 5 Heatmap of correlation top 071123.jpeg")) %>%
+#   image_rotate(180) %>%
+#   # Remove legend
+#   image_chop(paste0('0x', 30, '+0+0')) %>% 
+#   image_rotate(180) 
+# 
+# 
+# # Load and Rotate fig 5b ----
+# 
+# # Load correlation matrix
+# img <- image_read(fs::path(dir_figs,
+#                            "3_high_dim_multivar_mediation_latent_fctrs",
+#                            "correlaton_plot_subset_features_071123.jpeg"))
+# 
+# # Get image dimensions
+# img_dim <- image_info(img)
+# 
+# # Get legend
+# img_lgnd <- image_chop(img, paste0(img_dim$width / 1.2, 'x', 
+#                                    img_dim$height / 1.06, '+1000+0'))
+# 
+# # Remove legend, rotate 45 degrees, and remove top half of plot
+# img_chopped <- img %>% 
+#   image_rotate(180) %>%
+#   # Remove legend
+#   image_chop(paste0('0x', img_dim$height*0.044, '+0+0')) %>% 
+#   image_rotate(180+45) %>% 
+#   # Remove top half of rotated plot
+#   image_chop(paste0('0x', img_dim$height / 1.772, '+0+0'))
+# 
+# # Crop bottom
+# img_chopped2 <- img_chopped %>% 
+#   image_rotate(180) %>%
+#   # Remove legend
+#   image_chop(paste0('0x', img_dim$height*0.17, '+0+0')) %>% 
+#   image_rotate(180) 
+# 
+# # Add legend back in
+# img5b <- image_composite(img_chopped2, 
+#                          image_resize(img_lgnd, "1500x"), offset = "+100+2000")
+# 
+# # Set up justification
+# left_just = 265
+# right_just = 185
+# img5b_1 <- image_border(image = img5b,  color = "white",
+#                         geometry = paste0(left_just, "x0")) %>%
+#   image_rotate(180) %>%
+#   image_chop(paste0(left_just-right_just,'x0+0+0')) %>%
+#   image_rotate(180)
+# 
+# 
+# out <- image_append(image = c(img5a, 
+#                               image_resize(img5b_1, "5000x")), stack = TRUE)
+# 
+# out1 <- out %>% 
+#   image_annotate(text = "DNA Methylation", location = "+1050+30", 
+#                  size = 60) %>%
+#   image_annotate(text = "Gene Transcription", location = "+2300+30", 
+#                  size = 60) %>%
+#   image_annotate(text = "miRNA", location = "+3400+30", 
+#                  size = 60) %>%
+#   image_annotate(text = "Pro.", location = "+3800+30", 
+#                  size = 60) %>%
+#   image_annotate(text = "Metabolites", location = "+4025+30", 
+#                  size = 60)
+# 
+# # Save Image 
+# image_write(out1, 
+#             fs::path(dir_figs, 
+#                      "3_high_dim_multivar_mediation_latent_fctrs",
+#                      "Figure 5_combined_080423.jpeg"))
 ```
 
-### Combine Matrix of correlation coefficient p-values from three approaches for pathway analysis
+### Pathway Analysis. 
 
-```{r pathway analysis data preparation,message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
-# Early integration----
-## correlation coefficient p-value
-early_corr_coef_p <- corr.test(omics_df, omics_df_pca$x[,c(c(result_hima_pca_early_sig$pc_num))])$p
-
-## Convert to dataframe
-early_corr_coef_p_df <- early_corr_coef_p %>% data.frame() %>%
-  rownames_to_column("feature")
-
-# Late integration----
-
-## PCA full scores: Apply function to each matrix in the list and collect
-scores_full_list_late_int <- map2(omics_lst,
-                                  names(omics_lst),
-                                  ~run_pca(.x, .y)$scores)
-
-## correlation coefficient p-value
-late_corr_coef_p_list <- map2(omics_lst,
-                              scores_full_list_late_int,
-                              ~corr.test(.x, .y)$p) %>% modify(~data.frame(.) %>% rownames_to_column("feature"))
-
-## Convert to dataframe
-late_corr_coef_p_df <- purrr::reduce(late_corr_coef_p_list, full_join) %>% as.data.frame() %>% select(feature,result_hima_pca_late_sig$pc_num)
-
-# Intermediate Integration----
-## correlation coefficient p-value
-inter_corr_coef_p <- corr.test(omics_df, factors_jive)$p
-
-## Convert to dataframe
-inter_corr_coef_p_df <- inter_corr_coef_p %>% data.frame() %>%
-  rownames_to_column("feature") %>%
-  select(feature, result_hima_jive_sig$component)
-
-# Combine correlation coefficient p-value data for three approach ----
-data <- early_corr_coef_p_df %>%
-  tidylog::full_join(late_corr_coef_p_df, by = "feature") %>%
-  tidylog::full_join(inter_corr_coef_p_df, by = "feature")
-
-# Rename -------
-# Add names of features for plotting
-data1 <- data %>%
-  rename(ftr_name = feature) %>%
-  tidylog::left_join(omics_names , by = "ftr_name")  %>%
-  select(ftr_name_for_plots, everything())
-
-## Adding id column to be identifiers
-data2 <- data1 %>%
-  mutate(
-    identifiers = ifelse(grepl("miR-", ftr_name_for_plots),
-                         ID,
-                         ftr_name_for_plots)) %>%
-  select(identifiers, everything()) %>%
-  mutate(identifiers = str_split_fixed(identifiers, ";", 2)[,1])
-
-```
-
-### Annotation of omics features
-
-```{r annotation,message = FALSE, warning = FALSE}
-prot_info <- readxl::read_xlsx(fs::path(dir_data_og, "metadata",  "uniprot_id_info_by_hand.xlsx"))
-met_info<- readxl::read_xlsx(fs::path(dir_data_og, "metadata",  "metser_annotations_by_hand.xlsx"))
-
-data3 <- data2 %>% 
-  tidylog::left_join(prot_info %>% select(-note), 
-                     by = c("identifiers" = "genes_names")) %>% 
-  mutate(identifiers = ifelse(grepl("pro_", ftr_name), 
-                              uniprot_id, 
-                              identifiers))
-
-data4 <- data3 %>% 
-  tidylog::left_join(met_info, by = c("identifiers" = "common_name")) %>%
-  mutate(identifiers = ifelse(grepl("metser", ftr_name), KEGG, identifiers))
-
-
-data5 <- data4 %>%
-  mutate(identifiers = ifelse(is.na(identifiers)&grepl("metser", ftr_name),
-                              `Standardized name`,
-                              identifiers)) %>%
-  mutate(identifiers = ifelse(is.na(identifiers),
-                              ftr_name_for_plots,
-                              identifiers)) %>%
-  mutate(identifiers = ifelse(identifiers == "Hydroxybutyrylcarnitine",
-                              `Pubchem CID`,
-                              identifiers))%>%
-  select(identifiers:transcriptome_2)
-
-# write_csv(data5, fs::path(dir_results, "3_high_dim_multivar_mediation_latent_fctrs","HIMA with latent factors results cor coef p value full metadata with identifiers 0710.csv"))
-```
-
-### Fig 4b. Pathway analysis figures
-
-```{r pathway analysis}
-# Read Data
-comp_res <- readxl::read_xlsx(fs::path(dir_results, 
-                                       "3_high_dim_multivar_mediation_latent_fctrs",
-                                       "ipa_results",
-                                       "All Comparison Analysis Results.xlsx"))
-
-n_top_pw_to_show <- 3
-
-# Pivot longer
-comp_res_l <- comp_res %>%
-  pivot_longer(cols = transcriptome_2:PC1, 
-               values_to = "neg_log_p", 
-               names_to = "factor")
-
-
-# Filter top 3 pathways per type/factor, remove influenza (not related to analysis)
-top_pw_l <- comp_res_l %>% 
-  tidylog::filter(str_detect(Name, "Influenza", negate = TRUE)) %>% 
-  tidylog::filter(str_detect(Name, "Cachexia", negate = TRUE)) %>% 
-  arrange(-neg_log_p) %>% 
-  group_by(Type, factor) %>%
-  tidylog::slice_head(n=n_top_pw_to_show) %>% 
-  ungroup() %>% 
-  janitor::clean_names()
-
-# Get variable for analysis types, feature type (joint vs. individual)
-top_pw_l1 <- top_pw_l %>% 
-  tidylog::mutate(
-    analysis = case_when(
-      str_detect(factor, "_PC") ~ "Late Integration", 
-      str_detect(factor, "PC") ~ "Early Integration", 
-      TRUE ~ "Intermediate Integration"), 
-    factor_type = case_when(
-      str_detect(factor, "Joint") ~ "Joint", 
-      str_detect(factor, "methylome") ~ "Methylome", 
-      str_detect(factor, "transcriptome") ~ "Transcriptome", 
-      TRUE ~ "Joint"),
-    factor_renamed = factor %>%
-      str_replace("_PC", " Comp. ") %>%
-      str_replace("_", " Comp. ") %>%
-      str_replace("PC", "Joint Comp. ") %>%
-      str_replace("meth", "Meth") %>%
-      str_replace("trans", "Trans"),
-    factor_ordered = case_when(
-      str_detect(factor, "_PC") ~ str_c("3", factor_renamed), 
-      str_detect(factor, "PC") ~ str_c("1", factor_renamed),
-      TRUE ~ str_c("2", factor_renamed)),
-    factor_ordered = fct_relevel(factor_ordered,
-                                 c("1Joint Comp. 8",
-                                   "1Joint Comp. 1",
-                                   "1Joint Comp. 2",
-                                   "1Joint Comp. 4",
-                                   
-                                   "2Joint Comp. 3",
-                                   "2Joint Comp. 2",
-                                   "2Joint Comp. 1",
-                                   "2Methylome Comp. 1",
-                                   "2Methylome Comp. 3",
-                                   "2Transcriptome Comp. 2",
-                                   "2Transcriptome Comp. 1",
-                                   
-                                   "3Methylome Comp. 1",
-                                   "3Methylome Comp. 3",
-                                   "3Methylome Comp. 2",
-                                   "3Transcriptome Comp. 2",
-                                   "3Transcriptome Comp. 1"))) %>%
-  arrange(factor_ordered) %>%
-  mutate(factor_ordered_num = rep(rep(1:16, each = 3*n_top_pw_to_show)))
-
-# Rename Pathways: 
-top_pw_l2 <- top_pw_l1 %>% 
-  filter(type == "Canonical Pathways") %>%
-  arrange(factor_ordered) %>% 
-  mutate(name_2 = name %>% 
-           str_replace("IL-17A and IL-17F", "IL-17A/F") %>% 
-           str_remove("Differential Regulation of ") %>% 
-           str_replace("T Helper", "Th") %>% 
-           str_replace("Intestinal Epithelial Cells", "IECs") %>% 
-           str_replace("Reactive Oxygen Species", "ROS") %>% 
-           str_remove("Role of "), 
-         name_2_ordered = fct_inorder(f = name_2))
-
-## Cannonical Pathways ----
-### All analyses integration ----
-(all_int_fig = top_pw_l2 %>% 
-   # filter(type == "Canonical Pathways") %>% 
-   ggplot(aes(x = reorder_within(factor_renamed, factor_ordered_num, analysis),
-              y = fct_reorder2(.f = name_2_ordered, .x = name_2_ordered, 
-                               .y = factor_ordered, .fun = first2, 
-                               .desc = TRUE) )) +
-   scale_x_reordered() +
-   # geom_tile(aes(fill = neg_log_p), color = "white") +
-   geom_point(aes(color = neg_log_p), size = 5) +
-   scale_color_gradient(low = "lightblue", high = "black",
-                        na.value = "grey10", name = "-log10(p)") +
-   labs(x = "", y = "", fill = "Neg Log P") + 
-   facet_grid(. ~ analysis, scales = "free_x", space = "free_x") + 
-   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
-         panel.grid.major = element_line(colour = "grey90"),
-         strip.text = element_blank()))
-
-
-# Combine fig 4 
-(fig_4 <- cowplot::plot_grid(hima_plot + theme(axis.text.x = element_blank()), 
-                             all_int_fig, 
-                             ncol = 1, 
-                             rel_heights = c(.5, 1),
-                             labels = c("A.", "B."),
-                             align = "v", axis = "lr"))
-
-
-# ggsave(fig_4, filename = fs::path(dir_figs,
-#                                   "3_high_dim_multivar_mediation_latent_fctrs",
-#                                   "Fig 4 pathway_analysis_figure.jpeg"),
-#        width = 9.5, height = 11, bg = "white")
-```
+Following this analysis, you can use the correlation p-values to perform pathway analysis with appropriate pathway analysis software.
