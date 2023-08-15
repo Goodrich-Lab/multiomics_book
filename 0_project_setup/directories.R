@@ -3,11 +3,6 @@
 # home directory for project
 dir_home <- here::here() 
 
-# Original Data directory
-dir_data_og <- dir_home %>%
-  dirname() %>%
-  fs::path("multiomics_methods_in_HELIX", "0_data")
-
 # Mercury Data directory
 dir_data_hg <- fs::path(dir_home, "0_data")
 
