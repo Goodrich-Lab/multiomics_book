@@ -2,7 +2,7 @@
 
 # Read in reduced full scaled data
 helix_dat_reduced <- read_rds(fs::path(dir_data_hg,
-                                       "simulate_Hg_ck18_screened_scaled_omics.RDS")) 
+                                       "simulated_HELIX_data.RDS")) 
 
 # Get exposure, outcome and covariate data ----
 
