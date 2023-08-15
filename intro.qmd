@@ -6,30 +6,31 @@ This book has three different sections, corresponding to each of the columns sho
 
 ## The Data
 
-The data used in this project is based off of simulated data from the Human Early Life Exposome (HELIX) cohort [@RN38]. The simulation for this project was performed using **qj add details**. This data can be accessed at @https://github.com/Goodrich-Lab/multiomics_book/tree/main/0_data. The format of this data is a named list with 6 elements. This includes separate numeric matrices for each of the 5 omics layers, as well as the exposure and phenotype data. In all datasets in this list, the rows represent individuals and the columns represent omics features. In this analysis, the exposure and outcome are:\
+The data used in this project is based off of simulated data from the Human Early Life Exposome (HELIX) cohort [@RN38]. The simulation for this project was performed using **qj add details**. This data can be accessed at @https://github.com/Goodrich-Lab/multiomics_book/tree/main/data. The format of this data is a named list with 6 elements. This includes separate numeric matrices for each of the 5 omics layers, as well as the exposure and phenotype data. In all datasets in this list, the rows represent individuals and the columns represent omics features. In this analysis, the exposure and outcome are:\
 Exposure: Maternal Mercury (hs_hg_m_resid)\
 Outcome: Risk of NAFLD, assessed through liver enzyme levels (ck18_scaled)
 
 You can read this data into R with... **jg to update**:
 
 ```{r, collapse=FALSE}
-# readRDS("https://raw.githubusercontent.com/Goodrich-Lab/multiomics_book/blob/main/0_data/simulate_Hg_ck18_screened_scaled_omics.RDS")
+# readRDS("https://raw.githubusercontent.com/Goodrich-Lab/multiomics_book/blob/main/data/simulate_Hg_ck18_screened_scaled_omics.RDS")
 ```
 
-# R Packages
+## R Packages
 
 This is a list of all of the packages used in this book:
-
-# 1. Descriptive Statistics
-
-## Correlation of omics features
-
-\#`{r child="1_descriptive_statistics/correlation of omics features.Rmd"} #`
 
 ## Data Summary
 
 \#`{r child="1_descriptive_statistics/data summary.Rmd"} #`
 
-## Mercury exposure and childhood NAFLD risk
 
-In the simulated data,...**hw to update** \#`{r child = "1_descriptive_statistics/exposure outcome associations.Rmd"} #`
+### Correlation of omics features
+
+\#`{r child="1_descriptive_statistics/correlation of omics features.Rmd"} #`
+
+
+### Mercury exposure and childhood NAFLD risk
+
+In the simulated data,...**hw to update** 
+\#`{r child = "1_descriptive_statistics/exposure outcome associations.Rmd"} #`

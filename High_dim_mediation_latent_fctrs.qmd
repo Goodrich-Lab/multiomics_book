@@ -162,7 +162,7 @@ The steps for intermediate integration start with performing a joint dimensional
 
 For this step, JIVE can estimate the optimal number of joint and individual ranks by changing the `method` argument in the function `jive`. For the simulated HELIX data, the optimal number, determined by setting `method = "perm"`, was 19 joint ranks and 7, 8, 3, 5, and 6 ranks for the methylome, transcriptome, miRNA, proteome, and metabolome, respectively.
 
-```{r JIVE, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
+```{r JIVE, cache = TRUE, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
 # conduct JIVE
 # Transpose omics matrices
 omics_t <- lapply(omics_lst, t)
@@ -588,9 +588,9 @@ data_long_plot <- data_long_plot %>%
 #        bg = "white")
 ```
 
-### B) Individual Features: Correlation heatmap (Fig 5b)
+### Correlation of Selected Features
 
-```{r correlation plot}
+```{r correlation plot, warning=FALSE}
 # Get the features from each method for plotting 
 meta_ftr <- meta_ftr_plot_early %>%
   bind_rows(meta_ftr_plot_jive) %>%
@@ -709,7 +709,7 @@ ggsave(p_cormat,
        width = 13, height = 13.55, bg = "white")
 ```
 
-### C) Individual Features: Association of features and components (Heatmap, fig 5a)
+### Comparison of Component and Feature Associations Across Methods
 
 ```{r Mediation results plot}
 # Panel A: Early integration ----
@@ -826,9 +826,7 @@ panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1 %>%
                scales = "free",
                space = "free",
                shrink = TRUE) +
-    theme(
-      # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-      axis.text.x = element_blank(),
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
       # axis.text.y = element_blank(),
       strip.text = element_blank(),
       legend.position = "none",
@@ -840,101 +838,14 @@ panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1 %>%
 
 
 # Fig 5a: Join plots ----
-(fig_5a <- cowplot::plot_grid(
+(fig_med_lf_ftr_comp <- cowplot::plot_grid(
   NULL, panel_b_early,  NULL, panel_b_JIVE, NULL, panel_b_late,
   ncol = 1, align = "hv", axis = "lr",
   rel_heights  = c(.1, .75, .1, 1.25, .1, 1),
   labels = c("a) Early","", "b) Intermediate","", "c) Late",""),
   label_x = c(-0.016, 0, -0.04, 0, -0.015,0)))
-
-# # Save figure
-ggsave(fig_5a,
-       filename = fs::path(dir_figs,
-                           "3_high_dim_multivar_mediation_latent_fctrs",
-                           "Fig 5 Heatmap of correlation top 071123.jpeg"),
-       width = 15, height = 6, bg = "white")
 ```
 
-## D Combine individual fig plots: Create final figure 5
-
-```{r final fig 5}
-# # Load fig_5a ----
-# library(magick)
-# img5a <- image_read(fs::path(dir_figs,
-#                              "3_high_dim_multivar_mediation_latent_fctrs",
-#                              "Fig 5 Heatmap of correlation top 071123.jpeg")) %>%
-#   image_rotate(180) %>%
-#   # Remove legend
-#   image_chop(paste0('0x', 30, '+0+0')) %>% 
-#   image_rotate(180) 
-# 
-# 
-# # Load and Rotate fig 5b ----
-# 
-# # Load correlation matrix
-# img <- image_read(fs::path(dir_figs,
-#                            "3_high_dim_multivar_mediation_latent_fctrs",
-#                            "correlaton_plot_subset_features_071123.jpeg"))
-# 
-# # Get image dimensions
-# img_dim <- image_info(img)
-# 
-# # Get legend
-# img_lgnd <- image_chop(img, paste0(img_dim$width / 1.2, 'x', 
-#                                    img_dim$height / 1.06, '+1000+0'))
-# 
-# # Remove legend, rotate 45 degrees, and remove top half of plot
-# img_chopped <- img %>% 
-#   image_rotate(180) %>%
-#   # Remove legend
-#   image_chop(paste0('0x', img_dim$height*0.044, '+0+0')) %>% 
-#   image_rotate(180+45) %>% 
-#   # Remove top half of rotated plot
-#   image_chop(paste0('0x', img_dim$height / 1.772, '+0+0'))
-# 
-# # Crop bottom
-# img_chopped2 <- img_chopped %>% 
-#   image_rotate(180) %>%
-#   # Remove legend
-#   image_chop(paste0('0x', img_dim$height*0.17, '+0+0')) %>% 
-#   image_rotate(180) 
-# 
-# # Add legend back in
-# img5b <- image_composite(img_chopped2, 
-#                          image_resize(img_lgnd, "1500x"), offset = "+100+2000")
-# 
-# # Set up justification
-# left_just = 265
-# right_just = 185
-# img5b_1 <- image_border(image = img5b,  color = "white",
-#                         geometry = paste0(left_just, "x0")) %>%
-#   image_rotate(180) %>%
-#   image_chop(paste0(left_just-right_just,'x0+0+0')) %>%
-#   image_rotate(180)
-# 
-# 
-# out <- image_append(image = c(img5a, 
-#                               image_resize(img5b_1, "5000x")), stack = TRUE)
-# 
-# out1 <- out %>% 
-#   image_annotate(text = "DNA Methylation", location = "+1050+30", 
-#                  size = 60) %>%
-#   image_annotate(text = "Gene Transcription", location = "+2300+30", 
-#                  size = 60) %>%
-#   image_annotate(text = "miRNA", location = "+3400+30", 
-#                  size = 60) %>%
-#   image_annotate(text = "Pro.", location = "+3800+30", 
-#                  size = 60) %>%
-#   image_annotate(text = "Metabolites", location = "+4025+30", 
-#                  size = 60)
-# 
-# # Save Image 
-# image_write(out1, 
-#             fs::path(dir_figs, 
-#                      "3_high_dim_multivar_mediation_latent_fctrs",
-#                      "Figure 5_combined_080423.jpeg"))
-```
-
-### Pathway Analysis. 
+### Pathway Analysis.
 
 Following this analysis, you can use the correlation p-values to perform pathway analysis with appropriate pathway analysis software.
