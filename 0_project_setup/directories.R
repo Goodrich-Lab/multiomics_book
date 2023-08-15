@@ -15,7 +15,7 @@ dir_data_hg <- fs::path(dir_home, "0_data")
 dir_results <- fs::path(dir_home, "2_results")
 
 # figures 
-dir_figs <- fs::path(dir_home, "3_figures")
+dir_figs <- fs::path(dir_home, "figures")
 
 # functions
 dir_fxn <- fs::path(here::here(), 
