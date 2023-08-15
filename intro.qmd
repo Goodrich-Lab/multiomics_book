@@ -2,7 +2,7 @@
 
 This book has three different sections, corresponding to each of the columns shown in @fig-1. In [Chapter @sec-HIMA], we provide the code for performing high dimensional mediation with early, intermediate, and late integration, illustrated in the first column of @fig-1. In [Chapter @sec-med_lf]
 
-![Figure 1](Multiomic%20Mediation%20Framework.png){#fig-1}
+![Figure 1](Multiomic_Mediation_Framework.png){#fig-1}
 
 ## The Data
 
