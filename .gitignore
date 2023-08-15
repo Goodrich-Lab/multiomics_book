@@ -2,11 +2,15 @@
 .Rhistory
 .RData
 .Ruserdata
+.DS_Store
 
 # Ignore Archive and Cache Folders
 */archive/
 *cache*/
-HIMA_files/
+HIMA_files
+
+# Ignore figure files
+figures/
 
 # Quarto Book Output
 /.quarto/
