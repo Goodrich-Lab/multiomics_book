@@ -1,23 +1,21 @@
 ---
 title: "Lucid Early Integration"
 author: "Jesse Goodrich, Hongxu Wang, Qiran Jia, and David Conti"
-date: "08/10/2023"
 format: 
   html:
     code-fold: true
 ---
 
 ## *Set up project for Lucid Early Integration Analysis*
+
 ```{r lucid early integration setup, include = FALSE, echo = FALSE}
-source(fs::path(here::here(),"0_project_setup","libraries.R"))
-source(fs::path(here::here(),"0_project_setup","directories.R"))
-source(fs::path(here::here(),"0_project_setup","load_simu_data.R"))
-source(fs::path(here::here(), "0_project_setup", "functions","lucid_reorder_plot_without_y.R"))
-source(fs::path(here::here(), "0_project_setup", "functions",
+source(fs::path(here::here(),"project_setup","directories.R"))
+source(fs::path(dir_proj,"libraries.R"))
+source(fs::path(dir_proj,"load_simu_data.R"))
+source(fs::path(dir_proj, "functions","lucid_reorder_plot_without_y.R"))
+source(fs::path(dir_proj, "functions",
                 "LUCIDus Early Integration Sankey fxn.R"))
-source(fs::path(here::here(), 
-                "0_project_setup", "functions", "LUCIDus",
-                "dependency.R"))
+source(fs::path(dir_proj, "functions", "LUCIDus", "dependency.R"))
 library(htmlwidgets)
 #need knitr version 1.42 to be compatible with htmlwidgets when rendering
 options(knitr.table.format = "html")
