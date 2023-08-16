@@ -24,13 +24,10 @@ This is a list of all of the packages used in this book:
 
 \#`{r child="1_descriptive_statistics/data summary.Rmd"} #`
 
-
 ### Correlation of omics features
 
 \#`{r child="1_descriptive_statistics/correlation of omics features.Rmd"} #`
 
-
 ### Mercury exposure and childhood NAFLD risk
 
-In the simulated data,...**hw to update** 
-\#`{r child = "1_descriptive_statistics/exposure outcome associations.Rmd"} #`
+In the simulated data,...**hw to update** \#`{r child = "1_descriptive_statistics/exposure outcome associations.Rmd"} #`
