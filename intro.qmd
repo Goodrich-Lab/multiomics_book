@@ -75,11 +75,16 @@ library(ComplexHeatmap)
 
 ## Data Summary
 
+These are the summary statistics for the exposure and phenotype incorporated in the analysis.
+
 ```{r data summary}
 table1::table1(~., data = outcomes)
 ```
 
 ### Correlation of omics features
+
+This is the correlation heatmap for omics features
+
 ```{r with ComplexHeatmap}
 source(fs::path(dir_proj,"functions","load_functions.R"))
 
