@@ -3,17 +3,16 @@
 .RData
 .Ruserdata
 .DS_Store
-
 # Ignore Archive and Cache Folders
 */archive/
 archive/
 *cache*/
 HIMA_files/
 High_dim_mediation_latent_fctrs_files/
-
 # Ignore figure files
 figures/
-
 # Quarto Book Output
 /.quarto/
 /_book/
+Quasi_mediation_files
+appendix_code_files
