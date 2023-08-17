@@ -13,6 +13,22 @@ Outcome: Risk of NAFLD, assessed through liver enzyme levels (ck18_scaled)
 You can read this data into R with... **jg to update**:
 
 ```{r, collapse=FALSE}
+source(fs::path(here::here(),"project_setup","directories.R"))
+
+# Read in reduced full scaled data
+helix_dat_reduced <- readr::read_rds(fs::path(dir_data_hg,
+                                       "simulated_HELIX_data.RDS")) 
+
+# Extract exposure and outcome data----
+outcomes <- helix_dat_reduced[["phenotype"]]
+
+# Omics data-----
+
+## create list of omics data------
+omics_name <- c("methylome", "transcriptome","proteome", "miRNA","metabolome")
+
+omics_lst <- helix_dat_reduced[which(names(helix_dat_reduced) %in% omics_name)]
+
 # readRDS("https://raw.githubusercontent.com/Goodrich-Lab/multiomics_book/blob/main/data/simulate_Hg_ck18_screened_scaled_omics.RDS")
 ```
 
@@ -20,14 +36,97 @@ You can read this data into R with... **jg to update**:
 
 This is a list of all of the packages used in this book:
 
+```{r load packages, message = FALSE, warning=FALSE}
+# Load packages ----------------------------------------
+library(tidyverse)
+library(RGCCA)
+library(r.jive)
+library(IntNMF)
+library(omicade4)
+library(GPArotation)
+library(MOFA2)
+library(tensorBSS)
+library(LUCIDus)
+library(networkD3)
+library(HIMA)
+library(factoextra)
+library(diagram)
+library(plotly)
+library(reshape2)
+library(cowplot)
+library(psych)
+ggplot2::theme_set(cowplot::theme_cowplot())
+
+# devtools::install_github("cran/RMediation")
+library(RMediation)
+library(mclust)
+library(data.table)
+library(colorspace)
+library(tidytext)
+
+library(boot)
+library(xtune)
+library(htmlwidgets)
+library(parallel)
+library(oaqc)
+library(concaveman)
+library(ComplexHeatmap)
+```
+
 ## Data Summary
 
-\#`{r child="1_descriptive_statistics/data summary.Rmd"} #`
+These are the summary statistics for the exposure and phenotype incorporated in the analysis.
+
+```{r data summary}
+table1::table1(~., data = outcomes)
+```
 
 ### Correlation of omics features
 
-\#`{r child="1_descriptive_statistics/correlation of omics features.Rmd"} #`
+This is the correlation heatmap for omics features
+
+```{r with ComplexHeatmap}
+source(fs::path(dir_proj,"functions","load_functions.R"))
+
+# Change omics list elements to dataframes
+omics_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name")) %>%
+  purrr::reduce(left_join, by = "name") %>%
+  column_to_rownames("name")
+
+# Correlation Matrix
+cormat <- cor(omics_df, method = "pearson")
+
+# Annotations
+annotation <- data.frame(
+  ftr_name = colnames(cormat),
+  Type = get_omic_layer(colnames(cormat)), 
+  index = 1:ncol(cormat)) |>
+  dplyr::mutate(Type = case_when(
+    Type == "Metabolome" ~ "Metabolites", 
+    Type == "Transcriptome" ~ "Gene\nExpression", 
+    Type == "Methylation" ~ "DNA\nMethylation", 
+    TRUE ~ Type))
+
+Heatmap(cormat, 
+        row_split = annotation$Type,
+        column_split = annotation$Type,
+        show_row_names = FALSE,
+        show_column_names = FALSE, 
+        heatmap_legend_param = list(title = "Correlation"))
+```
 
 ### Mercury exposure and childhood NAFLD risk
 
-In the simulated data,...**hw to update** \#`{r child = "1_descriptive_statistics/exposure outcome associations.Rmd"} #`
+In the simulated data,...**hw to update** 
+
+```{r linear regression}
+outcomes %>% 
+  ggplot(aes(x = hs_hg_m_scaled, y = ck18_scaled)) + 
+  geom_point() +
+  stat_smooth(method = "lm",
+              formula = y ~ x ,
+              geom = "smooth") +
+  xlab("Hg") +
+  ylab("CK18")
+```
+
