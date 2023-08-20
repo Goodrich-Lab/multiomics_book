@@ -3,10 +3,10 @@
 # get name of omics layers based on feature names
 get_omic_layer <- function(x){ 
   omic = case_when(str_detect(x, "pro_") ~ "Proteins", 
-                   str_detect(x, "miR") ~ "miRNA", 
-                   str_detect(x, "cg") ~ "Methylation", 
-                   str_detect(x, "TC") ~ "Transcriptome", 
-                   str_detect(x, "met") ~ "Metabolome")
+                   str_detect(x, "miR.") ~ "miRNA", 
+                   str_detect(x, "cg_") ~ "Methylation", 
+                   str_detect(x, "tc_") ~ "Transcriptome", 
+                   str_detect(x, "met_") ~ "Metabolome")
   omic = if_else(is.na(omic), "Metabolome", omic)
   return(omic)
 }

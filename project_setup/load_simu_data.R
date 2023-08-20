@@ -1,7 +1,7 @@
 ## ---- load_data ----
 
 # Load simulated data
-simulated_data <- read_rds(fs::path(dir_data_hg, "simulated_HELIX_data.RDS")) 
+simulated_data <- read_rds(fs::path(dir_data_hg, "simulated_HELIX_data_2.RDS")) 
 
 # Define exposure and outcome name
 covars <- c("e3_sex_None", "hs_child_age_yrs_None", "h_fish_preg_Ter")
@@ -14,7 +14,6 @@ outcome  <- simulated_data[["phenotype"]]$ck18_scaled
 # Get matrix of covariates 
 covs <- simulated_data[["phenotype"]][covars] %>% 
   mutate(h_fish_preg_Ter = as.numeric(h_fish_preg_Ter)) %>%
-  droplevels() %>% 
   fastDummies::dummy_cols(remove_selected_columns = TRUE,
                           remove_first_dummy = TRUE) 
 
@@ -28,10 +27,7 @@ omics_df <- omics_lst %>%
   column_to_rownames("name")
 
 
-## ---- load_annotations ----
-
-# Omics annotations
-omics_names <- readRDS(fs::path(dir_data_hg, "feature_metadata.RDS"))
+## ---- set_color_pal ----
 
 # Set Color Palettes 
 col_pal <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")
