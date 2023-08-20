@@ -6,8 +6,8 @@
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj,"libraries.R"))
 
-source(fs::path(dir_proj,"load_simu_data.R"))
-source(fs::path(dir_proj,"functions","load_functions.R"))
+source(fs::path(dir_proj, "load_simu_data.R"))
+source(fs::path(dir_proj, "functions","load_functions.R"))
 source(fs::path(dir_proj, "functions", "hima_functions.R"))
 
 options(knitr.table.format = "html")

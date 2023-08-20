@@ -8,10 +8,8 @@ library(parallel)
 library(cowplot) # For combining figures
 library(ComplexHeatmap) # Additional Plotting Functions
 library(ggh4x) # For faceted plots
-# library(factoextra)
 # library(diagram)
 library(reshape2)
-# library(psych)
 library(data.table) # For function setnames
 library(colorspace)
 library(tidytext)
@@ -48,15 +46,6 @@ library(glasso)
 library(nnet)
 library(boot)
 library(progress)
-
-
-# library(ggrepel)
-# Load necessary libraries
-# library(igraph)
-# library(ggraph)
-# library(ggforce)
-# library(graphlayouts)
-
 
 ## ---- set_theme ----
 ggplot2::theme_set(cowplot::theme_cowplot())

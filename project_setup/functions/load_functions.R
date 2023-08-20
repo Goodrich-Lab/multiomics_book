@@ -6,7 +6,7 @@ get_omic_layer <- function(x){
                    str_detect(x, "miR") ~ "miRNA", 
                    str_detect(x, "cg") ~ "Methylation", 
                    str_detect(x, "TC") ~ "Transcriptome", 
-                   str_detect(x, "metser") ~ "Metabolome")
+                   str_detect(x, "met") ~ "Metabolome")
   omic = if_else(is.na(omic), "Metabolome", omic)
   return(omic)
 }
@@ -17,7 +17,7 @@ get_omic_layer_lowercase <- function(x){
                    str_detect(x, "miR") ~ "mirna", 
                    str_detect(x, "cg") ~ "methylome", 
                    str_detect(x, "TC") ~ "transcriptome", 
-                   str_detect(x, "metser") ~ "metabolome")
+                   str_detect(x, "met") ~ "metabolome")
   omic = if_else(is.na(omic), "Metabolome", omic)
   return(omic)
 }
@@ -31,7 +31,7 @@ get_omic_layer_numeric <- function(x){
                        str_detect(x, "tc") ~ 2, 
                        str_detect(x, "miR") ~ 3,
                        str_detect(x, "pro_") ~ 4, 
-                       str_detect(x, "metser") ~ 5)
+                       str_detect(x, "met") ~ 5)
   } else{
     omic_num = case_when(str_detect(x, "meth") ~ 1, 
                          str_detect(x, "transc") ~ 2, 
@@ -44,7 +44,7 @@ get_omic_layer_numeric <- function(x){
 # rename features
 rename_ftrs <- function(x){ 
   x %>% 
-    str_remove("metser_log.") %>%
+    str_remove("met_") %>%
     str_remove("hsa-") %>%
     str_remove("pro_")
 }

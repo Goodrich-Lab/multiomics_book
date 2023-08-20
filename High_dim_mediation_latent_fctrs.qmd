@@ -251,15 +251,15 @@ cor_p_val_data_JIVE_all <- melt_data %>%
                           str_detect(Var1, "miR") ~ "miRNA", 
                           str_detect(Var1, "cg") ~ "Methylation", 
                           str_detect(Var1, "TC") ~ "Transcriptome", 
-                          str_detect(Var1, "metser") ~ "Metabolome", 
+                          str_detect(Var1, "met") ~ "Metabolome", 
                           TRUE ~ "error"),
          omic_num = case_when(str_detect(Var1, "cg") ~ 1, 
                               str_detect(Var1, "TC") ~ 2, 
                               str_detect(Var1, "miR") ~ 3,
                               str_detect(Var1, "pro_") ~ 4, 
-                              str_detect(Var1, "metser") ~ 5, 
+                              str_detect(Var1, "met") ~ 5, 
                               TRUE ~ 9),
-         Var1 = str_remove(Var1, "metser_log.") %>%
+         Var1 = str_remove(Var1, "met_") %>%
            str_remove("hsa-") %>%
            str_remove("pro_"), 
          Var2 = str_replace(Var2, "_", " ") %>% 
@@ -286,7 +286,7 @@ cor_p_val_data_JIVE_with_zeros1_all <- cor_p_val_data_JIVE_with_zeros_all %>%
                        dplyr::select(-omic_layer) %>%
                        mutate(ftr_name = str_remove(ftr_name, "hsa-") %>% 
                                 str_remove("pro_") %>% 
-                                str_remove("metser_log.")), by = "ftr_name")  %>%
+                                str_remove("met_")), by = "ftr_name")  %>%
   dplyr::select(ftr_name_for_plots, everything()) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots) %>%
            fct_reorder(omic_num) %>%
@@ -451,13 +451,13 @@ panel_b_dat_late_full <- left_join(ftr_late_pcs_long_full,
 panel_b_dat_late_fin_full <- panel_b_dat_late_full %>%
   mutate(omic_num = get_omic_layer_numeric(feature),
          omic_num2 = get_omic_layer_numeric(pc_num),
-         feature = str_remove(feature, "metser_log.") %>%
+         feature = str_remove(feature, "met_") %>%
            str_remove("hsa-") %>%
            str_remove("pro_")) 
 
 # Add names of features for plotting
 omics_names1 <- omics_names %>% dplyr::select(-omic_layer) %>%
-  mutate(ftr_name = str_remove(ftr_name, "metser_log.") %>%
+  mutate(ftr_name = str_remove(ftr_name, "met_") %>%
            str_remove("hsa-") %>%
            str_remove("pro_"))
 
@@ -486,7 +486,7 @@ meta_ftr_late <- ftr_cor_sig_pcs_late %>%
   mutate(omic = get_omic_layer(feature),
          omic_num = get_omic_layer_numeric(feature),
          omic_num2 = omic_num,
-         feature = str_remove(feature, "metser_log.") %>%
+         feature = str_remove(feature, "met_") %>%
            str_remove("hsa-") %>%
            str_remove("pro_")) 
 
@@ -603,7 +603,7 @@ meta_ftr_plot <- meta_ftr %>%
                                         "Metabolome"))) %>%
   mutate(ftr_name = ftr_name %>% str_replace_all("hsa-", "") %>%
            str_replace_all("pro_", "") %>%
-           str_replace_all("metser_log.", "")) %>% 
+           str_replace_all("met_", "")) %>% 
   distinct()
 
 # Some TCs map to same gene, so to get unique names: 
@@ -624,7 +624,7 @@ feature_names <- meta_ftr_plot1$ftr_name_for_plots
 omics_df_reorder <- omics_df %>%
   rename_with(~str_remove(., 'hsa-'))%>%
   rename_with(~str_remove(., 'pro_')) %>%
-  rename_with(~str_remove(., 'metser_log.')) %>%
+  rename_with(~str_remove(., 'met_')) %>%
   tidylog::select(all_of(unique(meta_ftr_plot1$ftr_name)))
 
 # Change names of reordered omics dataframe using the new variable names

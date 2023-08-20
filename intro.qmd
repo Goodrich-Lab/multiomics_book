@@ -14,7 +14,6 @@ The following is a list of packages that are used throughout this book that need
 #| code-fold: show
 ```
 
-
 Additional packages for [Chapter @sec-HIMA] are:
 ```{r hima_packages, message = FALSE, warning=FALSE}
 #| code-fold: show
@@ -30,12 +29,17 @@ Additional packages for [Chapter @sec-quasi] are:
 #| code-fold: show
 ```
 
-In order to replicate the style of the figures in this book, you will have to set the ggplot theme. 
+In order to replicate the style of the figures in this book, you will also have to set the ggplot theme:
 
 ```{r set_theme, message = FALSE, warning=FALSE}
 #| code-fold: show
 ```
 
+
+
+## Extra Functions   
+
+The analyses in this book rely on several custom functions. The details of these extra functions are provided in [Chapter @sec-code]. 
 
 ## The Data
 

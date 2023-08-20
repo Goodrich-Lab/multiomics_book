@@ -28,7 +28,6 @@ omics_df <- omics_lst %>%
   column_to_rownames("name")
 
 
-
 ## ---- load_annotations ----
 
 # Omics annotations
