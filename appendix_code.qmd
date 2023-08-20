@@ -6,17 +6,17 @@ knitr::read_chunk("project_setup/functions/hima_functions.R")
 
 ## High Dimensional Mediation Analysis Code
 
-### **Early** Integration of omics datasets
+### Early Integration of omics datasets
 
 ```{r HIMA_early, eval=FALSE}
 ```
 
-### **Intermediate** Integration of omics datasets
+### Intermediate Integration of omics datasets
 
 ```{r HIMA_intermediate, eval=FALSE}
 ```
 
-### **Late** Integration of omics datasets
+### Late Integration of omics datasets
 
 ```{r HIMA_late, eval=FALSE}
 ```

@@ -53,14 +53,12 @@ hima_early_integration <- function(exposure,
   result_hima_early <- result_hima_early %>%
     dplyr::mutate(
       multiomic_mthd = "Early Integration",
-      mediation_mthd = "HIMA",
-      outcome = outcome_name,
-      exposure = exposure_name) %>%
+      mediation_mthd = "HIMA") %>%
     dplyr::select(multiomic_mthd, mediation_mthd, 
                   ftr_name, 
                   everything())
   
-  
+  # Return result
   return(result_hima_early)
 }
 

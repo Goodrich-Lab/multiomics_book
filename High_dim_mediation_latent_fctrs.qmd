@@ -11,8 +11,7 @@ source(fs::path(dir_proj, "functions",
 source(fs::path(dir_proj,
                 "functions", "functions_for_med_lat_fctrs.R"))
 
-library(ggh4x)
-library(htmlwidgets)
+# 
 options(knitr.table.format = "html")
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 # Set up graphical parameters 
@@ -60,17 +59,15 @@ result_hima_comb_pc <- hima(X = exposure,
 
 # Modify DF
 result_hima_pca_early <- result_hima_comb_pc %>%
-    as_tibble(rownames = "pc_num") %>%
-    left_join(props_df) %>% 
-    mutate(multiomic_mthd = "Early",
-           mediation_mthd = "Latent Factors (PCA)",
-           outcome = outcome_name,
-           exposure = exposure_name, 
-           te_direction = if_else(beta<0, -1*`% total effect`, 
-                                  `% total effect`)) %>%
-    dplyr::select(multiomic_mthd, mediation_mthd, 
-                  pc_num, 
-                  everything())
+  as_tibble(rownames = "pc_num") %>%
+  left_join(props_df) %>% 
+  mutate(multiomic_mthd = "Early",
+         mediation_mthd = "Latent Factors (PCA)",
+         te_direction = if_else(beta<0, -1*`% total effect`, 
+                                `% total effect`)) %>%
+  dplyr::select(multiomic_mthd, mediation_mthd, 
+                pc_num, 
+                everything())
 
 # Filter Significant PCs, Create scaled %TE variable
 result_hima_pca_early_sig <- result_hima_pca_early %>% 
@@ -89,8 +86,8 @@ pca_early_long <- result_hima_pca_early_sig %>%
   mutate(pc_num_pct = str_c(pc_num, " (", 100*round(pc_var_explained, 2), "%)"), 
          pc_named = str_replace(pc_num, "PC", "Joint Comp. "),
          pcs_ordered = forcats::fct_reorder(pc_named, `te_direction`)) %>%
-  select(multiomic_mthd, pc_num, alpha, beta, `% Total Effect scaled`,
-         pcs_ordered) %>%
+  dplyr::select(multiomic_mthd, pc_num, alpha, beta, `% Total Effect scaled`,
+                pcs_ordered) %>%
   rename(Alpha = alpha, 
          Beta = beta,
          `TE (%)` = `% Total Effect scaled`) %>%
@@ -129,7 +126,7 @@ panel_b_dat_early_fin_all_ft <- panel_b_dat_early_all_ft %>%
 panel_b_dat_early_fin1_all_ft <- panel_b_dat_early_fin_all_ft %>%
   rename(ftr_name = feature) %>%
   tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), by = "ftr_name")  %>%
-  select(ftr_name_for_plots, ftr_name:omic_num)
+  dplyr::select(ftr_name_for_plots, ftr_name:omic_num)
 
 # Select features for plots -------
 ## Select rows with values in the top 17 of their respective columns 
@@ -144,13 +141,14 @@ ftr_cor_sig_pcs_top <- ftr_cor_sig_pcs[selected_rows, ] %>%
 meta_ftr_early <- ftr_cor_sig_pcs_top %>%
   mutate(omic_num = get_omic_layer_numeric(feature)) %>%
   mutate(omic_num = ifelse(grepl("miR",feature), 3, omic_num)) %>%
-  select(feature, omic, omic_num)
+  dplyr::select(feature, omic, omic_num)
 
 # Add names of features for plotting
 meta_ftr_plot_early <- meta_ftr_early %>%
   rename(ftr_name = feature) %>%
-  tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), by = "ftr_name")  %>%
-  select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
+  tidylog::left_join(omics_names %>% 
+                       dplyr::select(-omic_layer), by = "ftr_name") %>%
+  dplyr::select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
 ```
 
@@ -289,7 +287,7 @@ cor_p_val_data_JIVE_with_zeros1_all <- cor_p_val_data_JIVE_with_zeros_all %>%
                        mutate(ftr_name = str_remove(ftr_name, "hsa-") %>% 
                                 str_remove("pro_") %>% 
                                 str_remove("metser_log.")), by = "ftr_name")  %>%
-  select(ftr_name_for_plots, everything()) %>%
+  dplyr::select(ftr_name_for_plots, everything()) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots) %>%
            fct_reorder(omic_num) %>%
            as.ordered())
@@ -311,7 +309,7 @@ meta_ftr_jive <- ftr_cor_sig_pcs_top10 %>%
 meta_ftr_plot_jive <- meta_ftr_jive %>%
   rename(ftr_name = feature) %>%
   tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), by = "ftr_name")  %>%
-  select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
+  dplyr::select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots)) 
 ```
 
@@ -357,15 +355,15 @@ result_hima_late_integration <- hima(X = exposure,
 
 # Modify and save DF
 result_hima_late_integration <- result_hima_late_integration %>%
-    as_tibble(rownames = "pc_num") %>%
-    left_join(props_var_pcs) %>% 
-    mutate(multiomic_mthd = "Late",
-           mediation_mthd = "Latent Factors (PCA)",
-           te_direction = if_else(beta<0, -1*`% total effect`, 
-                                  `% total effect`)) %>%
-    dplyr::select(multiomic_mthd, mediation_mthd, 
-                  pc_num, 
-                  everything())
+  as_tibble(rownames = "pc_num") %>%
+  left_join(props_var_pcs) %>% 
+  mutate(multiomic_mthd = "Late",
+         mediation_mthd = "Latent Factors (PCA)",
+         te_direction = if_else(beta<0, -1*`% total effect`, 
+                                `% total effect`)) %>%
+  dplyr::select(multiomic_mthd, mediation_mthd, 
+                pc_num, 
+                everything())
 
 # Filter significant pcs, create scaled %TE variable
 result_hima_pca_late_sig <- result_hima_late_integration %>% 
@@ -385,8 +383,8 @@ result_hima_pca_late_sig <- result_hima_late_integration %>%
 # i. Data: Panel A Bargraph of mediation effects of PC's --------------
 pca_late_long <- result_hima_pca_late_sig %>%
   mutate(pcs_ordered = forcats::fct_reorder(omic_pc, `te_direction`)) %>%
-  select(multiomic_mthd, omic_pc, omic_layer, pc_num, pcs_ordered,
-         alpha, beta, `% Total Effect scaled`) %>%
+  dplyr::select(multiomic_mthd, omic_pc, omic_layer, pc_num, pcs_ordered,
+                alpha, beta, `% Total Effect scaled`) %>%
   rename(Alpha = alpha, 
          Beta = beta,
          `TE (%)` = `% Total Effect scaled`) %>%
@@ -430,7 +428,7 @@ var.cor <- var_cor_methylome %>%
 
 # Select only significant PCs
 ftr_cor_sig_pcs_late <- var.cor %>%
-  select(result_hima_pca_late_sig$pc_num) 
+  dplyr::select(result_hima_pca_late_sig$pc_num) 
 
 # Rownames to column
 ftr_cor_sig_pcs_late1 <- ftr_cor_sig_pcs_late %>%
@@ -467,7 +465,7 @@ omics_names1 <- omics_names %>% dplyr::select(-omic_layer) %>%
 panel_b_dat_late_fin1_all <- panel_b_dat_late_fin_full %>%
   rename(ftr_name = feature) %>%
   tidylog::left_join(omics_names1,by = "ftr_name")  %>%
-  select(ftr_name_for_plots, ftr_name:omic_num2) %>%
+  dplyr::select(ftr_name_for_plots, ftr_name:omic_num2) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
 
 # Select features for plots -------
@@ -498,7 +496,7 @@ meta_ftr_plot_late <- meta_ftr_late %>%
   tidylog::left_join(omics_names %>% dplyr::select(-omic_layer) %>%
                        mutate(ftr_name = str_remove(ftr_name, "hsa-")),
                      by = "ftr_name")  %>%
-  select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
+  dplyr::select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
   mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
 ```
 
@@ -510,7 +508,7 @@ data_long_plot <- result_hima_jive_long %>%
   dplyr::rename(pcs_ordered = components_ord) %>%
   bind_rows(pca_early_long, 
             pca_late_long) %>%
-  select(pcs_ordered, name, value, multiomic_mthd) %>% 
+  dplyr::select(pcs_ordered, name, value, multiomic_mthd) %>% 
   rename(method = multiomic_mthd)
 
 # Get order of PCs based on 
@@ -670,7 +668,7 @@ vlinecolor = "Magenta"
 
 # Plot correlation heatmap based on new order-------
 # Reorder correlation matrix
-cormat1 <- cor(omics_df_reorder %>% select(all_of(feature_name_reorder)))
+cormat1 <- cor(omics_df_reorder %>%dplyr::select(all_of(feature_name_reorder)))
 
 # Pivot correlation matrix longer
 correlation_matrix_melt <- reshape2::melt(cormat1)[lower.tri(cormat1),] %>% 
@@ -679,27 +677,27 @@ correlation_matrix_melt <- reshape2::melt(cormat1)[lower.tri(cormat1),] %>%
 
 # Plot correlation matrix
 p_cormat <- ggplot(correlation_matrix_melt,
-                    aes(x=Var1, y=Var2, fill=correlation)) + 
-    geom_tile(aes(fill = value),colour = "white" ) + 
-    geom_vline(xintercept = vline_locations$xintercept[1:4]-1, 
-               color = vlinecolor) +
-    geom_hline(yintercept = vline_locations$xintercept[1:4], 
-               color = vlinecolor) +
-    xlab(NULL)+ ylab(NULL) +
-    theme(#axis.text.x=element_blank(),
-      axis.text.x=element_text(angle = 90, hjust = 1, vjust = .5, size = 10),
-      axis.line.x = element_blank(),
-      axis.line.y = element_blank(),
-      axis.text.y=element_text(angle = 0, hjust = 1, vjust = .5, size = 10),
-      axis.ticks=element_blank(),
-      panel.border=element_blank(),
-      legend.position = "bottom",
-      legend.title = element_text(vjust = 0.75),
-      legend.key.width = unit(1, 'cm'),
-      text = element_text(size = 8)) + 
-    scale_y_discrete(position = "right") +
-    scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
-                         midpoint = 0, limits = c(-1, 1))
+                   aes(x=Var1, y=Var2, fill=correlation)) + 
+  geom_tile(aes(fill = value),colour = "white" ) + 
+  geom_vline(xintercept = vline_locations$xintercept[1:4]-1, 
+             color = vlinecolor) +
+  geom_hline(yintercept = vline_locations$xintercept[1:4], 
+             color = vlinecolor) +
+  xlab(NULL)+ ylab(NULL) +
+  theme(#axis.text.x=element_blank(),
+    axis.text.x=element_text(angle = 90, hjust = 1, vjust = .5, size = 10),
+    axis.line.x = element_blank(),
+    axis.line.y = element_blank(),
+    axis.text.y=element_text(angle = 0, hjust = 1, vjust = .5, size = 10),
+    axis.ticks=element_blank(),
+    panel.border=element_blank(),
+    legend.position = "bottom",
+    legend.title = element_text(vjust = 0.75),
+    legend.key.width = unit(1, 'cm'),
+    text = element_text(size = 8)) + 
+  scale_y_discrete(position = "right") +
+  scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
+                       midpoint = 0, limits = c(-1, 1))
 
 # Save
 ggsave(p_cormat,
@@ -724,30 +722,30 @@ panel_b_dat_early_fin1_all_ft1 <- panel_b_dat_early_fin1_all_ft %>%
 
 # Plot
 panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1 %>%
-                           filter(ftr_name_for_plots %in% c(feature_name_reorder)),
-                         aes(x = factor(ftr_name_for_plots,
-                                        levels = c(feature_name_reorder)), 
-                             y = fct_rev(factor_renamed_fin), 
-                             fill = Correlation)) +
-    geom_tile(color = "white") +
-    geom_vline(xintercept = vline_locations$xintercept[1:4], color = vlinecolor) + 
-    scale_fill_gradient2(low  = "blue",
-                         mid  = "white",
-                         high = "red",
-                         midpoint = 0,
-                         limits = c(-1, 1),
-                         breaks = c(-1, 0, 1),
-                         na.value = "grey20") +
-    theme(
-      # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-      axis.text.x = element_blank(),
-      strip.text = element_blank(),
-      axis.title = element_blank(), 
-      # axis.line.x = element_blank(),
-      axis.ticks.x = element_blank(),
-      legend.position = "none",
-      # axis.text.y = element_blank(),
-      text = element_text(size = 20)) 
+                          filter(ftr_name_for_plots %in% c(feature_name_reorder)),
+                        aes(x = factor(ftr_name_for_plots,
+                                       levels = c(feature_name_reorder)), 
+                            y = fct_rev(factor_renamed_fin), 
+                            fill = Correlation)) +
+  geom_tile(color = "white") +
+  geom_vline(xintercept = vline_locations$xintercept[1:4], color = vlinecolor) + 
+  scale_fill_gradient2(low  = "blue",
+                       mid  = "white",
+                       high = "red",
+                       midpoint = 0,
+                       limits = c(-1, 1),
+                       breaks = c(-1, 0, 1),
+                       na.value = "grey20") +
+  theme(
+    # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+    axis.text.x = element_blank(),
+    strip.text = element_blank(),
+    axis.title = element_blank(), 
+    # axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    legend.position = "none",
+    # axis.text.y = element_blank(),
+    text = element_text(size = 20)) 
 
 # Panel B. Intermediate----
 # Combine with reordered factor data
@@ -771,31 +769,31 @@ cor_p_val_data_JIVE_final_for_fin <- cor_p_val_data_JIVE_with_zeros1_all1 %>%
 
 # Plot
 panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin %>% 
-                          filter(ftr_name_for_plots %in% c(feature_name_reorder)), 
-                        aes(x = factor(ftr_name_for_plots, 
-                                       levels = c(feature_name_reorder)), 
-                            y = fct_rev(factor_renamed_fin), 
-                            fill = Correlation)) +
-    geom_tile(color = "white") + 
-    geom_vline(xintercept = vline_locations$xintercept[1:4], color = vlinecolor) + 
-    scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
-                         midpoint = 0,
-                         limits =  c(-1, 1),
-                         breaks = c(-1,0,1),
-                         na.value = "grey") +
-    facet_grid(ind_joint_num~ .,
-               scales = "free", space = "free", shrink = TRUE) +
-    theme(
-      # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-      axis.text.x = element_blank(),
-      strip.text = element_blank(),
-      # axis.text.y = element_blank(),
-      axis.title = element_blank(), 
-      axis.ticks.x = element_blank(),
-      # axis.line.x = element_blank(),
-      legend.position = "none",
-      panel.spacing.y = unit(-.1, "lines"),
-      text = element_text(size = 30))
+                         filter(ftr_name_for_plots %in% c(feature_name_reorder)), 
+                       aes(x = factor(ftr_name_for_plots, 
+                                      levels = c(feature_name_reorder)), 
+                           y = fct_rev(factor_renamed_fin), 
+                           fill = Correlation)) +
+  geom_tile(color = "white") + 
+  geom_vline(xintercept = vline_locations$xintercept[1:4], color = vlinecolor) + 
+  scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
+                       midpoint = 0,
+                       limits =  c(-1, 1),
+                       breaks = c(-1,0,1),
+                       na.value = "grey") +
+  facet_grid(ind_joint_num~ .,
+             scales = "free", space = "free", shrink = TRUE) +
+  theme(
+    # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+    axis.text.x = element_blank(),
+    strip.text = element_blank(),
+    # axis.text.y = element_blank(),
+    axis.title = element_blank(), 
+    axis.ticks.x = element_blank(),
+    # axis.line.x = element_blank(),
+    legend.position = "none",
+    panel.spacing.y = unit(-.1, "lines"),
+    text = element_text(size = 30))
 
 
 # Panel C. Late Integration----
@@ -810,31 +808,31 @@ panel_b_dat_late_fin1_all1 <- panel_b_dat_late_fin1_all %>%
 
 
 panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1 %>% 
-                          filter(ftr_name_for_plots %in% c(feature_name_reorder)), 
-                        aes(x = factor(ftr_name_for_plots,
-                                       levels = c(feature_name_reorder)), 
-                            y = fct_rev(factor_renamed_fin), 
-                            fill = Correlation)) +
-    geom_tile(color = "white") +
-    scale_fill_gradient2(low = "blue", mid = "white", high = "red",
-                         midpoint = 0,
-                         limits = c(-1, 1),
-                         breaks = c(-1,0,1),
-                         na.value = "grey") +
-    geom_vline(xintercept = vline_locations$xintercept[1:4], color = vlinecolor) + 
-    facet_grid(omic_num2 ~ .,
-               scales = "free",
-               space = "free",
-               shrink = TRUE) +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-      # axis.text.y = element_blank(),
-      strip.text = element_blank(),
-      legend.position = "none",
-      panel.spacing.y = unit(-.1, "lines"),
-      axis.title = element_blank(), 
-      # axis.line.x = element_blank(), 
-      # axis.ticks = element_blank(),
-      text = element_text(size = 20))
+                         filter(ftr_name_for_plots %in% c(feature_name_reorder)), 
+                       aes(x = factor(ftr_name_for_plots,
+                                      levels = c(feature_name_reorder)), 
+                           y = fct_rev(factor_renamed_fin), 
+                           fill = Correlation)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red",
+                       midpoint = 0,
+                       limits = c(-1, 1),
+                       breaks = c(-1,0,1),
+                       na.value = "grey") +
+  geom_vline(xintercept = vline_locations$xintercept[1:4], color = vlinecolor) + 
+  facet_grid(omic_num2 ~ .,
+             scales = "free",
+             space = "free",
+             shrink = TRUE) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+        # axis.text.y = element_blank(),
+        strip.text = element_blank(),
+        legend.position = "none",
+        panel.spacing.y = unit(-.1, "lines"),
+        axis.title = element_blank(), 
+        # axis.line.x = element_blank(), 
+        # axis.ticks = element_blank(),
+        text = element_text(size = 20))
 
 
 # Fig 5a: Join plots ----
@@ -849,3 +847,14 @@ panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1 %>%
 ### Pathway Analysis.
 
 Following this analysis, you can use the correlation p-values to perform pathway analysis with appropriate pathway analysis software.
+
+
+## Alternate Approaches
+
+```{r}
+# library(IntNMF)
+# library(omicade4)
+# library(MOFA2)
+# library(tensorBSS)
+# library(RGCCA)
+```

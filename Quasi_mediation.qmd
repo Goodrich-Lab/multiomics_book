@@ -12,12 +12,12 @@ First, we need to set up the project, and then we'll implement three LUCID diffe
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj,"libraries.R"))
 source(fs::path(dir_proj,"load_simu_data.R"))
-source(fs::path(dir_proj,"functions","load_functions.R"))
-source(fs::path(dir_proj,"functions","lucid_reorder_plot_without_y.R"))
+source(fs::path(dir_proj,"functions", "load_functions.R"))
+source(fs::path(dir_proj,"functions", "lucid_reorder_plot_without_y.R"))
 source(fs::path(dir_proj,"functions", "LUCIDus Early Integration Sankey fxn.R"))
 source(fs::path(dir_proj,"functions", "LUCIDus", "dependency.R"))
-library(htmlwidgets)
-#need knitr version 1.42 to be compatible with htmlwidgets when rendering
+
+# For some reason, knitr version 1.42 is required in order to be compatible with htmlwidgets when rendering
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
                       fig.height= 15, fig.width= 12,collapse = TRUE)
 ```
@@ -44,7 +44,7 @@ We a-priori assigned the number of clusters to two. Early Integration LUCID esti
 ```{r analysis data preparation}
 # Three omics layers, Methylation (CpG), Transcriptome and miRNA
 omics_df_analysis <- omics_df %>% 
-  select(contains("cg"), contains("TC"), contains("hsa"))
+  dplyr::select(contains("cg"), contains("TC"), contains("hsa"))
 ```
 
 When using `estimate_lucid()` to fit Early Integration LUCID model, we specify `lucid_model = "early"`, and `K` is an integer representing number of latent clusters.
@@ -56,15 +56,15 @@ Z = omics_df_analysis %>%
   as.matrix()
 
 fit1 <- estimate_lucid(lucid_model = "early",
-              G = G,
-              Z = Z,
-              Y = outcome, 
-              K = 2,
-              CoY = covs,
-              CoG = covs,
-              useY = TRUE,
-              init_par = "random",
-              family = "normal")
+                       G = G,
+                       Z = Z,
+                       Y = outcome, 
+                       K = 2,
+                       CoY = covs,
+                       CoG = covs,
+                       useY = TRUE,
+                       init_par = "random",
+                       family = "normal")
 
 
 # Sankey Diagram
@@ -130,12 +130,6 @@ Set up the project for analysis.
 source(fs::path(dir_fxn, "LUCIDusM in Parallel Sankey fxn Plotly.R"))
 source(fs::path(dir_fxn, "LUCIDusM_get_pips.R"))
 source(fs::path(dir_fxn, "plot_lucid_networks.R"))
-library(ggrepel)
-# Load necessary libraries
-library(igraph)
-library(ggraph)
-library(ggforce)
-library(graphlayouts)
 
 knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 ```
@@ -148,7 +142,7 @@ meta_df <- data.frame(ftr_name = c(colnames(omics_lst$methylome),
                                    colnames(omics_lst$miRNA))) %>%
   mutate(omic_layer = get_omic_layer_lowercase(ftr_name) ) %>%
   tidylog::left_join(omics_names %>% dplyr::select(-omic_layer))  %>%
-  select(ftr_name_for_plots, ftr_name, omic_layer) 
+  dplyr::select(ftr_name_for_plots, ftr_name, omic_layer) 
 
 methylation_meta_df <- meta_df %>% filter(omic_layer == "methylome") %>% 
   mutate(ftr_name_for_plots =  
@@ -184,14 +178,14 @@ Z = omics_lst[c(1:3)]
 Y = outcome 
 
 fit <- estimate_lucid(lucid_model = "parallel",
-  G = G, 
-  Z = Z, 
-  Y = Y,
-  K = rep(2, length(Z)), 
-  family = "normal", 
-  max_itr = 200, 
-  useY = TRUE, 
-  modelName = "EEV")
+                      G = G, 
+                      Z = Z, 
+                      Y = Y,
+                      K = rep(2, length(Z)), 
+                      family = "normal", 
+                      max_itr = 200, 
+                      useY = TRUE, 
+                      modelName = "EEV")
 
 # Reorder the clusters
 fit_reordered <- reorder_lucidM(fit, reference = c(1,1,2))
@@ -209,7 +203,7 @@ fit_reordered <- reorder_lucidM(fit, reference = c(1,1,2))
 ### Omics profiles for each cluster predicted by LUCID
 
 ```{r omics profiles lucid in parellel, fig.height= 8, fig.width= 10}
-M_mean =    as_tibble(fit$res_Mu_Sigma$Mu[[1]], rownames = "variable") %>%
+M_mean = as_tibble(fit$res_Mu_Sigma$Mu[[1]], rownames = "variable") %>%
   bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[2]], rownames = "variable")) %>%
   bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[3]], rownames = "variable"))
 
@@ -274,7 +268,6 @@ ggplot(M_mean2  %>% filter(variable %in% M_mean2_top$variable),
 lucid_pips <- get_pips(fit) %>% as_tibble()
 
 # Add rownames, exposures, and outcome
-lucid_pips$helixid <- outcomes$helixid
 lucid_pips$exposure <- exposure
 lucid_pips$outcome <- outcome
 
@@ -315,7 +308,7 @@ lucid_clusters <- lucid_clusters_sample_size %>%
   mutate(m = str_sub(cluster_assignment, end = -9), 
          t = str_sub(cluster_assignment, start = 4, end = 5),
          p = str_sub(cluster_assignment, start = 7)) %>%
-  select(m, t, p, everything()) %>%
+  dplyr::select(m, t, p, everything()) %>%
   janitor::clean_names()
 
 # Make group names
@@ -401,7 +394,7 @@ omics_profile_plot <- function(clusters_to_include,
              label = paste("Methylation\nProfile", 
                            str_sub(clusters_to_include[1], -1)),
              lineheight = 0.75, color = col_pal[1], size = text_size) + 
-        annotate(geom = "text",  
+    annotate(geom = "text",  
              x = ifelse(clusters_to_include[3] == "miR1", 0.02,-0.89), 
              y = 10, ## y position
              hjust = 0, 
@@ -474,86 +467,6 @@ names(eo_figs) <- unique(lucid_clusters$group_name)
              "Group 4", "Group 8", rep("", 4))))
 ```
 
-### Network diagram of participants based on PIPs
-
-```{r Network Diagram, include=FALSE}
-# ## BASE OF THE FINAL FIGURE ----
-# exposure_plot2 <- ggplot(lucid_clusters_w,
-#                           aes(x = estimate_exposure,
-#                               y = estimate_outcome,
-#                               label = group_name,
-#                               color = cluster_assignment)) +
-#    # geom_point(aes(x = exposure, y = outcome),
-#    #            data = lucid_pips,
-#    #            inherit.aes = TRUE, alpha = .4) +
-#    geom_label_repel(color = "black", min.segment.length = 0) +
-#    geom_point(size = 3) + 
-#    theme(legend.position = "none")
-# 
-# # Subset the data frame to get only the relevant columns
-# df_subset <- lucid_pips_fin %>% select(pip_l1_c2, pip_l2_c2, pip_l3_c2)
-# rownames(df_subset) <- lucid_pips$helixid
-# # Compute a distance matrix
-# dist_matrix <- dist(df_subset)
-# 
-# # Build a graph object from the distance matrix
-# g_full <- graph_from_adjacency_matrix(as.matrix(dist_matrix),
-#                                       mode = "undirected", 
-#                                       weighted = TRUE)
-# 
-# # Assign names to the vertices in the graph
-# V(g_full)$cluster_assignment <- lucid_pips_fin$cluster_assignment
-# V(g_full)$group_name <- lucid_pips_fin$group_name
-# 
-# # Delete edges
-# g <- g_full %>% 
-#   delete_edges(which(E(g_full)$weight > .7)) 
-# 
-# # Backbone layout
-# bb <- layout_as_backbone(g,keep=.01)
-# xy <- layout_rotate(bb$xy, angle = 90)
-# xy <- layout_mirror(bb$xy)
-# # Categorize var indicating starting vertices group based on M0 or M1 clusters
-# starting_v <- str_remove(as_ids(E(g)), "\\|.*")
-# m1_index <- starting_v %in% lucid_pips_fin$helixid[lucid_pips_fin$m == "M1"]
-# E(g)$col <- "M0"
-# E(g)$col[m1_index] <- "M1"
-# 
-# # Visualize without changing centroids
-# ggraph_fxn(g = g, x=xy[,1],y=xy[,2], label_groups = TRUE)
-# 
-# ## Shift the centroids of the groups ----
-# actual_centroids <- lapply(unique(V(g)$group_name), function(cluster) {
-#   nodes <- xy[V(g)$group_name == cluster,]
-#   calculate_centroid(nodes)
-# })
-# names(actual_centroids) <- unique(V(g)$group_name)
-# 
-# # # Specify the desired centroid of each cluster
-# centroid_list <- lucid_clusters_w %>%
-#   dplyr::select(estimate_exposure, estimate_outcome) %>%
-#   as.matrix()
-# desired_centroids <-  split(f = lucid_clusters_w$group_name, 
-#                             x = (((log(centroid_list+2))*30)))
-# 
-# final_centroid <- desired_centroids
-# final_centroid[["Group 6"]][2] <- 0.8*desired_centroids[["Group 6"]][2]
-# final_centroid[["Group 8"]][1] <- 0.8*desired_centroids[["Group 8"]][1]
-# 
-# # desired_centroids = actual_centroids
-# 
-# # Shift the nodes in each cluster
-# xy_shifted <- xy
-# for (cluster in names(final_centroid)) {
-#   shift <- final_centroid[[cluster]] - actual_centroids[[cluster]]
-#   xy_shifted[V(g)$group_name == cluster,] <-
-#     shift_nodes(xy[V(g)$group_name == cluster,], shift)
-# }
-# 
-# # Visualize
-# (network_fig_pannel = ggraph_fxn(g = g, x=xy_shifted[,1],y=xy_shifted[,2],
-#                                  label_groups = T, label.fontsize = 20))
-```
 
 ## *Late Integration*
 
@@ -563,36 +476,30 @@ For late integration, LUCID in serial is implemented, which successively links m
 source(fs::path(dir_proj, "functions","LUCIDusM in Serial Sankey fxn.R"))
 ```
 
-```{r analysis data preparation lucid in serial}
-## Extract omics layer dataframe-----
-methylation <- omics_lst_df$methylome %>% column_to_rownames("name")
-transcription <- omics_lst_df$transcriptome %>% column_to_rownames("name")
-miRNA <- omics_lst_df$miRNA %>% column_to_rownames("name")
-```
-
-### Analysis: Lucid with 3 ordered omics layers in serial
+### Step 1. Hg + Methylation
 
 When using `estimate_lucid()` to fit LUCID in serial model, we specify `lucid_model = "serial"`, and `K` is a list with the same length as the number of ordered omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer.
 
 ```{r LUCID model 1}
 set.seed(100)
 G_Hg = exposure %>% as.matrix()
-Z_methy = methylation %>% as.matrix()
-Z = list(as.matrix(methylation),as.matrix(transcription),as.matrix(miRNA))
+Z = list(omics_lst$methylome,
+         omics_lst$transcriptome,
+         omics_lst$miRNA)
 Y_liv_inj = scale(outcome)
 
 fit <- estimate_lucid(lucid_model = "serial",
-              G = G_Hg,
-              Z = Z,
-              Y = Y_liv_inj, 
-              CoY = covs,
-              CoG = covs,
-              K = list(2,2,2),
-              useY = TRUE,
-              init_par = "random",
-              family = "normal", 
-              Rho_Z_Mu = 10,
-              Rho_Z_Cov = .3)
+                      G = G_Hg,
+                      Z = Z,
+                      Y = Y_liv_inj, 
+                      CoY = covs,
+                      CoG = covs,
+                      K = list(2,2,2),
+                      useY = TRUE,
+                      init_par = "random",
+                      family = "normal", 
+                      Rho_Z_Mu = 10,
+                      Rho_Z_Cov = .3)
 
 fit1 <- fit$submodel[[1]]
 # Rename Exposure
@@ -608,21 +515,19 @@ fit3$var.names$Gnames[1] <- "<b>miRNA\nProfile 1</b>"
 ```{r Sankey Diagram lucid in serial, fig.height= 15, fig.width= 12}
 col_pal <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")
 color_pal_sankey <- matrix(c("exposure", "red",
-                               "lc",       "#b3d8ff",
-                               "TC",      col_pal[2],
-                               "CpG",       col_pal[1],
-                               "miRNA",  col_pal[3],
-                               "outcome",  "grey"), 
-                             ncol = 2, byrow = TRUE) %>%
-    as_tibble(.name_repair = "unique") %>% 
-    janitor::clean_names() %>%
-    dplyr::rename(group = x1, color = x2)
-  
+                             "lc",       "#b3d8ff",
+                             "TC",      col_pal[2],
+                             "CpG",       col_pal[1],
+                             "miRNA",  col_pal[3],
+                             "outcome",  "grey"), 
+                           ncol = 2, byrow = TRUE) %>%
+  as_tibble(.name_repair = "unique") %>% 
+  janitor::clean_names() %>%
+  dplyr::rename(group = x1, color = x2)
+
 sankey_in_serial(fit1, 
                  fit2, 
                  fit3, 
                  color_pal_sankey,
                  text_size = 24)
-
-
 ```

@@ -1,92 +1,107 @@
 # Introduction
 
-This book has three different sections, corresponding to each of the columns shown in @fig-1. In [Chapter @sec-HIMA], we provide the code for performing high dimensional mediation with early, intermediate, and late integration, illustrated in the first column of @fig-1. In [Chapter @sec-med_lf]
+## R Packages
 
-![Figure 1](Multiomic_Mediation_Framework.png){#fig-1}
+Before starting, you will need the following R packages. 
+
+```{r read_libraries, include=FALSE}
+source(fs::path(here::here(),"project_setup","directories.R"))
+knitr::read_chunk("project_setup/libraries.R")
+```
+
+The following is a list of packages that are used throughout this book that need to be loaded before any analysis:
+```{r general_packages_loaded, message = FALSE, warning=FALSE, collapse=FALSE}
+#| code-fold: show
+```
+
+
+Additional packages for [Chapter @sec-HIMA] are:
+```{r hima_packages, message = FALSE, warning=FALSE}
+#| code-fold: show
+```
+
+Additional packages for [Chapter @sec-med_lf] are:
+```{r med_lf_packages, message = FALSE, warning=FALSE}
+#| code-fold: show
+```
+
+Additional packages for [Chapter @sec-quasi] are:
+```{r lucid_packages, message = FALSE, warning=FALSE}
+#| code-fold: show
+```
+
+In order to replicate the style of the figures in this book, you will have to set the ggplot theme. 
+
+```{r set_theme, message = FALSE, warning=FALSE}
+#| code-fold: show
+```
+
 
 ## The Data
 
-The data used in this project is based off of simulated data from the Human Early Life Exposome (HELIX) cohort [@RN38]. The simulation for this project was performed using **qj add details**. This data can be accessed at @https://github.com/Goodrich-Lab/multiomics_book/tree/main/data. The format of this data is a named list with 6 elements. This includes separate numeric matrices for each of the 5 omics layers, as well as the exposure and phenotype data. In all datasets in this list, the rows represent individuals and the columns represent omics features. In this analysis, the exposure and outcome are:\
-Exposure: Maternal Mercury (hs_hg_m_resid)\
-Outcome: Risk of NAFLD, assessed through liver enzyme levels (ck18_scaled)
+```{r read-in load data, include=FALSE}
+knitr::read_chunk("project_setup/load_simu_data.R")
+```
 
-You can read this data into R with... **jg to update**:
+The data used in this project is based off of simulated data from the Human Early Life Exposome (HELIX) cohort [@RN38]. The data was simulated for one exposure, five omics layers, and one continuous outcome (after publication, this data will be available on github). The format of this data is a named list with 6 elements. It includes separate numeric matrices for each of the 5 omics layers, as well as the exposure and phenotype data. In all datasets in the list, the rows represent individuals and the columns represent omics features. In this analysis, the exposure and outcome are:\
+
+-  **Exposure**: *hs_hg_m_resid*, representing maternal mercury levels\
+-  **Outcome**: *ck18_scaled*, representing child liver enzyme levels, a major risk factor for non-alcoholic fatty liver disease (NAFLD).\
+
+You can read this data into R using the following code:\
 
 ```{r, collapse=FALSE}
-source(fs::path(here::here(),"project_setup","directories.R"))
-
 # Read in reduced full scaled data
-helix_dat_reduced <- readr::read_rds(fs::path(dir_data_hg,
+simulated_data <- readr::read_rds(fs::path(dir_data_hg,
                                        "simulated_HELIX_data.RDS")) 
 
-# Extract exposure and outcome data----
-outcomes <- helix_dat_reduced[["phenotype"]]
-
-# Omics data-----
-
-## create list of omics data------
+# Create list of omics data 
 omics_name <- c("methylome", "transcriptome","proteome", "miRNA","metabolome")
 
-omics_lst <- helix_dat_reduced[which(names(helix_dat_reduced) %in% omics_name)]
+omics_lst <- simulated_data[which(names(simulated_data) %in% omics_name)]
 
 # readRDS("https://raw.githubusercontent.com/Goodrich-Lab/multiomics_book/blob/main/data/simulate_Hg_ck18_screened_scaled_omics.RDS")
 ```
 
-## R Packages
 
-This is a list of all of the packages used in this book:
 
-```{r load packages, message = FALSE, warning=FALSE}
-# Load packages ----------------------------------------
-library(tidyverse)
-library(RGCCA)
-library(r.jive)
-library(IntNMF)
-library(omicade4)
-library(GPArotation)
-library(MOFA2)
-library(tensorBSS)
-library(LUCIDus)
-library(networkD3)
-library(HIMA)
-library(factoextra)
-library(diagram)
-library(plotly)
-library(reshape2)
-library(cowplot)
-library(psych)
-ggplot2::theme_set(cowplot::theme_cowplot())
+### Descriptive Statistics  
 
-# devtools::install_github("cran/RMediation")
-library(RMediation)
-library(mclust)
-library(data.table)
-library(colorspace)
-library(tidytext)
-
-library(boot)
-library(xtune)
-library(htmlwidgets)
-library(parallel)
-library(oaqc)
-library(concaveman)
-library(ComplexHeatmap)
-```
-
-## Data Summary
-
-These are the summary statistics for the exposure and phenotype incorporated in the analysis.
+@tbl-descript shows the summary statistics for the exposure and phenotype data in this analysis.
 
 ```{r data summary}
-table1::table1(~., data = outcomes)
+#| tbl-cap: "Descriptive Statistics for the Simulated Variables"
+#| label: tbl-descript
+table1::table1(~., data = simulated_data[["phenotype"]])
 ```
+
+### Mercury exposure and childhood NAFLD risk
+
+In the simulated data,...**hw to update** 
+
+```{r linear regression}
+#| fig-cap: "Association between maternal mercury and CK18 in the Simulated Data"
+ggplot(data = simulated_data[["phenotype"]], 
+       aes(x = hs_hg_m_scaled, y = ck18_scaled)) + 
+  geom_point() +
+  stat_smooth(method = "lm",
+              formula = y ~ x ,
+              geom = "smooth") +
+  xlab("Maternal Mercury Exposure (Scaled)") +
+  ylab("CK-18 Levels (Scaled)")
+```
+
 
 ### Correlation of omics features
 
-This is the correlation heatmap for omics features
+@fig-cor shows the correlation within and between the omics layers in the simulated data. 
 
 ```{r with ComplexHeatmap}
-source(fs::path(dir_proj,"functions","load_functions.R"))
+#| label: fig-cor
+#| fig-cap: "Heatmap illustrating the correlation of molecular features within and between different omics layers." 
+#| fig-height: 6
+
+source(fs::path(dir_proj, "functions", "load_functions.R"))
 
 # Change omics list elements to dataframes
 omics_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name")) %>%
@@ -107,6 +122,7 @@ annotation <- data.frame(
     Type == "Methylation" ~ "DNA\nMethylation", 
     TRUE ~ Type))
 
+# Make Plot
 Heatmap(cormat, 
         row_split = annotation$Type,
         column_split = annotation$Type,
@@ -115,18 +131,4 @@ Heatmap(cormat,
         heatmap_legend_param = list(title = "Correlation"))
 ```
 
-### Mercury exposure and childhood NAFLD risk
-
-In the simulated data,...**hw to update** 
-
-```{r linear regression}
-outcomes %>% 
-  ggplot(aes(x = hs_hg_m_scaled, y = ck18_scaled)) + 
-  geom_point() +
-  stat_smooth(method = "lm",
-              formula = y ~ x ,
-              geom = "smooth") +
-  xlab("Hg") +
-  ylab("CK18")
-```
 

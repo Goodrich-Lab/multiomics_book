@@ -1,11 +1,4 @@
 
-library(glmnet)
-library(glasso)
-library(nnet)
-library(networkD3)
-library(mclust)
-library(boot)
-library(progress)
 
 
 source(fs::path(dir_proj, "functions/LUCIDus/em.R"))

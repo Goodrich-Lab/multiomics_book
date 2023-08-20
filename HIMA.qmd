@@ -122,14 +122,14 @@ First, prepare the results for figures.
 ```{r 4. Prepare Results for Figures}
 early <- result_hima_early_fin %>%
   mutate(sig_early = if_else(BH.FDR < 0.05, 1, 0)) %>%
-  select(ftr_name, 'alpha*beta', pte_early, alpha, beta, sig_early) %>%
+  dplyr::select(ftr_name, 'alpha*beta', pte_early, alpha, beta, sig_early) %>%
   rename(ie_early = 'alpha*beta', 
          alpha_early = alpha, 
          beta_early = beta)
 
 late <- result_hima_late_fin %>%
   mutate(sig_late = if_else(BH.FDR < 0.05, 1, 0)) %>%
-  select(ftr_name, 'alpha*beta', pte_late, alpha, beta, sig_late) %>%
+  dplyr::select(ftr_name, 'alpha*beta', pte_late, alpha, beta, sig_late) %>%
   rename(ie_late = 'alpha*beta', 
          alpha_late = alpha, 
          beta_late = beta)
@@ -137,8 +137,8 @@ late <- result_hima_late_fin %>%
 # Filter out effect estimate of 0
 intermediate <- result_hima_intermediate_fin %>%
   tidylog::filter(s1 != 0) %>%
-  select(ftr_name, indirect, pte_intermediate, alpha, 
-         beta_bootstrap,  sig_intermediate) %>%
+  dplyr::select(ftr_name, indirect, pte_intermediate, alpha, 
+                beta_bootstrap,  sig_intermediate) %>%
   rename(ie_intermediate = indirect, 
          alpha_intermediate = alpha, 
          beta_intermediate = beta_bootstrap)
@@ -181,7 +181,7 @@ high_dim_res_fin <- high_dim_res_long %>%
 ```{r 5. correlation plot}
 # Select the unique features from high dimensional mediation results
 omics_df_subset <- omics_df %>%
-  select(unique(high_dim_res_fin$ftr_name)) 
+  dplyr::select(unique(high_dim_res_fin$ftr_name)) 
 
 # Create an annotation dataframe for the selected features
 annotation <- omics_names %>% 
@@ -214,7 +214,7 @@ feature_name_reorder <- colnames(omics_df_subset)[feature_order]
 
 # Recalculate correlation matrix for the reordered dataframe
 correlation_matrix <- omics_df_subset %>% 
-  select(all_of(feature_name_reorder)) %>% 
+  dplyr::select(all_of(feature_name_reorder)) %>% 
   cor()
 
 # Function to get the lower triangle of the correlation matrix
@@ -224,7 +224,8 @@ get_lower_tri<-function(cormat){
 }
 
 # Transform correlation matrix into a data frame, excluding NA values and redundant pairs
-correlation_matrix_melt <- reshape2::melt(get_lower_tri(correlation_matrix), na.rm = TRUE)%>%
+correlation_matrix_melt <- reshape2::melt(get_lower_tri(correlation_matrix), 
+                                          na.rm = TRUE) %>%
   filter(Var1 != Var2) %>%
   rename(correlation = value)
 
@@ -320,9 +321,9 @@ late_plot <- hima_plot(hima_plot_dat,
 
 # Combine Plots
 plot_grid(NULL, early_plot, 
-               NULL, intermediate_plot, 
-               NULL, late_plot,
-               ncol = 1,
-               rel_heights = c(.03, 0.35, .03, 0.35, 0.03, 0.65),
-               labels = c("a) Early", "","b) Intermediate","", "c) Late",""))
+          NULL, intermediate_plot, 
+          NULL, late_plot,
+          ncol = 1,
+          rel_heights = c(.03, 0.35, .03, 0.35, 0.03, 0.65),
+          labels = c("a) Early", "","b) Intermediate","", "c) Late",""))
 ```
