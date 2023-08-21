@@ -16,7 +16,12 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 ## *Early integration*
 
-```{r 1. early integration analysis}
+High dimensional mediation with early multiomic integration (@fig-1, panel a) identified differentially methylated CpG sites, gene transcript clusters, metabolites, and proteins which mediated associations of prenatal mercury with MAFLD risk in adolescents (@fig-hima_early). Combining all omics layers before analysis identifies the strongest mediating feature across all omics layers without accounting for the differences in underlying correlation structure. For this analysis, we used High Dimensional Mediation Analysis (HIMA), a penalization-based mediation method implemented in the R package HIMA [@RN33]. The full code for the `hima_early_integration` function is provided in @sec-code_hima_early
+
+```{r 1. early integration}
+#| label: fig-hima_early
+#| fig-cap: "High dimensional mediation analysis with early integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
+
 # Run Analysis
 result_hima_early <- hima_early_integration(exposure = exposure,
                                             outcome = outcome, 
@@ -41,14 +46,13 @@ early <- result_hima_early_fin %>%
   dplyr::select(ftr_name, 'alpha*beta', pte, alpha, beta, sig) %>%
   mutate(omic_layer = get_omic_layer(ftr_name)) %>%
   rename(ie = 'alpha*beta', 
-         `% Tot.\nEffect` = pte)
+         `TE (%)` = pte)
 
 # Pivot longer for figure
 early_long <- early %>% 
-  pivot_longer(cols = c(`% Tot.\nEffect`:beta), 
+  pivot_longer(cols = c(`TE (%)`:beta), 
                names_to = "name") %>%
-  arrange(ftr_name) |>
-  mutate(name = factor(name, levels = c("alpha", "beta", "% Tot.\nEffect")))
+  mutate(name = factor(name, levels = c("alpha", "beta", "TE (%)")))
 
 # Plot features
 ggplot(early_long, 
@@ -59,11 +63,7 @@ ggplot(early_long,
   facet_grid(name ~ omic_layer, 
              scales = "free",
              space = "free_x") +
-  scale_fill_manual(values = c(sankey_colors$range[2], 
-                               sankey_colors$range[5], 
-                               sankey_colors$range[4], 
-                               sankey_colors$range[3], 
-                               sankey_colors$range[6])) +
+  scale_fill_brewer(type = "qual", palette = 2) +
   geom_hline(yintercept = 0, linetype = 1, color = "grey50") + 
   ylab(NULL) + xlab(NULL) +
   theme(
@@ -71,13 +71,19 @@ ggplot(early_long,
     strip.text.x = element_blank(),
     axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
     legend.title = element_blank(), 
-    legend.position = "bottom", # Place the legend at the bottom
+    legend.position = "bottom", 
     legend.justification = c(1, 0))
 ```
 
 ## *Intermediate Integration*
 
+High dimensional mediation with intermediate multiomic integration (@fig-1, panel b)  identified differentially methylated CpG sites, gene transcript clusters, and miRNA which mediated associations of prenatal mercury with MAFLD risk in adolescents (@fig-hima_int). Combining all omics layers before analysis identifies the strongest mediating feature across all omics layers without accounting for the differences in underlying correlation structure. 
+
+For this analysis, we use a novel two-step approach that incorporates feature level metadata to inform on feature selection using xtune [@RN50], an approach that allows for feature-specific penalty parameters and, in this example, performs a group-lasso-type shrinkage within each omic dataset. This analysis is similar in theory to HIMA, with the difference being that for this method the penalization can vary across each of the omic layers. This analysis was based on the product of coefficients method for mediation and was performed in three steps:
+
 1.  ***Regression 1 (linear regression):***
+
+First, we performed independent linear regression models for all exposure-mediator associations to get the exposure mediator coefficient:  
 
 ```{=tex}
 \begin{equation}
@@ -87,7 +93,10 @@ m_i = a_0 + a_1 \times x
 ```
 |    Where $x$ is the exposure and $m_i$ is each mediator.
 
+
 2.  ***Regression 2 (group lasso):***
+
+Second, we performed a single group lasso regression for the mediator outcome associations, adjusting for the exposure, using the R package xtune [@RN51]. This step provided coefficients for each of the mediator outcome associations. We used bootstrapping to obtain the standard error of the coefficients from the group lasso regression for each of the mediator coefficients.  
 
 ```{=tex}
 \begin{equation}
@@ -95,9 +104,12 @@ y = b_0 + b_1 \times x + b_{2_i} \times M
 \label{eq:reg2}
 \end{equation}
 ```
-|    Where $y$ is the outcome, $x$ is the exposure, $M$ is the mediator matrix with corresponding estimate $b_{2_i}$. The bootstrapped standard error (se) of $b_{2_i}$ is used for calculating mediation confidence intervals.
+|    Where $y$ is the outcome, $x$ is the exposure, $M$ is the mediator matrix with corresponding estimate $b_{2_i}$. The bootstrapped standard error (se) of $b_{2_i}$ is used for calculating mediation confidence intervals.  
+
 
 3.  ***Calculate mediation confidence interval for mediator ( i ):***
+
+Finally, for each omic feature, we calculated the mediation effect and 95% confidence intervals using the R package RMediation, which is based on the distribution-of-the-product method [@RN52].
 
 ```{=tex}
 \begin{align}
@@ -107,9 +119,13 @@ y = b_0 + b_1 \times x + b_{2_i} \times M
 \text{se of } \beta &= \text{se of } b_{2_i} \label{eq:se_beta}
 \end{align}
 ```
-*Note: For the following code, we would normally set n_boot to a higher value (1000 or more). Here, it is set to 12 to improve the speed of the function.*
+
+The full code for the `hima_early_integration` function is provided in {#sec-code_hima_int}. *Note: For the actual analysis, we would normally set n_boot to a higher value (1000 or more). In the example code, it is set to 12 to improve the speed of the function.*
 
 ```{r 2. intermediate integration analysis, cache=TRUE}
+#| label: fig-hima_int
+#| fig-cap: "High dimensional mediation analysis with intermediate integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
+
 # Run Analysis
 result_hima_intermediate <- hima_intermediate_integration(
   omics_lst = omics_lst,
@@ -124,23 +140,60 @@ result_hima_intermediate_fin <- result_hima_intermediate %>%
   mutate(across(where(is.character), ~na_if(., "")),
          omic_layer = get_omic_layer(ftr_name))
 
-# Filter to significant only and scale % total effect to 100
+# Filter to significant features only and scale % total effect to 100
 result_hima_intermediate_fin <- result_hima_intermediate_fin %>% 
-  tidylog::filter(sig_intermediate == 1) %>%
-  mutate(pte_intermediate = 100*pte_intermediate/sum(pte_intermediate))
+  filter(sig == 1) %>%
+  mutate(pte = 100*pte/sum(pte))
 
-# Format for plots
+# Format for figure
 intermediate <- result_hima_intermediate_fin %>%
-  dplyr::select(ftr_name, indirect, pte_intermediate, alpha, 
-                beta_bootstrap,  sig_intermediate) %>%
-  rename(ie_intermediate = indirect, 
-         alpha_intermediate = alpha, 
-         beta_intermediate = beta_bootstrap)
+  dplyr::select(ftr_name, indirect, pte, alpha, beta_bootstrap, sig) %>%
+  mutate(omic_layer = get_omic_layer(ftr_name)) %>%
+  rename(ie = indirect, 
+         beta = beta_bootstrap, 
+         `TE (%)` = pte) 
+
+# Pivot longer for figure
+intermediate_long <- intermediate %>% 
+  pivot_longer(cols = c(`TE (%)`:beta), 
+               names_to = "name") %>%
+  mutate(name = factor(name, levels = c("alpha", "beta", "TE (%)")))
+
+# Plot features
+ggplot(intermediate_long, 
+       aes(x = fct_inorder(ftr_name), 
+           y = value,
+           fill = omic_layer)) + 
+  geom_bar(stat = "identity") +
+  facet_grid(name ~ omic_layer, 
+             scales = "free",
+             space = "free_x") +
+  scale_fill_brewer(type = "qual", palette = 2) +
+  geom_hline(yintercept = 0, linetype = 1, color = "grey50") + 
+  ylab(NULL) + xlab(NULL) +
+  theme(
+    strip.background = element_blank(),
+    strip.text.x = element_blank(),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+    legend.title = element_blank(), 
+    legend.position = "bottom", # Place the legend at the bottom
+    legend.justification = c(1, 0))
 ```
+
 
 ## *Late integration*
 
+High dimensional mediation with late multiomic integration (@fig-1, panel c) identified differentially methylated CpG sites, gene transcript clusters, and miRNA which mediated associations of prenatal mercury with MAFLD risk in adolescents (@fig-hima_late). High dimensional mediation with late multiomic integration differs from the early and intermediate integration in that each omics layer is analyzed individually. Thus, this approach does not condition on features within the other omics layers in the analysis.  
+
+Combining all omics layers before analysis identifies the strongest mediating feature across all omics layers without accounting for the differences in underlying correlation structure. For this analysis, we used High Dimensional Mediation Analysis (HIMA), a penalization-based mediation method implemented in the R package HIMA [@RN33]. 
+
+
+
 ```{r 3. late integration analysis}
+#| label: fig-hima_late
+#| fig-cap: "High dimensional mediation analysis with late integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
+#| 
+
 # Run Analysis
 result_hima_late <- hima_late_integration(exposure = exposure,
                                           outcome = outcome, 
@@ -157,155 +210,41 @@ result_hima_late_fin <- result_hima_late %>%
 # Filter to significant features only, scale % total effect to 100
 result_hima_late_fin <- result_hima_late_fin %>% 
   tidylog::filter(BH.FDR < 0.05) %>%
-  mutate(pte_late = 100*`% total effect`/sum(`% total effect`), 
-         sig_late = if_else(BH.FDR < 0.05, 1, 0))
+  mutate(pte = 100*`% total effect`/sum(`% total effect`), 
+         sig = if_else(BH.FDR < 0.05, 1, 0))
 
-# Format for plots
+# Format for figure
 late <- result_hima_late_fin %>%
-  dplyr::select(ftr_name, 'alpha*beta', pte_late, alpha, beta, sig_late) %>%
-  rename(ie_late = 'alpha*beta', 
-         alpha_late = alpha, 
-         beta_late = beta)
-```
-
-## Figures: High dimensional mediation plots.
-
-First, prepare the results for figures.
-
-```{r 4. Prepare Results for Figures}
-
-# Combine all results
-high_dim_res <- tidylog::full_join(early, late, by = "ftr_name") %>%
-  tidylog::full_join(intermediate, by = "ftr_name") %>%
-  mutate(omic_layer = get_omic_layer(ftr_name), 
-         across(where(is.numeric), ~replace_na(., 0))) %>%  
-  rowwise() %>%
-  mutate(sum_pte = sum(c(pte_early + pte_late, pte_intermediate), 
-                       na.rm = TRUE),
-         sum_ie = sum(c(ie_early + ie_late, ie_intermediate), 
-                      na.rm = TRUE),
-         ftr_name = fct_reorder(ftr_name, sum_pte)) %>%
-  ungroup()
-
-# Pivot data longer
-high_dim_res_long <- high_dim_res %>%
-  pivot_longer(cols = c(ie_early:sig_intermediate), 
-               names_to = c(".value", "method"), 
-               names_sep = "_") %>%
-  arrange(ftr_name) %>%
-  mutate(method = str_to_title(method),
-         omic_layer = as.factor(omic_layer) %>%
-           fct_relevel(c("Methylation", 
-                         "Transcriptome", 
-                         "miRNA", 
-                         "Proteins")), 
-         sig_chr = if_else(sig == 1, "*", ""))
-```
-
-### *Correlation heatmap*
-
-```{r 5. correlation plot}
-# Select the unique features from high dimensional mediation results
-omics_df_subset <- omics_df %>%
-  dplyr::select(unique(high_dim_res_long$ftr_name)) 
-
-# Compute the correlation matrix for the omics dataframe
-cormat <- cor(omics_df_subset)
+  dplyr::select(ftr_name, 'alpha*beta', pte, alpha, beta, sig) %>%
+  mutate(omic_layer = get_omic_layer(ftr_name)) %>%
+  rename(ie = 'alpha*beta', 
+         `TE (%)` = pte)
 
 
-# Annotations
-annotation <- data.frame(
-  ftr_name = colnames(cormat),
-  Type = get_omic_layer(colnames(cormat)), 
-  index = 1:ncol(cormat)) |>
-  dplyr::mutate(Type = case_when(
-    Type == "Metabolome" ~ "Met.", 
-    Type == "Proteins" ~ "Prot.", 
-    Type == "Transcriptome" ~ "Gene\nExpression", 
-    Type == "Methylation" ~ "DNA\nMethylation", 
-    TRUE ~ Type))
-
-
-# Make Plot
-Heatmap(cormat, 
-        row_split = annotation$Type,
-        column_split = annotation$Type,
-        show_row_names = FALSE,
-        show_column_names = FALSE, 
-        heatmap_legend_param = list(title = "Correlation"))
-```
-
-## *Comparison across Integration Methods*
-
-***High dimensional mediation with early (a), intermediate (b), and late (c) integration***
-
-```{r 6. HIMA plot, fig.height=10}
 # Pivot longer for figure
-hima_plot_dat <- high_dim_res_long %>% 
-  pivot_longer(cols = pte:beta) %>% 
-  mutate(name = case_when(name == "alpha"~ "Alpha",
-                          name == "beta" ~ "Beta",
-                          name == "pte" ~ "TE (%)"))
+late_long <- late %>% 
+  pivot_longer(cols = c(`TE (%)`:beta), 
+               names_to = "name") %>%
+  mutate(name = factor(name, levels = c("alpha", "beta", "TE (%)")))
 
-data <- hima_plot_dat
-
-hima_plot <- function(data, method_name, 
-                      legend.position = "none", 
-                      axis.text.x = element_text(angle = 90, hjust = 1)){
-  data %>%
-    dplyr::filter(method == method_name) %>% 
-    ggplot(aes(x = ftr_name_for_plots, 
-               y = value,
-               fill = omic_layer, 
-               alpha = sig_chr,
-               label = sig_chr)) + 
-    geom_bar(stat = "identity") +
-    facet_grid(name ~ omic_layer, 
-               scales = "free",
-               space = "free_x") + 
-    scale_fill_manual(values = c(sankey_colors$range[2], 
-                                 sankey_colors$range[5], 
-                                 sankey_colors$range[4], 
-                                 sankey_colors$range[3], 
-                                 sankey_colors$range[6])) +
-    scale_alpha_manual(values = c(.25, 1), guide = "none") + 
-    geom_hline(yintercept = 0, linetype = 1, color = "grey50") + 
-    ylab(NULL) + xlab(NULL) +
-    theme(
-      strip.background = element_blank(),
-      strip.text.x = element_blank(),
-      axis.text.x = axis.text.x,
-      legend.title = element_blank(), 
-      legend.position = legend.position, # Place the legend at the bottom
-      legend.box = "horizontal", # Align the legend horizontally
-      legend.margin = margin(0, 0, 0, 0), # Remove margins around legend
-      legend.box.margin = margin(0, 0, 0, 0), # Adjust legend margin
-      legend.direction = "horizontal", # Align the legend horizontally
-      legend.justification = c(1, 0))
-}
-
-# Early integration Plot
-early_plot <- hima_plot(hima_plot_dat, 
-                        method = "Early",
-                        legend.position = "none", 
-                        axis.text.x = element_blank())
-
-# Intermediate integration Plot
-intermediate_plot <- hima_plot(hima_plot_dat, 
-                               method = "Intermediate",
-                               legend.position = "none", 
-                               axis.text.x = element_blank())
-
-# Late integration Plot
-late_plot <- hima_plot(hima_plot_dat,
-                       method = "Late",
-                       legend.position = "bottom")
-
-# Combine Plots
-plot_grid(NULL, early_plot, 
-          NULL, intermediate_plot, 
-          NULL, late_plot,
-          ncol = 1,
-          rel_heights = c(.03, 0.35, .03, 0.35, 0.03, 0.65),
-          labels = c("a) Early", "","b) Intermediate","", "c) Late",""))
+# Plot features
+ggplot(late_long, 
+       aes(x = ftr_name, 
+           y = value,
+           fill = omic_layer)) + 
+  geom_bar(stat = "identity") +
+  facet_grid(name ~ omic_layer, 
+             scales = "free",
+             space = "free_x") +
+  scale_fill_brewer(type = "qual", palette = 2) +
+  geom_hline(yintercept = 0, linetype = 1, color = "grey50") + 
+  ylab(NULL) + xlab(NULL) +
+  theme(
+    strip.background = element_blank(),
+    strip.text.x = element_blank(),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+    legend.title = element_blank(), 
+    legend.position = "bottom", 
+    legend.justification = c(1, 0))
 ```
+

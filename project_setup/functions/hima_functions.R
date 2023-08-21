@@ -292,8 +292,8 @@ hima_intermediate_integration <- function(omics_lst,
            lcl = x95_percent_ci1,
            ucl = x95_percent_ci2) %>% 
     mutate(gamma = gamma_est, 
-           pte_intermediate = (indirect)/gamma, 
-           sig_intermediate = if_else(lcl>0|ucl<0, 1, 0))
+           pte = (indirect)/gamma, 
+           sig = if_else(lcl>0|ucl<0, 1, 0))
   
   # Rename feature name
   intermediate_int_res <- intermediate_int_res %>% 

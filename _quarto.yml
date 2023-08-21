@@ -3,37 +3,14 @@ project:
 
 book:
   title: "Supplemental Materials: Multi-omic Analyses for Precision Health"
-  author: 
-   - "Jesse A. Goodrich,"
-   - "Hongxu Wang,"
-   - "Qiran Jia,"
-   - "Yinqi Zhao,"
-   - "Nikos Stratakis,"
-   - "Max Aung,"
-   - "Xavier Basagana,"
-   - "Shohreh F Farzan,"
-   - "Regina Gražulevičienė,"
-   - "Claire Philippat,"
-   - "Léa Maitre,"
-   - "Alexandros Siskos,"
-   - "Cathrine Thomsen,"
-   - "Jose Urquiza,"
-   - "Marina Vafeiadi,"
-   - "Dania Valvi,"
-   - "Nerea Varo,"
-   - "John Wright,"
-   - "Hector Keun,"
-   - "Rob McConnell,"
-   - "Martine Vrijheidm,"
-   - "Leda Chatzi,"
-   - "David V. Conti"
-  date: "8/10/2023"
+  author: "Goodrich JA, Wang H, Jia Q, et. al"
+  date: "8/20/2023"
   chapters:
     - index.qmd
     - intro.qmd
     - HIMA.qmd
-    - High_dim_mediation_latent_fctrs.qmd
-    - Quasi_mediation.qmd
+    # - High_dim_mediation_latent_fctrs.qmd
+    # - Quasi_mediation.qmd
     - appendix_code.qmd
     - references.qmd
 

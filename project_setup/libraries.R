@@ -5,6 +5,7 @@
 library(tidyverse)
 library(tools)
 library(parallel)
+library(epiomics)
 library(cowplot) # For combining figures
 library(ComplexHeatmap) # Additional Plotting Functions
 library(ggh4x) # For faceted plots

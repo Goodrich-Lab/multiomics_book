@@ -37,9 +37,14 @@ In order to replicate the style of the figures in this book, you will also have 
 
 
 
-## Extra Functions   
+## Custom Functions   
 
-The analyses in this book rely on several custom functions. The details of these extra functions are provided in [Chapter @sec-code]. 
+The analyses in this book rely on several custom functions. The code for extra functions are provided in [Chapter @sec-code]. 
+
+```{r fxns}
+source(fs::path(dir_proj, "functions", "load_functions.R"))
+```
+
 
 ## The Data
 
@@ -50,20 +55,11 @@ knitr::read_chunk("project_setup/load_simu_data.R")
 The data used in this project is based off of simulated data from the Human Early Life Exposome (HELIX) cohort [@RN38]. The data was simulated for one exposure, five omics layers, and one continuous outcome (after publication, this data will be available on github). The format of this data is a named list with 6 elements. It includes separate numeric matrices for each of the 5 omics layers, as well as the exposure and phenotype data. In all datasets in the list, the rows represent individuals and the columns represent omics features. In this analysis, the exposure and outcome are:\
 
 -  **Exposure**: *hs_hg_m_resid*, representing maternal mercury levels\
--  **Outcome**: *ck18_scaled*, representing child liver enzyme levels, a major risk factor for non-alcoholic fatty liver disease (NAFLD).\
+-  **Outcome**: *ck18_scaled*, representing child liver enzyme levels, a major risk factor for non-alcoholic fatty liver disease (NAFLD).  
 
-You can read this data into R using the following code:\
+You can read this data into R using the following code:  
 
-```{r, collapse=FALSE}
-# Read in reduced full scaled data
-simulated_data <- readr::read_rds(fs::path(dir_data_hg,
-                                       "simulated_HELIX_data.RDS")) 
-
-# Create list of omics data 
-omics_name <- c("methylome", "transcriptome","proteome", "miRNA","metabolome")
-
-omics_lst <- simulated_data[which(names(simulated_data) %in% omics_name)]
-
+```{r load_data, collapse=FALSE}
 # readRDS("https://raw.githubusercontent.com/Goodrich-Lab/multiomics_book/blob/main/data/simulate_Hg_ck18_screened_scaled_omics.RDS")
 ```
 
@@ -79,12 +75,23 @@ omics_lst <- simulated_data[which(names(simulated_data) %in% omics_name)]
 table1::table1(~., data = simulated_data[["phenotype"]])
 ```
 
-### Mercury exposure and childhood NAFLD risk
+### Mercury exposure and childhood MAFLD risk
 
-In the simulated data,...**hw to update** 
+```{r lr example, eval=FALSE}
+lm_res <- lm(ck18_scaled ~ hs_hg_m_scaled + 
+     e3_sex_None +
+     hs_child_age_yrs_None,
+   data = simulated_data[["phenotype"]])
+
+summary(lm_res)
+```
+
+In the simulated data, each 1 standard deviation increase in maternal mercury was associated with a 0.07 standard deviation increase in CK18 enzymes (@fig-lr_res), after adjusting for child age and child sex. 
 
 ```{r linear regression}
 #| fig-cap: "Association between maternal mercury and CK18 in the Simulated Data"
+#| label: fig-lr_res
+
 ggplot(data = simulated_data[["phenotype"]], 
        aes(x = hs_hg_m_scaled, y = ck18_scaled)) + 
   geom_point() +
@@ -105,8 +112,6 @@ ggplot(data = simulated_data[["phenotype"]],
 #| fig-cap: "Heatmap illustrating the correlation of molecular features within and between different omics layers." 
 #| fig-height: 6
 
-source(fs::path(dir_proj, "functions", "load_functions.R"))
-
 # Change omics list elements to dataframes
 omics_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name")) %>%
   purrr::reduce(left_join, by = "name") %>%
@@ -119,12 +124,7 @@ cormat <- cor(omics_df, method = "pearson")
 annotation <- data.frame(
   ftr_name = colnames(cormat),
   Type = get_omic_layer(colnames(cormat)), 
-  index = 1:ncol(cormat)) |>
-  dplyr::mutate(Type = case_when(
-    Type == "Metabolome" ~ "Metabolites", 
-    Type == "Transcriptome" ~ "Gene\nExpression", 
-    Type == "Methylation" ~ "DNA\nMethylation", 
-    TRUE ~ Type))
+  index = 1:ncol(cormat))
 
 # Make Plot
 Heatmap(cormat, 

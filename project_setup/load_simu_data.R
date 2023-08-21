@@ -4,18 +4,15 @@
 simulated_data <- read_rds(fs::path(dir_data_hg, "simulated_HELIX_data_2.RDS")) 
 
 # Define exposure and outcome name
-covars <- c("e3_sex_None", "hs_child_age_yrs_None", "h_fish_preg_Ter")
+covars <- c("e3_sex_None", "hs_child_age_yrs_None")
 
 # Extract exposure and outcome data
 # outcomes <- simulated_data[["phenotype"]]
 exposure <- simulated_data[["phenotype"]]$hs_hg_m_scaled
 outcome  <- simulated_data[["phenotype"]]$ck18_scaled
 
-# Get matrix of covariates 
-covs <- simulated_data[["phenotype"]][covars] %>% 
-  mutate(h_fish_preg_Ter = as.numeric(h_fish_preg_Ter)) %>%
-  fastDummies::dummy_cols(remove_selected_columns = TRUE,
-                          remove_first_dummy = TRUE) 
+# Get numeric matrix of covariates 
+covs <- simulated_data[["phenotype"]][covars] 
 
 # create list of omics data 
 omics_lst <- simulated_data[-which(names(simulated_data) == "phenotype")]

@@ -124,9 +124,7 @@ panel_b_dat_early_fin_all_ft <- panel_b_dat_early_all_ft %>%
 
 # Add names of features for plotting
 panel_b_dat_early_fin1_all_ft <- panel_b_dat_early_fin_all_ft %>%
-  rename(ftr_name = feature) %>%
-  tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), by = "ftr_name")  %>%
-  dplyr::select(ftr_name_for_plots, ftr_name:omic_num)
+  rename(ftr_name = feature)
 
 # Select features for plots -------
 ## Select rows with values in the top 17 of their respective columns 
@@ -145,11 +143,7 @@ meta_ftr_early <- ftr_cor_sig_pcs_top %>%
 
 # Add names of features for plotting
 meta_ftr_plot_early <- meta_ftr_early %>%
-  rename(ftr_name = feature) %>%
-  tidylog::left_join(omics_names %>% 
-                       dplyr::select(-omic_layer), by = "ftr_name") %>%
-  dplyr::select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
-  mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
+  rename(ftr_name = feature)
 ```
 
 ## *Intermediate Integration*
@@ -281,16 +275,7 @@ cor_p_val_data_JIVE_with_zeros_all <- cor_p_val_data_JIVE_all %>%
 
 # Add names of features for plotting
 cor_p_val_data_JIVE_with_zeros1_all <- cor_p_val_data_JIVE_with_zeros_all %>%
-  rename(ftr_name = feature) %>%
-  tidylog::left_join(omics_names %>% 
-                       dplyr::select(-omic_layer) %>%
-                       mutate(ftr_name = str_remove(ftr_name, "hsa-") %>% 
-                                str_remove("pro_") %>% 
-                                str_remove("met_")), by = "ftr_name")  %>%
-  dplyr::select(ftr_name_for_plots, everything()) %>%
-  mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots) %>%
-           fct_reorder(omic_num) %>%
-           as.ordered())
+  rename(ftr_name = feature)
 
 # Select features for plots -------
 # Select rows with values in the top 10 of their respective columns
@@ -307,10 +292,7 @@ meta_ftr_jive <- ftr_cor_sig_pcs_top10 %>%
   mutate(omic_num = ifelse(omic == "miRNA", 3, omic_num))
 
 meta_ftr_plot_jive <- meta_ftr_jive %>%
-  rename(ftr_name = feature) %>%
-  tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), by = "ftr_name")  %>%
-  dplyr::select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
-  mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots)) 
+  rename(ftr_name = feature) 
 ```
 
 ## *Late integration*
@@ -455,18 +437,11 @@ panel_b_dat_late_fin_full <- panel_b_dat_late_full %>%
            str_remove("hsa-") %>%
            str_remove("pro_")) 
 
-# Add names of features for plotting
-omics_names1 <- omics_names %>% dplyr::select(-omic_layer) %>%
-  mutate(ftr_name = str_remove(ftr_name, "met_") %>%
-           str_remove("hsa-") %>%
-           str_remove("pro_"))
 
 # Add names of features for plotting
 panel_b_dat_late_fin1_all <- panel_b_dat_late_fin_full %>%
-  rename(ftr_name = feature) %>%
-  tidylog::left_join(omics_names1,by = "ftr_name")  %>%
-  dplyr::select(ftr_name_for_plots, ftr_name:omic_num2) %>%
-  mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
+  rename(ftr_name = feature)
+ 
 
 # Select features for plots -------
 # Select rows with values in the top 18 of their respective columns
@@ -492,12 +467,7 @@ meta_ftr_late <- ftr_cor_sig_pcs_late %>%
 
 # Add names of features for plotting
 meta_ftr_plot_late <- meta_ftr_late %>%
-  rename(ftr_name = feature) %>%
-  tidylog::left_join(omics_names %>% dplyr::select(-omic_layer) %>%
-                       mutate(ftr_name = str_remove(ftr_name, "hsa-")),
-                     by = "ftr_name")  %>%
-  dplyr::select(ftr_name_for_plots, ftr_name, omic, omic_num) %>%
-  mutate(ftr_name_for_plots = rename_ftrs(ftr_name_for_plots))
+  rename(ftr_name = feature)
 ```
 
 ## Figures: Mediation with Latent Factors
@@ -586,149 +556,22 @@ data_long_plot <- data_long_plot %>%
 #        bg = "white")
 ```
 
-### Correlation of Selected Features
-
-```{r correlation plot, warning=FALSE}
-# Get the features from each method for plotting 
-meta_ftr <- meta_ftr_plot_early %>%
-  bind_rows(meta_ftr_plot_jive) %>%
-  bind_rows(meta_ftr_plot_late)
-
-# set omic layer order
-meta_ftr_plot <- meta_ftr %>% 
-  mutate(omic = factor(omic, levels = c("Methylation", 
-                                        "Transcriptome",
-                                        "miRNA",
-                                        "Proteins",
-                                        "Metabolome"))) %>%
-  mutate(ftr_name = ftr_name %>% str_replace_all("hsa-", "") %>%
-           str_replace_all("pro_", "") %>%
-           str_replace_all("met_", "")) %>% 
-  distinct()
-
-# Some TCs map to same gene, so to get unique names: 
-meta_ftr_plot1 <- meta_ftr_plot %>% 
-  group_by(ftr_name_for_plots) %>% 
-  mutate(dups = length(ftr_name), 
-         ftr_name_for_plots = if_else(dups == 1, 
-                                      ftr_name_for_plots, 
-                                      paste0(ftr_name_for_plots, 
-                                             "_", 
-                                             row_number()) %>% 
-                                        str_remove_all(" "))) 
-
-# Get feature names ordered
-feature_names <- meta_ftr_plot1$ftr_name_for_plots
-
-# Rename and reorder features in data
-omics_df_reorder <- omics_df %>%
-  rename_with(~str_remove(., 'hsa-'))%>%
-  rename_with(~str_remove(., 'pro_')) %>%
-  rename_with(~str_remove(., 'met_')) %>%
-  tidylog::select(all_of(unique(meta_ftr_plot1$ftr_name)))
-
-# Change names of reordered omics dataframe using the new variable names
-setnames(omics_df_reorder, 
-         old = colnames(omics_df_reorder), 
-         new = c(meta_ftr_plot1$ftr_name_for_plots))
-
-# Combine feature names and omics layer information
-annotation <- data.frame(ftr_name = colnames(omics_df_reorder),
-                         Type = meta_ftr_plot1$omic)
-
-
-# Extract order of features based on correlation heatmap 
-# Calculate correlations
-cormat <- cor(omics_df_reorder)
-
-p <- ComplexHeatmap::Heatmap(cormat, 
-                             row_split = annotation$Type,
-                             column_split = annotation$Type)
-
-feature_order <- c(ComplexHeatmap::row_order(p)$Methylation,
-                   ComplexHeatmap::row_order(p)$Transcriptome,
-                   ComplexHeatmap::row_order(p)$miRNA,
-                   ComplexHeatmap::row_order(p)$Proteins,
-                   ComplexHeatmap::row_order(p)$Metabolome)
-
-
-feature_name_reorder <- colnames(omics_df_reorder)[feature_order]
-feature_name_reorder_df <- tidylog::left_join(tibble(ftr_name = feature_name_reorder), 
-                                              annotation)
-
-
-# Get position of vertical lines for both plots 
-vline_locations <- feature_name_reorder_df %>% 
-  mutate(xintercept = row_number()+.5) %>% 
-  group_by(Type) %>%
-  slice_tail() %>% 
-  ungroup() 
-vlinecolor = "Magenta"
-
-
-# Plot correlation heatmap based on new order-------
-# Reorder correlation matrix
-cormat1 <- cor(omics_df_reorder %>%dplyr::select(all_of(feature_name_reorder)))
-
-# Pivot correlation matrix longer
-correlation_matrix_melt <- reshape2::melt(cormat1)[lower.tri(cormat1),] %>% 
-  dplyr::filter(Var1 != Var2) %>%
-  mutate(correlation = value)
-
-# Plot correlation matrix
-p_cormat <- ggplot(correlation_matrix_melt,
-                   aes(x=Var1, y=Var2, fill=correlation)) + 
-  geom_tile(aes(fill = value),colour = "white" ) + 
-  geom_vline(xintercept = vline_locations$xintercept[1:4]-1, 
-             color = vlinecolor) +
-  geom_hline(yintercept = vline_locations$xintercept[1:4], 
-             color = vlinecolor) +
-  xlab(NULL)+ ylab(NULL) +
-  theme(#axis.text.x=element_blank(),
-    axis.text.x=element_text(angle = 90, hjust = 1, vjust = .5, size = 10),
-    axis.line.x = element_blank(),
-    axis.line.y = element_blank(),
-    axis.text.y=element_text(angle = 0, hjust = 1, vjust = .5, size = 10),
-    axis.ticks=element_blank(),
-    panel.border=element_blank(),
-    legend.position = "bottom",
-    legend.title = element_text(vjust = 0.75),
-    legend.key.width = unit(1, 'cm'),
-    text = element_text(size = 8)) + 
-  scale_y_discrete(position = "right") +
-  scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
-                       midpoint = 0, limits = c(-1, 1))
-
-# Save
-ggsave(p_cormat,
-       filename = fs::path(dir_figs,
-                           "3_high_dim_multivar_mediation_latent_fctrs",
-                           "correlaton_plot_subset_features_071123.jpeg"),
-       width = 13, height = 13.55, bg = "white")
-```
-
 ### Comparison of Component and Feature Associations Across Methods
 
 ```{r Mediation results plot}
 # Panel A: Early integration ----
 # Combine with reordered factor data
 panel_b_dat_early_fin1_all_ft1 <- panel_b_dat_early_fin1_all_ft %>%
-  tidylog::left_join(fct_names_ordered) %>% 
-  mutate(ftr_name_for_plots = case_when(ftr_name == "cg07385577" ~ "AJ011932.1_1", 
-                                        ftr_name == "cg25823142" ~ "AJ011932.1_2", 
-                                        ftr_name == "TC09001768.hg.1" ~ "C9orf173-AS1_1", 
-                                        ftr_name == "TC09002871.hg.1" ~ "C9orf173-AS1_2", 
-                                        TRUE ~ ftr_name_for_plots))
+  tidylog::left_join(fct_names_ordered)
 
 # Plot
-panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1 %>%
-                          filter(ftr_name_for_plots %in% c(feature_name_reorder)),
-                        aes(x = factor(ftr_name_for_plots,
-                                       levels = c(feature_name_reorder)), 
+(panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1,
+                        aes(x = ftr_name,
+                            # factor(,levels = c(feature_name_reorder)), 
                             y = fct_rev(factor_renamed_fin), 
                             fill = Correlation)) +
   geom_tile(color = "white") +
-  geom_vline(xintercept = vline_locations$xintercept[1:4], color = vlinecolor) + 
+  facet_grid(~omic, scales = "free") +
   scale_fill_gradient2(low  = "blue",
                        mid  = "white",
                        high = "red",
@@ -737,15 +580,12 @@ panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1 %>%
                        breaks = c(-1, 0, 1),
                        na.value = "grey20") +
   theme(
-    # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
     axis.text.x = element_blank(),
     strip.text = element_blank(),
     axis.title = element_blank(), 
-    # axis.line.x = element_blank(),
     axis.ticks.x = element_blank(),
     legend.position = "none",
-    # axis.text.y = element_blank(),
-    text = element_text(size = 20)) 
+    text = element_text(size = 20)) )
 
 # Panel B. Intermediate----
 # Combine with reordered factor data
@@ -759,29 +599,21 @@ cor_p_val_data_JIVE_with_zeros1_all1 <- cor_p_val_data_JIVE_with_zeros1_all %>%
 
 # Replace 0 with NA and filter only features for plotting
 cor_p_val_data_JIVE_final_for_fin <- cor_p_val_data_JIVE_with_zeros1_all1 %>%
-  mutate(Correlation = ifelse(Correlation== 0, NA, Correlation)) %>% 
-  mutate(ftr_name_for_plots = as.character(ftr_name_for_plots))%>%
-  mutate(ftr_name_for_plots = case_when(ftr_name == "cg07385577" ~ "AJ011932.1_1", 
-                                        ftr_name == "cg25823142" ~ "AJ011932.1_2", 
-                                        ftr_name == "TC09001768.hg.1" ~ "C9orf173-AS1_1", 
-                                        ftr_name == "TC09002871.hg.1" ~ "C9orf173-AS1_2", 
-                                        TRUE ~ ftr_name_for_plots))
+  mutate(Correlation = ifelse(Correlation== 0, NA, Correlation)) 
 
 # Plot
-panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin %>% 
-                         filter(ftr_name_for_plots %in% c(feature_name_reorder)), 
-                       aes(x = factor(ftr_name_for_plots, 
-                                      levels = c(feature_name_reorder)), 
+(panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin , 
+                       aes(x = ftr_name, 
+                           # factor(, levels = c(feature_name_reorder)), 
                            y = fct_rev(factor_renamed_fin), 
                            fill = Correlation)) +
   geom_tile(color = "white") + 
-  geom_vline(xintercept = vline_locations$xintercept[1:4], color = vlinecolor) + 
   scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
                        midpoint = 0,
                        limits =  c(-1, 1),
                        breaks = c(-1,0,1),
                        na.value = "grey") +
-  facet_grid(ind_joint_num~ .,
+  facet_grid(ind_joint_num~ omic,
              scales = "free", space = "free", shrink = TRUE) +
   theme(
     # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
@@ -793,24 +625,18 @@ panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin %>%
     # axis.line.x = element_blank(),
     legend.position = "none",
     panel.spacing.y = unit(-.1, "lines"),
-    text = element_text(size = 30))
+    text = element_text(size = 30)))
 
 
 # Panel C. Late Integration----
 # Combine with reordered factor data
 panel_b_dat_late_fin1_all1 <- panel_b_dat_late_fin1_all %>% 
-  tidylog::left_join(fct_names_ordered) %>%
-  mutate(ftr_name_for_plots = case_when(ftr_name == "cg07385577" ~ "AJ011932.1_1", 
-                                        ftr_name == "cg25823142" ~ "AJ011932.1_2", 
-                                        ftr_name == "TC09001768.hg.1" ~ "C9orf173-AS1_1", 
-                                        ftr_name == "TC09002871.hg.1" ~ "C9orf173-AS1_2", 
-                                        TRUE ~ ftr_name_for_plots))
+  tidylog::left_join(fct_names_ordered) 
 
 
-panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1 %>% 
-                         filter(ftr_name_for_plots %in% c(feature_name_reorder)), 
-                       aes(x = factor(ftr_name_for_plots,
-                                      levels = c(feature_name_reorder)), 
+(panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1, 
+                       aes(x = ftr_name, 
+                           # factor(,levels = c(feature_name_reorder)), 
                            y = fct_rev(factor_renamed_fin), 
                            fill = Correlation)) +
   geom_tile(color = "white") +
@@ -819,8 +645,7 @@ panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1 %>%
                        limits = c(-1, 1),
                        breaks = c(-1,0,1),
                        na.value = "grey") +
-  geom_vline(xintercept = vline_locations$xintercept[1:4], color = vlinecolor) + 
-  facet_grid(omic_num2 ~ .,
+  facet_grid(omic_num2 ~ omic,
              scales = "free",
              space = "free",
              shrink = TRUE) +
@@ -832,7 +657,7 @@ panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1 %>%
         axis.title = element_blank(), 
         # axis.line.x = element_blank(), 
         # axis.ticks = element_blank(),
-        text = element_text(size = 20))
+        text = element_text(size = 20)))
 
 
 # Fig 5a: Join plots ----

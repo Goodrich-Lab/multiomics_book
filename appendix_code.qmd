@@ -16,12 +16,12 @@ knitr::read_chunk("project_setup/functions/load_functions.R")
 knitr::read_chunk("project_setup/functions/hima_functions.R")
 ```
 
-### Early Integration of omics datasets
+### Early Integration of omics datasets {#sec-code_hima_early}
 
 ```{r HIMA_early, eval=FALSE}
 ```
 
-### Intermediate Integration of omics datasets
+### Intermediate Integration of omics datasets {#sec-code_hima_int}
 
 ```{r HIMA_intermediate, eval=FALSE}
 ```
