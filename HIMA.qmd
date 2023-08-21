@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 ## *Early integration*
 
-High dimensional mediation with early multiomic integration (@fig-1, panel a) identified differentially methylated CpG sites, gene transcript clusters, metabolites, and proteins which mediated associations of prenatal mercury with MAFLD risk in adolescents (@fig-hima_early). Combining all omics layers before analysis identifies the strongest mediating feature across all omics layers without accounting for the differences in underlying correlation structure. For this analysis, we used High Dimensional Mediation Analysis (HIMA), a penalization-based mediation method implemented in the R package HIMA [@RN33]. The full code for the `hima_early_integration` function is provided in @sec-code_hima_early
+High dimensional mediation with early multiomic integration (@fig-1, panel a) identified differentially methylated CpG sites, gene transcript clusters, metabolites, and proteins which mediated associations of prenatal mercury with MAFLD risk in adolescents (@fig-hima_early). Combining all omics layers before analysis identifies the strongest mediating feature across all omics layers without accounting for the differences in underlying correlation structure. For this analysis, we used High Dimensional Mediation Analysis (HIMA), a penalization-based mediation method implemented in the R package HIMA [@RN33]. The full code for the `hima_early_integration` function is provided in @sec-code_hima_early.
 
 ```{r 1. early integration}
 #| label: fig-hima_early
