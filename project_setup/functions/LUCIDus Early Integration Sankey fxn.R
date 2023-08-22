@@ -116,7 +116,6 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
   links1 <- links %>%
     mutate(source = ifelse(source == "G1", "Hg",source))
   # 6. Plotly Version ----
-  library(plotly)
   
   ## 6.1 Set Node Color Scheme: ----
   color_pal_sankey <- matrix(
@@ -148,7 +147,7 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
     tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), 
                        by = c("name" = "ftr_name"))  %>%
     # Modify names of features for plotting
-    select(group, color, x, ftr_name_for_plots)%>% 
+   dplyr::select(group, color, x, ftr_name_for_plots)%>% 
     rename(name = ftr_name_for_plots) %>%
     mutate(name = case_when(name == "value" ~ "<b>Hg</b>",
                             name == "Latent Cluster1" ~ "<b>Joint Omics\nProfile 0</b>",
@@ -188,8 +187,8 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
   links_new1<- links_new %>%
     tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), 
                        by = c("target" = "ftr_name"))  %>%
-    select(colnames(links_new), ftr_name_for_plots)%>% 
-    select(-target) %>%
+   dplyr::select(colnames(links_new), ftr_name_for_plots)%>% 
+   dplyr::select(-target) %>%
     rename(target = ftr_name_for_plots)
     
   plotly_link <- list(

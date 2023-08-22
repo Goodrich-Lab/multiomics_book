@@ -53,14 +53,12 @@ hima_early_integration <- function(exposure,
   result_hima_early <- result_hima_early %>%
     dplyr::mutate(
       multiomic_mthd = "Early Integration",
-      mediation_mthd = "HIMA",
-      outcome = outcome_name,
-      exposure = exposure_name) %>%
+      mediation_mthd = "HIMA") %>%
     dplyr::select(multiomic_mthd, mediation_mthd, 
                   ftr_name, 
                   everything())
   
-  
+  # Return result
   return(result_hima_early)
 }
 
@@ -294,8 +292,8 @@ hima_intermediate_integration <- function(omics_lst,
            lcl = x95_percent_ci1,
            ucl = x95_percent_ci2) %>% 
     mutate(gamma = gamma_est, 
-           pte_intermediate = (indirect)/gamma, 
-           sig_intermediate = if_else(lcl>0|ucl<0, 1, 0))
+           pte = (indirect)/gamma, 
+           sig = if_else(lcl>0|ucl<0, 1, 0))
   
   # Rename feature name
   intermediate_int_res <- intermediate_int_res %>% 
