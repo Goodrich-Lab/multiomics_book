@@ -1,6 +1,12 @@
 # Integrated/Quasi-Mediation {#sec-quasi}
 
-First, we need to set up the project.
+**Exposure (G): Hg (Mercury)**
+
+**Omics (Z): Methylation (CpG), Transcriptome, miRNA**
+
+**Outcome (Y): MAFLD (Metabolic Associatied Fatty Liver Disease)**
+
+First, we need to set up the project, and then we'll implement three LUCID different models to conduct the Integrated/Quasi-Mediation analysis.
 
 ```{r lucid early integration setup, include = FALSE, echo = FALSE}
 source(fs::path(here::here(),"project_setup","directories.R"))
@@ -16,9 +22,24 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
                       fig.height= 15, fig.width= 12,collapse = TRUE)
 ```
 
-
 ## *Early integration*
 
+In the Early Integration LUCID model, genomic/exposomic exposures $G$, other omics data $Z$ and phenotype trait $Y$ are integrated through a latent categorical variable $X$. Because $X$ is an unobserved categorical variable, each category of $X$ is interpreted as a latent cluster in the data, jointly defined by $G$, $Z$ and $Y$. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; $Z$ be a $N \times M$ matrix of omics data (for example, gene expression data, DNA methylation profiles and metabolomic data etc.) and $Y$ be a $N$-length vector of phenotype trait. We further assume $G$, $Z$ and $Y$ are measured through a prospective sampling procedure so we do not model the distribution of $G$. All three measured components ($G$, $Z$ and $Y$) are linked by a latent variable $X$ consisting of $K$ categories. The distributions of $X$ given $G$, $Z$ given $X$ and $Y$ given $X$ are conditionally independent with each other. Let $f(\cdot)$ denote the probability mass functions (PMF) for categorical random variables or the probability density functions (PDF) for continuous random variables. The joint log-likelihood of the LUCID model is constructed as:
+
+```{=tex}
+\begin{equation}
+    \begin{aligned}
+         \log L(\bm{\Theta}) & = \sum_{i = 1}^N \log f(\bm{Z}_i, Y_i|\bm{G}_i;\bm{\Theta}) \\
+         & = \sum_{i = 1}^N \log \sum_{j = 1}^K f(X_i = j| \bm{G}_i; \bm{\Theta}) f(\bm{Z}_i| X_i = j; \bm{\Theta}) f(Y_i|X_i = j; \bm{\Theta})
+    \end{aligned}
+    \label{eq1}
+\end{equation}
+```
+where $\Theta$ is a generic notation for all parameters in Early Integration LUCID model. EM algorithm is implemented to estimate all parameters $\Theta$ iteratively until convergence, and $\Theta$ represents the $G$ to $X$, $X$ to $Z$, and $X$ to $Y$ associations,
+
+We a-priori assigned the number of clusters to two. Early Integration LUCID estimates two omics specific clusters which represent an differential risks for the outcome. These omic profiles confer different risks of the outcome and represent each omics feature's contribution to the exposure-outcome association.
+
+### Analysis: Early Integration
 
 ```{r analysis data preparation}
 # Three omics layers, Methylation (CpG), Transcriptome and miRNA
@@ -26,12 +47,7 @@ omics_df_analysis <- omics_df %>%
   select(contains("cg"), contains("TC"), contains("hsa"))
 ```
 
-### Analysis: Early Integration
-
-**Exposure: Hg (Mercury)**
-
-**Omics: Methylation (CpG), Transcriptome, miRNA**
-
+When using `estimate_lucid()` to fit Early Integration LUCID model, we specify `lucid_model = "early"`, and `K` is an integer representing number of latent clusters.
 
 ```{r LUCID mod 1 early int, fig.height= 15, fig.width= 12,collapse = TRUE}
 G = exposure %>%
@@ -57,7 +73,7 @@ sankey_early_integration(fit1, text_size = 20)
 
 ### Early Integration Results
 
-Omics profiles for each cluster determined using LUCID.
+Omics profiles for each cluster determined using Early Integration LUCID.
 
 ```{r early integration omics profiles, fig.height= 10, fig.width= 10}
 M_mean = as.data.frame(fit1$pars$mu)
@@ -90,13 +106,26 @@ ggplot(M_mean_melt, aes(fill = color_label, y = value, x = variable)) +
   scale_fill_manual(values = c("#2fa4da", "#A77E69", "#e7b6c1"))
 ```
 
-
-
-
-
 ## *Intermediate integration*
 
-Set up the project for analysis. 
+In LUCID in parallel conducting intermediate integration, latent clusters $X_a$ are estimated in each omics layer separately while integrating information from the genetic/environmental exposure $G$ and the outcome $Y$ by assuming no correlations across different omics layers. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; there is a collection of $m$ omics data, denoted by $Z_1$, . . . , $Z_a$, . . . , $Z_m$ with corresponding dimensions $p_1$, . . . , $p_a$, . . . , $p_m$. Each omic data $Z_a$ is summarized by a latent categorical variable $X_a$, which contains $K_a$ categories. Each category is interpreted as a latent cluster (or subgroup) for that particular omic layer and $Y$ be a $N$-length vector of phenotype trait. Let $D$ be the generic notation for all observed data. The log likelihood of LUCID with multiple latent variables is constructed below,
+
+```{=tex}
+\begin{aligned}
+l(\boldsymbol{\Theta} \mid \boldsymbol{D}) & =\sum_{i=1}^{n} \log f\left(\boldsymbol{Z}_{1 i}, \ldots, \boldsymbol{Z}_{m i}, \boldsymbol{Y}_{i} \mid \boldsymbol{G}_{i} ; \boldsymbol{\Theta}\right) \\
+& =\sum_{i=1}^{n} \log \left[\prod_{j_{1}=1}^{k_{1}} \cdots \prod_{j_{m}=1}^{k_{m}} f\left(\boldsymbol{Z}_{1 i}, \ldots, \boldsymbol{Z}_{m i}, X_{1 i}, \ldots, X_{m i}, Y_{i} \mid \boldsymbol{G}_{i} ; \boldsymbol{\Theta}\right)^{I\left(X_{1 i}=j_{1}, \ldots, X_{m i}=j_{m}\right)}\right] \\
+& =\sum_{i=1}^{n} \sum_{j_{1}=1}^{k_{1}} \ldots \sum_{j_{m}=1}^{k_{m}} I\left(X_{1 i}=j_{1}, \ldots, X_{m i}=j_{m}\right) \log f\left(\boldsymbol{Z}_{1 i}, \ldots, \boldsymbol{Z}_{m i}, X_{1 i}, \ldots, X_{m i}, Y_{i} \mid \boldsymbol{G}_{i} ; \boldsymbol{\Theta}\right) \\
+& =\sum_{i=1}^{n} \sum_{j_{1}=1}^{k_{1}} \ldots \sum_{j_{m}=1}^{k_{m}} I\left(X_{1 i}=j_{1}, \ldots, X_{m i}=j_{m}\right) \log \phi\left(Y_{i} \mid X_{1 i}, \ldots, X_{m i}, \boldsymbol{\delta}, \sigma^{2}\right) \\
+& +\sum_{i=1}^{n} \sum_{a=1}^{m} \sum_{j_{1}=1}^{k_{1}} \ldots \sum_{j_{m}=1}^{k_{m}} I\left(X_{1 i}=j_{1}, \ldots, X_{m i}=j_{m}\right) \log \phi\left(\boldsymbol{Z}_{a i} \mid X_{a i}=j_{a}, \boldsymbol{\mu}_{a, j_{a}}, \boldsymbol{\Sigma}_{a, j_{a}}\right) \\
+& +\sum_{i=1}^{n} \sum_{a=1}^{m} \sum_{j_{1}=1}^{k_{1}} \ldots \sum_{j_{m}=1}^{k_{m}} I\left(X_{1 i}=j_{1}, \ldots, X_{m i}=j_{m}\right) \log S\left(\boldsymbol{X}_{a i}=j_{a} \mid \boldsymbol{G}_{i}, \boldsymbol{\beta}_{a}\right)
+\end{aligned}
+```
+The log likelihood of LUCID in parallel is similar to that with Early integration LUCID. It is natural to follow the same principles of EM algorithm for Early integration LUCID with single intermediate variable.
+
+We a-priori assigned the number of clusters for each omic layer to two. LUCID in parallel estimates omics specific clusters which represent an differential risks for the outcome within the layer. For each set of latent clusters within each omic layer, the corresponding omics profile was computed to identify the independent contribution of each omic layer to the exposure-outcome association.
+
+Set up the project for analysis.
+
 ```{r lucid in parallel setup, include = FALSE, echo = FALSE}
 source(fs::path(dir_fxn, "LUCIDusM in Parallel Sankey fxn Plotly.R"))
 source(fs::path(dir_fxn, "LUCIDusM_get_pips.R"))
@@ -145,7 +174,9 @@ setnames(omics_lst_nmd_ftr$miRNA,
          new = c(mirna_meta_df$ftr_name_for_plots))
 ```
 
-### Lucid with 3 omics layers in parallel
+### Analysis: Lucid with 3 omics layers in parallel
+
+When using `estimate_lucid()` to fit LUCID in parallel model, we specify `lucid_model = "parallel"`, and `K` is a list with the same length as the number of omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer.
 
 ```{r lucid in parallel, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE, fig.height= 15,fig.width= 12}
 G = exposure %>% as.matrix()
@@ -524,10 +555,9 @@ names(eo_figs) <- unique(lucid_clusters$group_name)
 #                                  label_groups = T, label.fontsize = 20))
 ```
 
-
-
-
 ## *Late Integration*
+
+For late integration, LUCID in serial is implemented, which successively links multiple single omics LUCID models using the Early Integration LUCID model. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; there is an ordered collection of $m$ omics data, denoted by $Z_1$, . . . , $Z_a$, . . . , $Z_m$ with corresponding dimensions $p_1$, . . . , $p_a$, . . . , $p_m$. Successive omics layers $Z_a$ are linked by using each observations' posterior inclusion probability (PIP) for latent clusters $X_a$ in the initial LUCID model to be the "exposure" variable for each successive model. The omic layers are ordered in a sequential fashion based on the biological relationships between omic layers. For the first model, an unsupervised Early Integration LUCID model using $G$ as the exposure and $Z_1$ as the omics layer. The PIPs of the non-reference clusters were extracted and used as the input for the exposure for the following unsupervised Early Integration LUCID model. This procedure is iterated until the last omics layer $Z_m$, for which a supervised Early Integration LUCID model is used to conduct integrated clustering while using PIPs from the previous LUCID model and information on the outcome $Y$.
 
 ```{r lucid in serial setup, include = FALSE, echo = FALSE}
 source(fs::path(dir_proj, "functions","LUCIDusM in Serial Sankey fxn.R"))
@@ -540,17 +570,9 @@ transcription <- omics_lst_df$transcriptome %>% column_to_rownames("name")
 miRNA <- omics_lst_df$miRNA %>% column_to_rownames("name")
 ```
 
-### Step 1. Hg + Methylation
+### Analysis: Lucid with 3 ordered omics layers in serial
 
-**Exposure: Hg (Mercury)**
-
-**Omics: Methylation (CpG)**
-
-**Outcome: Randomly number**
-
-**In LUCID function, use useY = FALSE**
-
-**Output from Analysis 1: two Clusters of participants**
+When using `estimate_lucid()` to fit LUCID in serial model, we specify `lucid_model = "serial"`, and `K` is a list with the same length as the number of ordered omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer.
 
 ```{r LUCID model 1}
 set.seed(100)
