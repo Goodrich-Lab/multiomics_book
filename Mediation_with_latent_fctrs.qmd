@@ -4,16 +4,11 @@
 
 ```{r set up data, include = FALSE, echo = FALSE}
 source(fs::path(here::here(),"project_setup","directories.R"))
-source(fs::path(dir_proj,"libraries.R"))
-source(fs::path(dir_proj,"load_simu_data.R"))
-source(fs::path(dir_proj, "functions", 
-                "load_functions.R"))
-source(fs::path(dir_proj,
-                "functions", "functions_for_med_lat_fctrs.R"))
-
-# 
+source(fs::path(dir_proj, "libraries.R"))
+source(fs::path(dir_proj, "load_simu_data.R"))
+source(fs::path(dir_proj, "functions", "load_functions.R"))
+source(fs::path(dir_proj, "functions", "functions_for_med_lat_fctrs.R"))
 options(knitr.table.format = "html")
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 # Set up graphical parameters 
 panel_a_te_lim <- c(-1,55)
 ```
@@ -24,11 +19,9 @@ panel_a_te_lim <- c(-1,55)
 
 ## *Early integration*
 
-### a. Analysis: Early integration
+For early integration, we used principal component analysis (PCA) as a dimensionality reduction step and selected the top i principal components which explained >80% of the variance. Following the joint dimensionality reduction step, we used the r package HIMA [@RN33] to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. 
 
-**Select PCs that can explain 80% of the total variance in the data**
-
-```{r 1a. early integration analysis}
+```{r 1a. early integration analysis, echo=FALSE, message=FALSE}
 # i. Obtain PCs----
 omics_df_pca <- prcomp(omics_df, center = TRUE, scale. = TRUE)
 
@@ -44,7 +37,7 @@ props_df <- tibble(pc_num = names(props),
 # Determine the number of PCs needed to explain > 80% of the total variance
 n_80_pct <- min((1:length(cum_props))[cum_props > 0.8])
 
-# the first 55 PCs are used as latent mediators
+# The first PCs which explain >80% of the variance are used as latent mediators
 PCs <- omics_df_pca$x[, 1:n_80_pct] %>% scale()
 
 # ii. Perform HIMA----
@@ -60,7 +53,7 @@ result_hima_comb_pc <- hima(X = exposure,
 # Modify DF
 result_hima_pca_early <- result_hima_comb_pc %>%
   as_tibble(rownames = "pc_num") %>%
-  left_join(props_df) %>% 
+  left_join(props_df, by = "pc_num") %>% 
   mutate(multiomic_mthd = "Early",
          mediation_mthd = "Latent Factors (PCA)",
          te_direction = if_else(beta<0, -1*`% total effect`, 
@@ -75,16 +68,19 @@ result_hima_pca_early_sig <- result_hima_pca_early %>%
   mutate(`% Total Effect scaled` = 100*`% total effect`/sum(`% total effect`) %>%
            round(1))
 
-rm(vars, props, cum_props, props_df, n_80_pct, result_hima_pca_early)
 ```
 
-#### b. Data for Figures: Early Integration
+For this analysis, `r n_80_pct` principal components (referred to as simply components) explained >80% of the variance in the combined omics datasets. Of these `r n_80_pct` components, `r nrow(result_hima_pca_early_sig)` significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_early). 
+
 
 ```{r 1b. early integration data processing, fig.height= 10, fig.width= 10}
-# i. Data: Panel A Bargraph of mediation effects of PC's --------------
+#| label: fig-lf_early
+#| fig-cap: "Mediation analysis with latent factors and early integration identifies joing components which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint component." 
+#| fig-width: 4
+
+# i. Panel A Bargraph of mediation effects of PC's --------------
 pca_early_long <- result_hima_pca_early_sig %>%
-  mutate(pc_num_pct = str_c(pc_num, " (", 100*round(pc_var_explained, 2), "%)"), 
-         pc_named = str_replace(pc_num, "PC", "Joint Comp. "),
+  mutate(pc_named = str_replace(pc_num, "PC", "Joint Comp. "),
          pcs_ordered = forcats::fct_reorder(pc_named, `te_direction`)) %>%
   dplyr::select(multiomic_mthd, pc_num, alpha, beta, `% Total Effect scaled`,
                 pcs_ordered) %>%
@@ -92,6 +88,26 @@ pca_early_long <- result_hima_pca_early_sig %>%
          Beta = beta,
          `TE (%)` = `% Total Effect scaled`) %>%
   pivot_longer(cols = c(Alpha, Beta, `TE (%)`))
+
+# Plot 
+pan_a_early <- ggplot(pca_early_long, aes(x = pcs_ordered, y = value)) +
+  geom_bar(stat = "identity", fill = "grey50") + 
+  geom_hline(yintercept = 0) +
+  facet_grid(name ~ ., scales = "free", space = "free_x", switch = "y") + 
+  ggh4x::facetted_pos_scales(
+    y = list(name == "Alpha"  ~ scale_y_continuous(
+      limits = c(-.45,.45), breaks = c(-0.4, 0, .4)),
+      name == "Beta"   ~ scale_y_continuous(
+        limits = c(-.45,.45), breaks = c(-0.4, 0, .4)),
+      name == "TE (%)" ~ scale_y_continuous(
+        limits = panel_a_te_lim, n.breaks = 4))) + 
+  theme(axis.title = element_blank(), 
+        strip.placement = "outside",
+        axis.text.x = element_blank(),
+        # axis.text.y = element_text(size = 15),
+        strip.background = element_blank(),
+        text = element_text(size = 15)
+        )
 
 # ii Data: Panel B: heatmap of correlation of features vs PC's --------------
 # Extract variable correlation with principal components
@@ -128,27 +144,49 @@ panel_b_dat_early_fin1_all_ft <- panel_b_dat_early_fin_all_ft %>%
 
 # Select features for plots -------
 ## Select rows with values in the top 17 of their respective columns 
-top <- apply(ftr_cor_sig_pcs, 2, function(x) x %in% tail(sort(abs(x)), 17)) # Edit here
+top <- apply(ftr_cor_sig_pcs, 2, function(x) x %in% tail(sort(abs(x)), 12)) # Edit here
 selected_rows <- which(rowSums(top) > 0)
 # Filter selected rows
-ftr_cor_sig_pcs_top <- ftr_cor_sig_pcs[selected_rows, ] %>%
-  as_tibble(rownames = "feature") %>%
-  mutate(omic = get_omic_layer(feature))
+ftr_cor_sig_pcs_top <- ftr_cor_sig_pcs[selected_rows, ] 
 
-# Get numeric omic layer for plotting
-meta_ftr_early <- ftr_cor_sig_pcs_top %>%
-  mutate(omic_num = get_omic_layer_numeric(feature)) %>%
-  mutate(omic_num = ifelse(grepl("miR",feature), 3, omic_num)) %>%
-  dplyr::select(feature, omic, omic_num)
 
 # Add names of features for plotting
-meta_ftr_plot_early <- meta_ftr_early %>%
-  rename(ftr_name = feature)
+panel_b_dat_early_fin <- panel_b_dat_early_fin1_all_ft %>% 
+  filter(ftr_name %in% rownames(ftr_cor_sig_pcs_top))
+
+# Plot
+panel_b_early <- ggplot(data = panel_b_dat_early_fin,
+                         aes(y = ftr_name,
+                             x = fct_rev(pcs_ordered), 
+                             fill = Correlation)) +
+    geom_tile(color = "white") +
+    facet_grid(omic ~ ., scales = "free", space = "free") +
+    scale_fill_gradient2(low  = "blue",
+                         mid  = "white",
+                         high = "red",
+                         midpoint = 0,
+                         limits = c(-1, 1),
+                         breaks = c(-1, 0, 1),
+                         na.value = "grey20") +
+    theme(
+      axis.text.x = element_text(size = 15,angle = 90, hjust = 1, vjust = .5),
+      strip.text = element_blank(),
+      axis.title = element_blank(), 
+      axis.ticks.x = element_blank(),
+      legend.position = "none",
+      text = element_text(size = 20)) 
+
+# Combine Figures 
+cowplot::plot_grid(
+  NULL, pan_a_early,  NULL, panel_b_early, 
+  ncol = 1, align = "v", axis = "lr",
+  rel_heights  = c(.05, .75, .1, 1.75),
+  labels = c("a)","", "b) "))
 ```
 
 ## *Intermediate Integration*
 
-The steps for intermediate integration start with performing a joint dimensionality reduction step using Joint and Individual Variance Explained (JIVE) [@RN18], and then performing high dimensional mediation on the resulting factors using HIMA [@RN33].
+The steps for intermediate integration start with performing a joint dimensionality reduction step using Joint and Individual Variance Explained (JIVE) [@RN18]. Following the joint dimensionality reduction step, we used the r package HIMA [@RN33] to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. 
 
 ### Conduct JIVE
 
@@ -298,7 +336,7 @@ meta_ftr_plot_jive <- meta_ftr_jive %>%
 
 ## *Late integration*
 
-### a. Analysis: PCA and then HIMA (Late integration)
+For late integration, we used principal component analysis (PCA) as a dimensionality reduction step on each omics layer separately, and selected the top i principal components which explained >80% of the variance. Following the dimensionality reduction step, we used the r package HIMA [@RN33]  to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. 
 
 ```{r pca late integration with HIMA on all omics together, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
 # i. get PCs and HIMA -----
@@ -339,7 +377,7 @@ result_hima_late_integration <- hima(X = exposure,
 # Modify and save DF
 result_hima_late_integration <- result_hima_late_integration %>%
   as_tibble(rownames = "pc_num") %>%
-  left_join(props_var_pcs) %>% 
+  left_join(props_var_pcs, by = "pc_num") %>% 
   mutate(multiomic_mthd = "Late",
          mediation_mthd = "Latent Factors (PCA)",
          te_direction = if_else(beta<0, -1*`% total effect`, 
@@ -428,7 +466,8 @@ ftr_late_pcs_long_full <- pivot_longer(ftr_cor_sig_pcs_late1,
 panel_b_dat_late_full <- left_join(ftr_late_pcs_long_full, 
                                    pca_late_long %>%
                                      filter(name == "Alpha") %>%
-                                     dplyr::select(pc_num, pcs_ordered))
+                                     dplyr::select(pc_num, pcs_ordered), 
+                                   by = "pc_num")
 
 
 panel_b_dat_late_fin_full <- panel_b_dat_late_full %>%
@@ -442,7 +481,7 @@ panel_b_dat_late_fin_full <- panel_b_dat_late_full %>%
 # Add names of features for plotting
 panel_b_dat_late_fin1_all <- panel_b_dat_late_fin_full %>%
   rename(ftr_name = feature)
- 
+
 
 # Select features for plots -------
 # Select rows with values in the top 18 of their respective columns
@@ -509,7 +548,7 @@ fct_names_ordered <- mediation_results_wide %>%
 
 # Reorder PCs
 data_long_plot <- data_long_plot %>% 
-  tidylog::left_join(fct_names_ordered) %>% 
+  left_join(fct_names_ordered, by = c("pcs_ordered", "method")) %>% 
   mutate(pcs_ordered = factor(pcs_ordered, 
                               levels = fct_names_ordered$pcs_ordered))
 ```
@@ -526,8 +565,7 @@ data_long_plot <- data_long_plot %>%
    facet_grid(name ~ method,
               scales = "free",
               space = "free_x", switch = "y") + 
-   # labs(y = NULL) +
-   facetted_pos_scales(
+   ggh4x::facetted_pos_scales(
      y = list(
        name == "Alpha"  ~ scale_y_continuous(
          limits = c(-.45,.45), breaks = c(-0.4, 0, .4)),
@@ -545,16 +583,6 @@ data_long_plot <- data_long_plot %>%
          # axis.text.x = element_text(size = 8),
          strip.background = element_blank(),
          text = element_text(size = 15)))
-
-# # Save figure 
-# ggsave(hima_plot,
-#        filename = fs::path(dir_figs,
-#                            "3_high_dim_multivar_mediation_latent_fctrs",
-#                            "Fig 4a Mediation coefficient 070723.jpeg"),
-#        width = 5,
-#        height = 5,
-#        dpi = 3000,
-#        bg = "white")
 ```
 
 ### Comparison of Component and Feature Associations Across Methods
@@ -563,35 +591,35 @@ data_long_plot <- data_long_plot %>%
 # Panel A: Early integration ----
 # Combine with reordered factor data
 panel_b_dat_early_fin1_all_ft1 <- panel_b_dat_early_fin1_all_ft %>%
-  tidylog::left_join(fct_names_ordered)
+  left_join(fct_names_ordered, by = "pcs_ordered")
 
 # Plot
 (panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1,
-                        aes(x = ftr_name,
-                            # factor(,levels = c(feature_name_reorder)), 
-                            y = fct_rev(factor_renamed_fin), 
-                            fill = Correlation)) +
-  geom_tile(color = "white") +
-  facet_grid(~omic, scales = "free") +
-  scale_fill_gradient2(low  = "blue",
-                       mid  = "white",
-                       high = "red",
-                       midpoint = 0,
-                       limits = c(-1, 1),
-                       breaks = c(-1, 0, 1),
-                       na.value = "grey20") +
-  theme(
-    axis.text.x = element_blank(),
-    strip.text = element_blank(),
-    axis.title = element_blank(), 
-    axis.ticks.x = element_blank(),
-    legend.position = "none",
-    text = element_text(size = 20)) )
+                         aes(x = ftr_name,
+                             # factor(,levels = c(feature_name_reorder)), 
+                             y = fct_rev(factor_renamed_fin), 
+                             fill = Correlation)) +
+    geom_tile(color = "white") +
+    facet_grid(~omic, scales = "free") +
+    scale_fill_gradient2(low  = "blue",
+                         mid  = "white",
+                         high = "red",
+                         midpoint = 0,
+                         limits = c(-1, 1),
+                         breaks = c(-1, 0, 1),
+                         na.value = "grey20") +
+    theme(
+      axis.text.x = element_blank(),
+      strip.text = element_blank(),
+      axis.title = element_blank(), 
+      axis.ticks.x = element_blank(),
+      legend.position = "none",
+      text = element_text(size = 20)) )
 
 # Panel B. Intermediate----
 # Combine with reordered factor data
 cor_p_val_data_JIVE_with_zeros1_all1 <- cor_p_val_data_JIVE_with_zeros1_all %>% 
-  tidylog::left_join(fct_names_ordered %>% 
+  left_join(fct_names_ordered %>% 
                        filter(method == "Intermediate") %>% 
                        mutate(pcs_ordered2 = pcs_ordered), 
                      by = c("factor" = "pcs_ordered2")) %>% 
@@ -604,29 +632,29 @@ cor_p_val_data_JIVE_final_for_fin <- cor_p_val_data_JIVE_with_zeros1_all1 %>%
 
 # Plot
 (panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin , 
-                       aes(x = ftr_name, 
-                           # factor(, levels = c(feature_name_reorder)), 
-                           y = fct_rev(factor_renamed_fin), 
-                           fill = Correlation)) +
-  geom_tile(color = "white") + 
-  scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
-                       midpoint = 0,
-                       limits =  c(-1, 1),
-                       breaks = c(-1,0,1),
-                       na.value = "grey") +
-  facet_grid(ind_joint_num~ omic,
-             scales = "free", space = "free", shrink = TRUE) +
-  theme(
-    # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-    axis.text.x = element_blank(),
-    strip.text = element_blank(),
-    # axis.text.y = element_blank(),
-    axis.title = element_blank(), 
-    axis.ticks.x = element_blank(),
-    # axis.line.x = element_blank(),
-    legend.position = "none",
-    panel.spacing.y = unit(-.1, "lines"),
-    text = element_text(size = 30)))
+                        aes(x = ftr_name, 
+                            # factor(, levels = c(feature_name_reorder)), 
+                            y = fct_rev(factor_renamed_fin), 
+                            fill = Correlation)) +
+    geom_tile(color = "white") + 
+    scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
+                         midpoint = 0,
+                         limits =  c(-1, 1),
+                         breaks = c(-1,0,1),
+                         na.value = "grey") +
+    facet_grid(ind_joint_num~ omic,
+               scales = "free", space = "free", shrink = TRUE) +
+    theme(
+      # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+      axis.text.x = element_blank(),
+      strip.text = element_blank(),
+      # axis.text.y = element_blank(),
+      axis.title = element_blank(), 
+      axis.ticks.x = element_blank(),
+      # axis.line.x = element_blank(),
+      legend.position = "none",
+      panel.spacing.y = unit(-.1, "lines"),
+      text = element_text(size = 30)))
 
 
 # Panel C. Late Integration----
@@ -636,29 +664,29 @@ panel_b_dat_late_fin1_all1 <- panel_b_dat_late_fin1_all %>%
 
 
 (panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1, 
-                       aes(x = ftr_name, 
-                           # factor(,levels = c(feature_name_reorder)), 
-                           y = fct_rev(factor_renamed_fin), 
-                           fill = Correlation)) +
-  geom_tile(color = "white") +
-  scale_fill_gradient2(low = "blue", mid = "white", high = "red",
-                       midpoint = 0,
-                       limits = c(-1, 1),
-                       breaks = c(-1,0,1),
-                       na.value = "grey") +
-  facet_grid(omic_num2 ~ omic,
-             scales = "free",
-             space = "free",
-             shrink = TRUE) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-        # axis.text.y = element_blank(),
-        strip.text = element_blank(),
-        legend.position = "none",
-        panel.spacing.y = unit(-.1, "lines"),
-        axis.title = element_blank(), 
-        # axis.line.x = element_blank(), 
-        # axis.ticks = element_blank(),
-        text = element_text(size = 20)))
+                        aes(x = ftr_name, 
+                            # factor(,levels = c(feature_name_reorder)), 
+                            y = fct_rev(factor_renamed_fin), 
+                            fill = Correlation)) +
+    geom_tile(color = "white") +
+    scale_fill_gradient2(low = "blue", mid = "white", high = "red",
+                         midpoint = 0,
+                         limits = c(-1, 1),
+                         breaks = c(-1,0,1),
+                         na.value = "grey") +
+    facet_grid(omic_num2 ~ omic,
+               scales = "free",
+               space = "free",
+               shrink = TRUE) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+          # axis.text.y = element_blank(),
+          strip.text = element_blank(),
+          legend.position = "none",
+          panel.spacing.y = unit(-.1, "lines"),
+          axis.title = element_blank(), 
+          # axis.line.x = element_blank(), 
+          # axis.ticks = element_blank(),
+          text = element_text(size = 20)))
 
 
 # Fig 5a: Join plots ----
