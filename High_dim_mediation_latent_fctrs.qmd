@@ -152,7 +152,7 @@ The steps for intermediate integration start with performing a joint dimensional
 
 ### Conduct JIVE
 
-For this step, JIVE can estimate the optimal number of joint and individual ranks by changing the `method` argument in the function `jive`. For the simulated HELIX data, the optimal number, determined by setting `method = "perm"`, was 19 joint ranks and 7, 8, 3, 5, and 6 ranks for the methylome, transcriptome, miRNA, proteome, and metabolome, respectively.
+For this step, JIVE can estimate the optimal number of joint and individual ranks by changing the `method` argument in the function `jive`. For the simulated HELIX data, the optimal number, determined by setting `method = "perm"`, was 22 joint ranks and 6, 9, 5, 5, and 8 ranks for the methylome, transcriptome, miRNA, proteome, and metabolome, respectively.
 
 ```{r JIVE, cache = FALSE, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
 # conduct JIVE
@@ -164,8 +164,8 @@ names(omics_t) = names(omics_lst)
 
 # Run JIVE with the optimal ranks provided: 
 result_jive2 <- jive(data = omics_t,
-                     rankJ = 19,
-                     rankA = c(7, 8, 3, 5, 6),
+                     rankJ = 22,
+                     rankA = c(6, 9, 5, 5, 8),
                      method = "given",
                      conv = 1e-04,
                      maxiter = 100,
@@ -235,12 +235,13 @@ var.cor <- cor(omics_df, factors_jive)
 ftr_cor_sig_pcs_jive_all <- var.cor[,(colnames(var.cor) %in% 
                                         result_hima_jive_sig$component)] 
 
-
-# Melt data to long format
-melt_data <- reshape2::melt(ftr_cor_sig_pcs_jive_all) 
+# Reshape the data
+ftr_cor_sig_pcs_jive_all_l <- ftr_cor_sig_pcs_jive_all %>% 
+  as_tibble(rownames = "Var1") %>% 
+  pivot_longer(cols = -Var1, names_to = "Var2", values_to = "value")
 
 # Merge p-values and top 10 cor
-cor_p_val_data_JIVE_all <- melt_data %>% 
+cor_p_val_data_JIVE_all <- ftr_cor_sig_pcs_jive_all_l %>% 
   mutate(omic = case_when(str_detect(Var1, "pro_") ~ "Proteins", 
                           str_detect(Var1, "miR") ~ "miRNA", 
                           str_detect(Var1, "cg") ~ "Methylation", 

@@ -77,7 +77,11 @@ Omics profiles for each cluster determined using Early Integration LUCID.
 ```{r early integration omics profiles, fig.height= 10, fig.width= 10}
 M_mean = as.data.frame(fit1$pars$mu)
 M_mean$cluster = as.factor(1:2)
-M_mean_melt = reshape::melt(M_mean, id.vars = "cluster") 
+
+# Reshape the data
+M_mean_melt <- M_mean %>% 
+  pivot_longer(cols = -cluster, names_to = "variable", values_to = "value")
+
 M_mean_melt <- M_mean_melt %>% 
   mutate(cluster = ifelse(cluster == 2, "High Risk", "Low Risk"))
 # add color label for omics layer
