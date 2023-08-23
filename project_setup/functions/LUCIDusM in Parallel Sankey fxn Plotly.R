@@ -80,7 +80,7 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
   
   valueXtoY <- c(rep(0, n_layers), 
                  # rep(lucidus_fit$res_Delta$Delta$mu[1] / n_layers, n_layers),
-                 lucidus_fit$res_Delta$Delta$mu[-1])
+                 lucidus_fit$res_Delta$Gamma$mu[-1])
   
   # n features in each layer
   XtoZ <- data.frame(source = c(rep("Cluster 1 (Layer 1)", n_features[1]),

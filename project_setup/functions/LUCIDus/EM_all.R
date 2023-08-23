@@ -190,7 +190,7 @@ estimate_lucid <- function(lucid_model = c("early", "parallel","serial"),
         Znames[[1]] = temp_model$var.names$Znames
         submodel[[1]] = temp_model
         #update PIP as the input for the next sub model, excluding the PIP for the reference cluster
-        post.p = temp_model$post.p[,-1]
+        post.p = scale(temp_model$post.p[,-1])
 
       }else{
         #if the first serial sub model is lucid in parallel
@@ -227,7 +227,7 @@ estimate_lucid <- function(lucid_model = c("early", "parallel","serial"),
         for (i in 1:length(temp.p)){
           temp.p.list[[i]] = temp.p[[i]][,-1]
         }
-        post.p = matrix(unlist(temp.p.list), nrow = nrow(G), byrow = FALSE)
+        post.p = scale(matrix(unlist(temp.p.list), nrow = nrow(G), byrow = FALSE))
       }
       }else if (i < length(K)){
         ##Scenario 2: the middle serial sub models
@@ -259,7 +259,7 @@ estimate_lucid <- function(lucid_model = c("early", "parallel","serial"),
           Znames[[i]] = temp_model$var.names$Znames
           submodel[[i]] = temp_model
           #update PIP as the input for the next sub model, excluding the PIP for the reference cluster
-          post.p = temp_model$post.p[,-1]
+          post.p = scale(temp_model$post.p[,-1])
         }else{
           #if the middle serial sub model is parallel (multiple layers)
           temp_model = est_lucid(lucid_model = "parallel",
@@ -293,7 +293,7 @@ estimate_lucid <- function(lucid_model = c("early", "parallel","serial"),
           for (i in 1:length(temp.p)){
             temp.p.list[[i]] = temp.p[[i]][,-1]
           }
-          post.p = matrix(unlist(temp.p.list), nrow = nrow(G), byrow = FALSE)
+          post.p = scale(matrix(unlist(temp.p.list), nrow = nrow(G), byrow = FALSE))
         }
       }else if (i == length(K)){
         ##Scenario 3: the last sub model
@@ -360,10 +360,7 @@ estimate_lucid <- function(lucid_model = c("early", "parallel","serial"),
       }
     }
     cat("Success: LUCID in Serial Model is constructed!", "\n\n")
-    results <- list(res_Beta = res_Beta,
-                    res_Mu = res.mu.list,
-                    res_Sigma = res.sigma.list,
-                    res_Gamma = res_Gamma,
+    results <- list(submodel = submodel,
                     K = K,
                     N = nrow(G),
                     var.names =list(Gnames = Gnames,
@@ -379,10 +376,9 @@ estimate_lucid <- function(lucid_model = c("early", "parallel","serial"),
                     #z = Estep_r,
                     init_impute = init_impute,
                     init_par = init_par,
-                    submodel = submodel
-                    #Rho = list(Rho_G = Rho_G,
-                    #Rho_Z_Mu = Rho_Z_Mu,
-                    #Rho_Z_Cov = Rho_Z_Cov)
+                    Rho = list(Rho_G = Rho_G,
+                    Rho_Z_Mu = Rho_Z_Mu,
+                    Rho_Z_Cov = Rho_Z_Cov)
     )
     class(results) <- c("lucid_serial")
     return(results)
