@@ -10,7 +10,6 @@ library(cowplot) # For combining figures
 library(ComplexHeatmap) # Additional Plotting Functions
 library(ggh4x) # For faceted plots
 # library(diagram)
-library(reshape2)
 library(data.table) # For function setnames
 library(colorspace)
 library(tidytext)
