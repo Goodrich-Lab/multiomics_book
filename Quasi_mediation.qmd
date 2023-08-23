@@ -136,35 +136,15 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 Prepare data for quasi-mediation analysis with LUCID in Parallel.
 
 ```{r data preparation lucid in parallel}
+# JG note- do we need this? ----
 meta_df <- data.frame(ftr_name = c(colnames(omics_lst$methylome),
                                    colnames(omics_lst$transcriptome),
                                    colnames(omics_lst$miRNA))) %>%
-  mutate(omic_layer = get_omic_layer_lowercase(ftr_name) ) %>%
-  tidylog::left_join(omics_names %>% dplyr::select(-omic_layer))  %>%
-  dplyr::select(ftr_name_for_plots, ftr_name, omic_layer) 
+  mutate(omic_layer = get_omic_layer_lowercase(ftr_name))
 
-methylation_meta_df <- meta_df %>% filter(omic_layer == "methylome") %>% 
-  mutate(ftr_name_for_plots =  
-           case_when(ftr_name == "cg07385577" ~ "AJ011932.1_1",
-                     ftr_name == "cg25823142" ~ "AJ011932.1_2",
-                     TRUE ~ ftr_name_for_plots))
-transcriptome_meta_df <- meta_df %>% filter(omic_layer == "transcriptome")
-mirna_meta_df <- meta_df %>% filter(omic_layer == "mirna")
 
-omics_lst_nmd_ftr <- omics_lst %>% 
-  modify(., as.data.frame)
-
-setnames(omics_lst_nmd_ftr$methylome, 
-         old = c(methylation_meta_df$ftr_name), 
-         new = c(methylation_meta_df$ftr_name_for_plots))
-
-setnames(omics_lst_nmd_ftr$transcriptome, 
-         old = c(transcriptome_meta_df$ftr_name),
-         new = c(transcriptome_meta_df$ftr_name_for_plots))
-
-setnames(omics_lst_nmd_ftr$miRNA, 
-         old = c(mirna_meta_df$ftr_name),
-         new = c(mirna_meta_df$ftr_name_for_plots))
+omics_lst_nmd_ftr = omics_lst
+# END NODE
 ```
 
 ### Analysis: Lucid with 3 omics layers in parallel
@@ -475,7 +455,6 @@ For late integration, LUCID in serial is implemented, which successively links m
 source(fs::path(dir_proj, "functions","LUCIDusM in Serial Sankey fxn.R"))
 ```
 
-### Step 1. Hg + Methylation
 
 When using `estimate_lucid()` to fit LUCID in serial model, we specify `lucid_model = "serial"`, and `K` is a list with the same length as the number of ordered omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer.
 

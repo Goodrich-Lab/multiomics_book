@@ -13,6 +13,8 @@ outcome  <- simulated_data[["phenotype"]]$ck18_scaled
 
 # Get numeric matrix of covariates 
 covs <- simulated_data[["phenotype"]][covars] 
+covs$e3_sex_None <- if_else(covs$e3_sex_None == "male", 1, 0)
+
 
 # create list of omics data 
 omics_lst <- simulated_data[-which(names(simulated_data) == "phenotype")]

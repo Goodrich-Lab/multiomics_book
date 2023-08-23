@@ -36,7 +36,6 @@ In order to replicate the style of the figures in this book, you will also have 
 ```
 
 
-
 ## Custom Functions   
 
 The analyses in this book rely on several custom functions. The code for extra functions are provided in [Chapter @sec-code]. 
@@ -72,7 +71,7 @@ You can read this data into R using the following code:
 ```{r data summary}
 #| tbl-cap: "Descriptive Statistics for the Simulated Variables"
 #| label: tbl-descript
-table1::table1(~., data = simulated_data[["phenotype"]])
+table1::table1(~., data = simulated_data[["phenotype"]][,-1])
 ```
 
 ### Mercury exposure and childhood MAFLD risk
@@ -86,7 +85,7 @@ lm_res <- lm(ck18_scaled ~ hs_hg_m_scaled +
 summary(lm_res)
 ```
 
-In the simulated data, each 1 standard deviation increase in maternal mercury was associated with a 0.07 standard deviation increase in CK18 enzymes (@fig-lr_res), after adjusting for child age and child sex. 
+In the simulated data, each 1 standard deviation increase in maternal mercury was associated with a 0.11 standard deviation increase in CK18 enzymes (@fig-lr_res; p=0.02), after adjusting for child age and child sex. 
 
 ```{r linear regression}
 #| fig-cap: "Association between maternal mercury and CK18 in the Simulated Data"

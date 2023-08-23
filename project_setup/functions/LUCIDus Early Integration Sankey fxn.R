@@ -108,8 +108,10 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
   nodes1 <- nodes %>% 
     mutate(group = case_when(str_detect(name,"Cluster") ~ "lc",
                              str_detect(name, "cg") ~ "CpG",
-                             str_detect(name, "TC") ~ "TC",
-                             str_detect(name, "hsa") ~ "miRNA",
+                             str_detect(name, "pro") ~ "Prot",
+                             str_detect(name, "met") ~ "Met",
+                             str_detect(name, "tc") ~ "TC",
+                             str_detect(name, "miR") ~ "miRNA",
                              str_detect(name, "G1") ~ "exposure",
                              str_detect(name, "outcome") ~ "outcome"),
            name = ifelse(name == "G1", "Hg",name))
@@ -138,17 +140,14 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
         group == "exposure" ~ 0,
         str_detect(name, "Cluster") ~ 1/3,
         str_detect(name, "cg")|
-          str_detect(name, "TC")|
-          str_detect(name, "hsa")|
+          str_detect(name, "tc")|
+          str_detect(name, "miR")|
           str_detect(name, "outcome")~ 2/3
       ))
   
   nodes_new_plotly1 <- nodes_new_plotly %>%
-    tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), 
-                       by = c("name" = "ftr_name"))  %>%
     # Modify names of features for plotting
-   dplyr::select(group, color, x, ftr_name_for_plots)%>% 
-    rename(name = ftr_name_for_plots) %>%
+   dplyr::select(group, color, x, name)%>% 
     mutate(name = case_when(name == "value" ~ "<b>Hg</b>",
                             name == "Latent Cluster1" ~ "<b>Joint Omics\nProfile 0</b>",
                             name == "Latent Cluster2" ~ "<b>Joint Omics\nProfile 1</b>",
@@ -178,18 +177,14 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
         str_detect(target, "cg") &  group == TRUE  ~  "#38761d",
         str_detect(target, "cg") &  group == FALSE ~  "#b6d7a8",
         # proteome
-        str_detect(target, "hsa") &  group == TRUE  ~  "#a64d79",
-        str_detect(target, "hsa") &  group == FALSE ~  "#ead1dc",
+        str_detect(target, "miR") &  group == TRUE  ~  "#a64d79",
+        str_detect(target, "miR") &  group == FALSE ~  "#ead1dc",
         ##
         group == FALSE ~ "#D3D3D3", # Negative association
         group == TRUE ~  "#706C6C")) # Positive association
   
   links_new1<- links_new %>%
-    tidylog::left_join(omics_names %>% dplyr::select(-omic_layer), 
-                       by = c("target" = "ftr_name"))  %>%
-   dplyr::select(colnames(links_new), ftr_name_for_plots)%>% 
-   dplyr::select(-target) %>%
-    rename(target = ftr_name_for_plots)
+   dplyr::select(colnames(links_new), target)
     
   plotly_link <- list(
     source = links_new1$IDsource,

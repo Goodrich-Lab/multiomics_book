@@ -154,7 +154,7 @@ The steps for intermediate integration start with performing a joint dimensional
 
 For this step, JIVE can estimate the optimal number of joint and individual ranks by changing the `method` argument in the function `jive`. For the simulated HELIX data, the optimal number, determined by setting `method = "perm"`, was 19 joint ranks and 7, 8, 3, 5, and 6 ranks for the methylome, transcriptome, miRNA, proteome, and metabolome, respectively.
 
-```{r JIVE, cache = TRUE, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
+```{r JIVE, cache = FALSE, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
 # conduct JIVE
 # Transpose omics matrices
 omics_t <- lapply(omics_lst, t)
