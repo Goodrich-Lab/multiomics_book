@@ -118,7 +118,6 @@ hima_intermediate_integration <- function(omics_lst,
   # Rename family for xtune function
   if(Y.family != "gaussian") {stop("Only continuous outcomes currently supported")}
   
-  
   # Get dataframe of all data
   full_data <- tibble(outcome = outcome, 
                       exposure = exposure) %>% 
@@ -157,7 +156,7 @@ hima_intermediate_integration <- function(omics_lst,
   
   # 2) M--> Y: select features associated with the outcome using group lasso ----
   # x+M-->Y Glasso
-  X = as.matrix(full_data)[, colnames(omics_df)]
+  X = as.matrix(full_data[, colnames(omics_df)])
   Y = full_data$outcome
   Z = as.matrix(external_info)
   U = as.matrix(full_data[,"exposure"])
