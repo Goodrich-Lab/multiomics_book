@@ -460,6 +460,10 @@ est_lucid <- function(lucid_model = c("early", "parallel"),
     } else{
       selectZ <- rep(TRUE, dimZ)
     }
+    
+    #make X-to-Y association for reference to be 0
+    pars$gamma$beta[1] <- 0
+      
     results <- list(pars = list(beta = pars$beta, 
                                 mu = pars$mu, 
                                 sigma = pars$sigma, 
