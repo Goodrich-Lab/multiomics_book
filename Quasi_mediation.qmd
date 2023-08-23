@@ -470,6 +470,7 @@ Z = list(omics_lst$methylome,
          omics_lst$miRNA)
 Y_liv_inj = scale(outcome)
 
+#get the selection  
 fit <- estimate_lucid(lucid_model = "serial",
                       G = G_Hg,
                       Z = Z,
@@ -483,8 +484,27 @@ fit <- estimate_lucid(lucid_model = "serial",
                       Rho_Z_Mu = 10,
                       Rho_Z_Cov = .3)
 
-fit1 <- fit$submodel[[1]]
+#extract the selected Z features to make the selected Z matrix to refit the lUCID in serial
+selected_Z = vector(mode = "list", length = length(Z))
+for (i in (1:length(Z))){
+  fiti_select_Z = fit$submodel[[i]]$select$selectZ
+  selected_Z[[i]] = Z[[i]][,fiti_select_Z]
+}
+
+#Refit ther LUCID in serial model with selected Z
+fit <- estimate_lucid(lucid_model = "serial",
+                      G = G_Hg,
+                      Z = selected_Z,
+                      Y = Y_liv_inj, 
+                      CoY = covs,
+                      CoG = covs,
+                      K = list(2,2,2),
+                      useY = TRUE,
+                      init_par = "random",
+                      family = "normal")
+
 # Rename Exposure
+fit1 <- fit$submodel[[1]]
 fit1$var.names$Gnames[1] <- "Hg"
 fit2 <- fit$submodel[[2]]
 fit2$var.names$Gnames[1] <- "<b>Methylation\nProfile 1</b>"
