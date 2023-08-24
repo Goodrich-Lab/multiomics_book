@@ -44,7 +44,7 @@ We a-priori assigned the number of clusters to two. Early Integration LUCID esti
 ```{r analysis data preparation}
 # Three omics layers, Methylation (CpG), Transcriptome and miRNA
 omics_df_analysis <- omics_df %>% 
-  dplyr::select(contains("cg"), contains("TC"), contains("hsa"))
+  dplyr::select(contains("cg"), contains("TC"), contains("miR"))
 ```
 
 When using `estimate_lucid()` to fit Early Integration LUCID model, we specify `lucid_model = "early"`, and `K` is an integer representing number of latent clusters.
