@@ -238,10 +238,11 @@ reorder_lucidM <- function(lucidus_fit,
     }
   }) 
   # reorder gamma
-  XtoY <- lucidus_fit$res_Delta$Delta$mu
+  XtoY <- lucidus_fit$res_Delta$Gamma$mu
   XtoY[1] <- XtoY[1] + sum(XtoY[-1] * (reference - 1)) # reference level using the new reference
   XtoY[-1] <- (-1)^(reference - 1) * XtoY[-1] # if reference = 2, flip the estimates
-  lucidus_fit$res_Delta$Delta$mu <- XtoY
+  lucidus_fit$res_Delta$Gamma$mu <- XtoY
+  lucidus_fit$res_Delta$fit$coefficients <- XtoY
   
   # return the object using the new reference
   return(lucidus_fit)
