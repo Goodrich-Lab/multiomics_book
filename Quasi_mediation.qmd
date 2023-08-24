@@ -68,7 +68,6 @@ fit1 <- estimate_lucid(lucid_model = "early",
 
 # Sankey Diagram
 p1 <- sankey_early_integration(fit1, text_size = 20)
-saveWidget(p1, "lucid_early_integration.html")
 ```
 
 ### Early Integration Results
@@ -182,7 +181,7 @@ p2 <- plot_lucid_in_parallel_plotly(fit_reordered,
                                       sankey_colors = sankey_colors,
                                       text_size = 20,
                                       n_z_ftrs_to_plot = c(7,7,7))
-saveWidget(p2, "lucid_intermediate_integration_reorder.html")
+
 ```
 
 ### Omics profiles for each cluster predicted by LUCID
@@ -534,5 +533,4 @@ p3<- sankey_in_serial(fit1,
                  fit3, 
                  color_pal_sankey,
                  text_size = 24)
-saveWidget(p3, "lucid_late_integration.html")
 ```
