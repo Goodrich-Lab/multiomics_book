@@ -171,8 +171,8 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
             # Outcome
         str_detect(target, "outcome") &  group == TRUE  ~  "red",
         # Methylation 
-        str_detect(target, "TC") &  group == TRUE  ~  "#bf9000",
-        str_detect(target, "TC") &  group == FALSE ~  "#ffd966",
+        str_detect(target, "tc") &  group == TRUE  ~  "#bf9000",
+        str_detect(target, "tc") &  group == FALSE ~  "#ffd966",
         # Transcriptome
         str_detect(target, "cg") &  group == TRUE  ~  "#38761d",
         str_detect(target, "cg") &  group == FALSE ~  "#b6d7a8",
