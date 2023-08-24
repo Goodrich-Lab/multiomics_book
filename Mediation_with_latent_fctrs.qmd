@@ -516,115 +516,115 @@ data_long_plot <- data_long_plot %>%
 
 ### Comparison of Component and Feature Associations Across Methods
 
-```{r Mediation results plot}
-# Panel A: Early integration ----
-# Combine with reordered factor data
-panel_b_dat_early_fin1_all_ft1 <- panel_b_dat_early_fin1_all_ft %>%
-  left_join(fct_names_ordered, by = "pcs_ordered")
-
-# Plot
-(panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1,
-                         aes(x = ftr_name,
-                             # factor(,levels = c(feature_name_reorder)), 
-                             y = fct_rev(factor_renamed_fin), 
-                             fill = Correlation)) +
-    geom_tile(color = "white") +
-    facet_grid(~omic, scales = "free") +
-    scale_fill_gradient2(low  = "blue",
-                         mid  = "white",
-                         high = "red",
-                         midpoint = 0,
-                         limits = c(-1, 1),
-                         breaks = c(-1, 0, 1),
-                         na.value = "grey20") +
-    theme(
-      axis.text.x = element_blank(),
-      strip.text = element_blank(),
-      axis.title = element_blank(), 
-      axis.ticks.x = element_blank(),
-      legend.position = "none",
-      text = element_text(size = 20)) )
-
-# Panel B. Intermediate----
-# Combine with reordered factor data
-cor_p_val_data_JIVE_with_zeros1_all1 <- cor_p_val_data_JIVE_with_zeros1_all %>% 
-  left_join(fct_names_ordered %>% 
-              filter(method == "Intermediate") %>% 
-              mutate(pcs_ordered2 = pcs_ordered), 
-            by = c("factor" = "pcs_ordered2")) %>% 
-  arrange(pcs_ordered) %>% 
-  mutate(factor_renamed_fin = fct_inorder(factor_renamed_fin))
-
-# Replace 0 with NA and filter only features for plotting
-cor_p_val_data_JIVE_final_for_fin <- cor_p_val_data_JIVE_with_zeros1_all1 %>%
-  mutate(Correlation = ifelse(Correlation== 0, NA, Correlation)) 
-
-# Plot
-(panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin , 
-                        aes(x = ftr_name, 
-                            # factor(, levels = c(feature_name_reorder)), 
-                            y = fct_rev(factor_renamed_fin), 
-                            fill = Correlation)) +
-    geom_tile(color = "white") + 
-    scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
-                         midpoint = 0,
-                         limits =  c(-1, 1),
-                         breaks = c(-1,0,1),
-                         na.value = "grey") +
-    facet_grid(ind_joint_num~ omic,
-               scales = "free", space = "free", shrink = TRUE) +
-    theme(
-      # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-      axis.text.x = element_blank(),
-      strip.text = element_blank(),
-      # axis.text.y = element_blank(),
-      axis.title = element_blank(), 
-      axis.ticks.x = element_blank(),
-      # axis.line.x = element_blank(),
-      legend.position = "none",
-      panel.spacing.y = unit(-.1, "lines"),
-      text = element_text(size = 30)))
-
-
-# Panel C. Late Integration----
-# Combine with reordered factor data
-panel_b_dat_late_fin1_all1 <- panel_b_dat_late_fin1_all %>% 
-  tidylog::left_join(fct_names_ordered) 
-
-
-(panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1, 
-                        aes(x = ftr_name, 
-                            # factor(,levels = c(feature_name_reorder)), 
-                            y = fct_rev(factor_renamed_fin), 
-                            fill = Correlation)) +
-    geom_tile(color = "white") +
-    scale_fill_gradient2(low = "blue", mid = "white", high = "red",
-                         midpoint = 0,
-                         limits = c(-1, 1),
-                         breaks = c(-1,0,1),
-                         na.value = "grey") +
-    facet_grid(omic_num2 ~ omic,
-               scales = "free",
-               space = "free",
-               shrink = TRUE) +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-          # axis.text.y = element_blank(),
-          strip.text = element_blank(),
-          legend.position = "none",
-          panel.spacing.y = unit(-.1, "lines"),
-          axis.title = element_blank(), 
-          # axis.line.x = element_blank(), 
-          # axis.ticks = element_blank(),
-          text = element_text(size = 20)))
-
-
-# Fig 5a: Join plots ----
-(fig_med_lf_ftr_comp <- cowplot::plot_grid(
-  NULL, panel_b_early,  NULL, panel_b_JIVE, NULL, panel_b_late,
-  ncol = 1, align = "hv", axis = "lr",
-  rel_heights  = c(.1, .75, .1, 1.25, .1, 1),
-  labels = c("a) Early","", "b) Intermediate","", "c) Late",""),
-  label_x = c(-0.016, 0, -0.04, 0, -0.015,0)))
+```{r Mediation results plot, include=FALSE}
+# # Panel A: Early integration ----
+# # Combine with reordered factor data
+# panel_b_dat_early_fin1_all_ft1 <- panel_b_dat_early_fin1_all_ft %>%
+#   left_join(fct_names_ordered, by = "pcs_ordered")
+# 
+# # Plot
+# (panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1,
+#                          aes(x = ftr_name,
+#                              # factor(,levels = c(feature_name_reorder)), 
+#                              y = fct_rev(factor_renamed_fin), 
+#                              fill = Correlation)) +
+#     geom_tile(color = "white") +
+#     facet_grid(~omic, scales = "free") +
+#     scale_fill_gradient2(low  = "blue",
+#                          mid  = "white",
+#                          high = "red",
+#                          midpoint = 0,
+#                          limits = c(-1, 1),
+#                          breaks = c(-1, 0, 1),
+#                          na.value = "grey20") +
+#     theme(
+#       axis.text.x = element_blank(),
+#       strip.text = element_blank(),
+#       axis.title = element_blank(), 
+#       axis.ticks.x = element_blank(),
+#       legend.position = "none",
+#       text = element_text(size = 20)) )
+# 
+# # Panel B. Intermediate----
+# # Combine with reordered factor data
+# cor_p_val_data_JIVE_with_zeros1_all1 <- cor_p_val_data_JIVE_with_zeros1_all %>% 
+#   left_join(fct_names_ordered %>% 
+#               filter(method == "Intermediate") %>% 
+#               mutate(pcs_ordered2 = pcs_ordered), 
+#             by = c("factor" = "pcs_ordered2")) %>% 
+#   arrange(pcs_ordered) %>% 
+#   mutate(factor_renamed_fin = fct_inorder(factor_renamed_fin))
+# 
+# # Replace 0 with NA and filter only features for plotting
+# cor_p_val_data_JIVE_final_for_fin <- cor_p_val_data_JIVE_with_zeros1_all1 %>%
+#   mutate(Correlation = ifelse(Correlation== 0, NA, Correlation)) 
+# 
+# # Plot
+# (panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin , 
+#                         aes(x = ftr_name, 
+#                             # factor(, levels = c(feature_name_reorder)), 
+#                             y = fct_rev(factor_renamed_fin), 
+#                             fill = Correlation)) +
+#     geom_tile(color = "white") + 
+#     scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
+#                          midpoint = 0,
+#                          limits =  c(-1, 1),
+#                          breaks = c(-1,0,1),
+#                          na.value = "grey") +
+#     facet_grid(ind_joint_num~ omic,
+#                scales = "free", space = "free", shrink = TRUE) +
+#     theme(
+#       # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+#       axis.text.x = element_blank(),
+#       strip.text = element_blank(),
+#       # axis.text.y = element_blank(),
+#       axis.title = element_blank(), 
+#       axis.ticks.x = element_blank(),
+#       # axis.line.x = element_blank(),
+#       legend.position = "none",
+#       panel.spacing.y = unit(-.1, "lines"),
+#       text = element_text(size = 30)))
+# 
+# 
+# # Panel C. Late Integration----
+# # Combine with reordered factor data
+# panel_b_dat_late_fin1_all1 <- panel_b_dat_late_fin1_all %>% 
+#   tidylog::left_join(fct_names_ordered) 
+# 
+# 
+# (panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1, 
+#                         aes(x = ftr_name, 
+#                             # factor(,levels = c(feature_name_reorder)), 
+#                             y = fct_rev(factor_renamed_fin), 
+#                             fill = Correlation)) +
+#     geom_tile(color = "white") +
+#     scale_fill_gradient2(low = "blue", mid = "white", high = "red",
+#                          midpoint = 0,
+#                          limits = c(-1, 1),
+#                          breaks = c(-1,0,1),
+#                          na.value = "grey") +
+#     facet_grid(omic_num2 ~ omic,
+#                scales = "free",
+#                space = "free",
+#                shrink = TRUE) +
+#     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
+#           # axis.text.y = element_blank(),
+#           strip.text = element_blank(),
+#           legend.position = "none",
+#           panel.spacing.y = unit(-.1, "lines"),
+#           axis.title = element_blank(), 
+#           # axis.line.x = element_blank(), 
+#           # axis.ticks = element_blank(),
+#           text = element_text(size = 20)))
+# 
+# 
+# # Fig 5a: Join plots ----
+# (fig_med_lf_ftr_comp <- cowplot::plot_grid(
+#   NULL, panel_b_early,  NULL, panel_b_JIVE, NULL, panel_b_late,
+#   ncol = 1, align = "hv", axis = "lr",
+#   rel_heights  = c(.1, .75, .1, 1.25, .1, 1),
+#   labels = c("a) Early","", "b) Intermediate","", "c) Late",""),
+#   label_x = c(-0.016, 0, -0.04, 0, -0.015,0)))
 ```
 
 ### Pathway Analysis.
