@@ -9,7 +9,7 @@ book:
     - index.qmd
     - intro.qmd
     - HIMA.qmd
-    - High_dim_mediation_latent_fctrs.qmd
+    - Mediation_with_latent_fctrs.qmd
     - Quasi_mediation.qmd
     - appendix_code.qmd
     - references.qmd
