@@ -40,8 +40,8 @@ get_sankey_df <- function(x,
   top25<- XtoZ %>%
     filter(source == "Latent Cluster1") %>%
     mutate(omics = case_when(grepl("cg", target) ~ "Methylation",
-                             grepl("TC", target) ~ "Transcriptome",
-                             grepl("hsa", target) ~ "miRNA")) %>%
+                             grepl("tc", target) ~ "Transcriptome",
+                             grepl("miR", target) ~ "miRNA")) %>%
     group_by(omics) %>%
     arrange(desc(value)) %>%
     slice(1:7) %>%

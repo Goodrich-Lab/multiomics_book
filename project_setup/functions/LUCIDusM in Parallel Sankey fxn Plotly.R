@@ -205,18 +205,21 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
                             TRUE ~ name),
            x = case_when(
              name == "Hg" ~ 0,
-             str_detect(name, "methylome") |
-               str_detect(name, "transcript") | 
-               str_detect(name, "mirna") ~ 1/3, 
-             str_detect(name, "TC")|
-               str_detect(name, "pro_")|
-               str_detect(name, "cg")~  2/3, 
-             str_detect(name, "Outcome") ~ 2.5/3))
+             str_detect(name, "Methylation") |
+               str_detect(name, "Transcript") | 
+               str_detect(name, "miRNA") ~ 1/3, 
+             str_detect(name, "cg")|
+               str_detect(name, "tc")|
+               str_detect(name, "miR")| 
+             str_detect(name, "Outcome") ~ 2/3))
   
   (fig <- plot_ly(
     type = "sankey",
     orientation = "h",
-    arrangement = "snap",
+    domain = list(
+      x =  c(0,0.8),
+      y =  c(0,1)),
+    # arrangement = "snap",
     node = list(
       label = nodes$name,
       color = nodes$range,
@@ -233,7 +236,7 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
       source = links$source_id,
       target = links$target_id,
       value =  links$value+.00000000000000000000001,
-      label = links$source,
+      # label = links$source,
       color = links$link_color
     )
   )
