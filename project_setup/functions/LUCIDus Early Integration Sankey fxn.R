@@ -108,12 +108,12 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
   nodes1 <- nodes %>% 
     mutate(group = case_when(str_detect(name,"Cluster") ~ "lc",
                              str_detect(name, "cg") ~ "CpG",
+                             str_detect(name, "outcome") ~ "outcome",
                              str_detect(name, "pro") ~ "Prot",
                              str_detect(name, "met") ~ "Met",
                              str_detect(name, "tc") ~ "TC",
                              str_detect(name, "miR") ~ "miRNA",
-                             str_detect(name, "G1") ~ "exposure",
-                             str_detect(name, "outcome") ~ "outcome"),
+                             str_detect(name, "G1") ~ "exposure"),
            name = ifelse(name == "G1", "Hg",name))
   links1 <- links %>%
     mutate(source = ifelse(source == "G1", "Hg",source))
