@@ -67,7 +67,8 @@ fit1 <- estimate_lucid(lucid_model = "early",
                        family = "normal")
 
 # Sankey Diagram
-sankey_early_integration(fit1, text_size = 20)
+p1 <- sankey_early_integration(fit1, text_size = 20)
+saveWidget(p1, "lucid_early_integration.html")
 ```
 
 ### Early Integration Results
@@ -171,16 +172,17 @@ fit <- estimate_lucid(lucid_model = "parallel",
                       modelName = "EEV")
 
 # Reorder the clusters
-fit_reordered <- reorder_lucidM(fit, reference = c(1,1,2))
+fit_reordered <- reorder_lucidM(fit, reference = c(2,2,2))
 ```
 
 ### Sankey diagram
 
 ```{r sankey diagram plotly lucid in parallel, message = FALSE, warning = FALSE,fig.height= 12, fig.width= 10}
-(fig <- plot_lucid_in_parallel_plotly(fit_reordered,
+p2 <- plot_lucid_in_parallel_plotly(fit_reordered,
                                       sankey_colors = sankey_colors,
                                       text_size = 20,
-                                      n_z_ftrs_to_plot = c(7,7,7)))
+                                      n_z_ftrs_to_plot = c(7,7,7))
+saveWidget(p2, "lucid_intermediate_integration_reorder.html")
 ```
 
 ### Omics profiles for each cluster predicted by LUCID
@@ -527,9 +529,10 @@ color_pal_sankey <- matrix(c("exposure", "red",
   janitor::clean_names() %>%
   dplyr::rename(group = x1, color = x2)
 
-sankey_in_serial(fit1, 
+p3<- sankey_in_serial(fit1, 
                  fit2, 
                  fit3, 
                  color_pal_sankey,
                  text_size = 24)
+saveWidget(p3, "lucid_late_integration.html")
 ```
