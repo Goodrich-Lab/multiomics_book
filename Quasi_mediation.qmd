@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
                       fig.height= 15, fig.width= 12,collapse = TRUE)
 ```
 
-## *Early integration*
+## *Early Integration*
 
 In the Early Integration LUCID model, genomic/exposomic exposures $G$, other omics data $Z$ and phenotype trait $Y$ are integrated through a latent categorical variable $X$. Because $X$ is an unobserved categorical variable, each category of $X$ is interpreted as a latent cluster in the data, jointly defined by $G$, $Z$ and $Y$. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; $Z$ be a $N \times M$ matrix of omics data (for example, gene expression data, DNA methylation profiles and metabolomic data etc.) and $Y$ be a $N$-length vector of phenotype trait. We further assume $G$, $Z$ and $Y$ are measured through a prospective sampling procedure so we do not model the distribution of $G$. All three measured components ($G$, $Z$ and $Y$) are linked by a latent variable $X$ consisting of $K$ categories. The distributions of $X$ given $G$, $Z$ given $X$ and $Y$ given $X$ are conditionally independent with each other. Let $f(\cdot)$ denote the probability mass functions (PMF) for categorical random variables or the probability density functions (PDF) for continuous random variables. The joint log-likelihood of the LUCID model is constructed as:
 
@@ -43,7 +43,7 @@ omics_df_analysis <- omics_df %>%
   dplyr::select(contains("cg"), contains("TC"), contains("miR"))
 ```
 
-When using `estimate_lucid()` to fit Early Integration LUCID model, we specify `lucid_model = "early"`, and `K` is an integer representing number of latent clusters.
+When using `estimate_lucid()` to fit the Early Integration LUCID model, we specify `lucid_model = "early"`, and `K` is an integer representing number of latent clusters. `G`, `Z`, `Y` are the inputs for exposure, omics data matrix, and the outcome, respectively.`CoY` are the covariates to be adjusted for the $X$ to $Y$ association and `CoG` are the covariates to be adjusted for the $G$ to $X$ association. We specify `useY = TRUE` to construct supervised LUCID model. Otherwise, `useY = FALSE` will construct unsupervised LUCID model. `init_par = "random"` means that we initiate the parameters with random guess. We specify `family = "normal"` since the outcome is continuous. If the outcome is binary, we would specify `family = "binary"`.
 
 ```{r LUCID mod 1 early int, fig.height= 15, fig.width= 12,collapse = TRUE}
 G = exposure %>%
@@ -64,7 +64,10 @@ fit1 <- estimate_lucid(lucid_model = "early",
 
 # Sankey Diagram
 p1 <- sankey_early_integration(fit1, text_size = 20)
+
 ```
+
+![The Sankey Diagram for LUCID (Early Integration).](lucid_early.png){#fig-l_early}
 
 ### Early Integration Results
 
@@ -105,9 +108,9 @@ ggplot(M_mean_melt, aes(fill = color_label, y = value, x = variable)) +
   scale_fill_manual(values = c("#2fa4da", "#A77E69", "#e7b6c1"))
 ```
 
-## *Intermediate integration*
+## *Intermediate Integration*
 
-In LUCID in parallel conducting intermediate integration, latent clusters $X_a$ are estimated in each omics layer separately while integrating information from the genetic/environmental exposure $G$ and the outcome $Y$ by assuming no correlations across different omics layers. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; there is a collection of $m$ omics data, denoted by $Z_1$, . . . , $Z_a$, . . . , $Z_m$ with corresponding dimensions $p_1$, . . . , $p_a$, . . . , $p_m$. Each omic data $Z_a$ is summarized by a latent categorical variable $X_a$, which contains $K_a$ categories. Each category is interpreted as a latent cluster (or subgroup) for that particular omic layer and $Y$ be a $N$-length vector of phenotype trait. Let $D$ be the generic notation for all observed data. The log likelihood of LUCID with multiple latent variables is constructed below,
+In LUCID in parallel conducting intermediate integration, latent clusters $X_a$ are estimated in each omics layer separately while integrating information from the genetic/environmental exposure $G$ and the outcome $Y$ by assuming no correlations across different omics layers. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; there is a collection of $m$ omics data, denoted by $Z_1$, . . . , $Z_a$, . . . , $Z_m$ with corresponding dimensions $p_1$, . . . , $p_a$, . . . , $p_m$. Each omics data $Z_a$ is summarized by a latent categorical variable $X_a$, which contains $K_a$ categories. Each category is interpreted as a latent cluster (or subgroup) for that particular omics layer and $Y$ be a $N$-length vector of phenotype trait. Let $D$ be the generic notation for all observed data. The log likelihood of LUCID with multiple latent variables is constructed below,
 
 $$
 \begin{aligned}
@@ -122,7 +125,7 @@ $$
 
 The log likelihood of LUCID in parallel is similar to that with Early integration LUCID. It is natural to follow the same principles of EM algorithm for Early integration LUCID with single intermediate variable.
 
-We a-priori assigned the number of clusters for each omic layer to two. LUCID in parallel estimates omics specific clusters which represent an differential risks for the outcome within the layer. For each set of latent clusters within each omic layer, the corresponding omics profile was computed to identify the independent contribution of each omic layer to the exposure-outcome association.
+We a-priori assigned the number of clusters for each omic layer to two. LUCID in parallel estimates omics specific clusters which represent an differential risks for the outcome within the layer. For each set of latent clusters within each omics layer, the corresponding omics profile was computed to identify the independent contribution of each omics layer to the exposure-outcome association.
 
 Set up the project for analysis.
 
@@ -150,7 +153,7 @@ omics_lst_nmd_ftr = omics_lst
 
 ### Analysis: Lucid with 3 omics layers in parallel
 
-When using `estimate_lucid()` to fit LUCID in parallel model, we specify `lucid_model = "parallel"`, and `K` is a list with the same length as the number of omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer.
+When using `estimate_lucid()` to fit LUCID in parallel model, we specify `lucid_model = "parallel"`, and `K` is a list with the same length as the number of omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer. `max_itr = 200` means that the algorithm will stop when the iterations reaches 200 if still not reaching convergence. We specify `useY = TRUE` to construct supervised LUCID model. `modelName` is a vector of strings specifies the geometric model of omics data, the default `modelName` is "VVV", but here "EEV" is more suitable.
 
 ```{r lucid in parallel, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE, fig.height= 15,fig.width= 12}
 G = exposure %>% as.matrix()
@@ -180,6 +183,8 @@ p2 <- plot_lucid_in_parallel_plotly(fit_reordered,
                                       n_z_ftrs_to_plot = c(7,7,7))
 
 ```
+
+![The Sankey Diagram for LUCID in Parallel (Intermediate Integration).](lucid_intermediate.png){#fig-l_int}
 
 ### Omics profiles for each cluster predicted by LUCID
 
@@ -450,13 +455,13 @@ names(eo_figs) <- unique(lucid_clusters$group_name)
 
 ## *Late Integration*
 
-For late integration, LUCID in serial is implemented, which successively links multiple single omics LUCID models using the Early Integration LUCID model. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; there is an ordered collection of $m$ omics data, denoted by $Z_1$, . . . , $Z_a$, . . . , $Z_m$ with corresponding dimensions $p_1$, . . . , $p_a$, . . . , $p_m$. Successive omics layers $Z_a$ are linked by using each observations' posterior inclusion probability (PIP) for latent clusters $X_a$ in the initial LUCID model to be the "exposure" variable for each successive model. The omic layers are ordered in a sequential fashion based on the biological relationships between omic layers. For the first model, an unsupervised Early Integration LUCID model using $G$ as the exposure and $Z_1$ as the omics layer. The PIPs of the non-reference clusters were extracted and used as the input for the exposure for the following unsupervised Early Integration LUCID model. This procedure is iterated until the last omics layer $Z_m$, for which a supervised Early Integration LUCID model is used to conduct integrated clustering while using PIPs from the previous LUCID model and information on the outcome $Y$.
+For late integration, LUCID in serial is implemented, which successively links multiple single omics LUCID models using the Early Integration LUCID model. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; there is an ordered collection of $m$ omics data, denoted by $Z_1$, . . . , $Z_a$, . . . , $Z_m$ with corresponding dimensions $p_1$, . . . , $p_a$, . . . , $p_m$. Successive omics layers $Z_a$ are linked by using each observations' posterior inclusion probability (PIP) for latent clusters $X_a$ in the initial LUCID model to be the "exposure" variable for each successive model. The omics layers are ordered in a sequential fashion based on the biological relationships between omics layers. For the first model, an unsupervised Early Integration LUCID model using $G$ as the exposure and $Z_1$ as the omics layer. The PIPs of the non-reference clusters were extracted and used as the input for the exposure for the following unsupervised Early Integration LUCID model. This procedure is iterated until the last omics layer $Z_m$, for which a supervised Early Integration LUCID model is used to conduct integrated clustering while using PIPs from the previous LUCID model and information on the outcome $Y$.
 
 ```{r lucid in serial setup, include = FALSE, echo = FALSE}
 source(fs::path(dir_proj, "functions","LUCIDusM in Serial Sankey fxn.R"))
 ```
 
-When using `estimate_lucid()` to fit LUCID in serial model, we specify `lucid_model = "serial"`, and `K` is a list with the same length as the number of ordered omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer.
+When using `estimate_lucid()` to fit LUCID in serial model, we specify `lucid_model = "serial"`, and `K` is a list with the same length as the number of ordered omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer. `G`, `Z`, `Y` are the inputs for exposure, omics data matrix, and the outcome, respectively. Note that here Z is list of omics layers (vectors). `CoY` are the covariates to be adjusted for the $X$ to $Y$ association and `CoG` are the covariates to be adjusted for the $G$ to $X$ association. We specify `useY = TRUE` to construct supervised LUCID in serial model. We specify `family = "normal"` since the outcome is continuous. If the outcome is binary, we would specify `family = "binary"`. We specify `Rho_Z_Mu = 10` and `Rho_Z_Cov = .3` to use LASSO penalty to regularize cluster-specific means and variance for $Z$. We will get a selection of $Z$ features for each layer, and then we refit the LUCID in serial model with only selected $Z$ features to construct the final model.
 
 ```{r LUCID model 1}
 set.seed(100)
@@ -475,7 +480,6 @@ fit <- estimate_lucid(lucid_model = "serial",
                       CoG = covs,
                       K = list(2,2,2),
                       useY = TRUE,
-                      init_par = "random",
                       family = "normal", 
                       Rho_Z_Mu = 10,
                       Rho_Z_Cov = .3)
@@ -529,3 +533,5 @@ p3<- sankey_in_serial(fit1,
                  color_pal_sankey,
                  text_size = 24)
 ```
+
+![The Sankey Diagram for LUCID in Serial (Late Integration).](lucid_late.png){#fig-l_late}
