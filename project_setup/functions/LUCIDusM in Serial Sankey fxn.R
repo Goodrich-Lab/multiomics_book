@@ -141,7 +141,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
         target == names_clusters_1$name_og[1] ~ names_clusters_1$name_new[1],
         target == names_clusters_1$name_og[2] ~ names_clusters_1$name_new[2],
         TRUE ~ target)) %>%
-    tidylog::filter(target != "outcome")
+    filter(target != "outcome")
   
   ## 2.3 Change node names ----
   # first, change latent cluster names to analysis specific cluster names
@@ -152,7 +152,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
         name == names_clusters_1$name_og[2] ~ names_clusters_1$name_new[2],
         TRUE ~ name), 
       group = if_else(group == "biomarker", "CpG", as.character(group))) %>%
-    tidylog::filter(group != "outcome")
+    filter(group != "outcome")
   
   
   # Visualize
@@ -183,7 +183,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
         target == names_clusters_2$name_og[1] ~ names_clusters_2$name_new[1], 
         target == names_clusters_2$name_og[2] ~ names_clusters_2$name_new[2], 
         TRUE ~ target)) %>%
-    tidylog::filter(target != "outcome")
+    filter(target != "outcome")
   
   ## 3.3 Change node names ----
   nodes2_miRNA_new <- sankey_dat2[["nodes"]] %>% 
@@ -195,7 +195,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
       group = case_when(group == "exposure" ~ "lc", 
                         group == "biomarker" ~ "miRNA",
                         TRUE ~ as.character(group))) %>%
-    tidylog::filter(name != "outcome")
+    filter(name != "outcome")
   
   # Visualize
   # sankeyNetwork(
@@ -260,7 +260,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   
   ### 5.1.1 Arrange by magnitude ----
   omics_priority <- links_all_1 %>% 
-    tidylog::filter(str_detect(source, "Profile 0"), 
+    filter(str_detect(source, "Profile 0"), 
                     str_detect(target, "Profile 0", negate = TRUE), 
                     str_detect(target, "Profile 1", negate = TRUE), 
                     str_detect(target, "outcome", negate = TRUE)) %>%
@@ -268,12 +268,12 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
     arrange(desc(group), desc(value), .by_group = TRUE) %>%
     mutate(omics_order = row_number()) %>%
     ungroup() %>%
-    tidylog::select(target, omics_order)
+    dplyr::select(target, omics_order)
   
   
   
   links_all <- links_all_1 %>%
-    tidylog::left_join(omics_priority) %>%
+    left_join(omics_priority) %>%
     mutate(
       # arrange_me = if_else(is.na(omics_order), 
       #                           "dont_arrange", 
@@ -301,16 +301,16 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   
   # Then combine with original data 
   links_new <- links_all %>%
-    tidylog::left_join(node_ids, by = c("source" = "name")) %>%
+    left_join(node_ids, by = c("source" = "name")) %>%
     dplyr::rename(IDsource = ID) %>%
-    tidylog::left_join(node_ids, by = c("target" = "name")) %>%
+    left_join(node_ids, by = c("target" = "name")) %>%
     dplyr::rename(IDtarget = ID)
   
   
   ## 5.2 Final Nodes ----
   nodes_new <- node_ids %>%
-    tidylog::select(name) %>%
-    tidylog::left_join(bind_rows(nodes1_methylation_new, 
+    dplyr::select(name) %>%
+    left_join(bind_rows(nodes1_methylation_new, 
                                  nodes2_miRNA_new,
                                  nodes3_transcript_new))
   # remove duplicates 
@@ -323,7 +323,7 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   
   # Add color scheme to nodes
   nodes_new_plotly <- nodes_new_nodup %>% 
-    tidylog::left_join(color_pal_sankey) %>%
+    left_join(color_pal_sankey) %>%
     mutate(
       x = case_when(
         group == "exposure" ~ 0,

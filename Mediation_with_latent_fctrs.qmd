@@ -45,7 +45,7 @@ result_hima_comb_pc <- hima(X = exposure,
 
 # Change to tibble and select significant PCs
 result_hima_pca_early <- as_tibble(result_hima_comb_pc, rownames = "pc_num") %>% 
-  tidylog::filter(BH.FDR < 0.05) 
+  filter(BH.FDR < 0.05) 
 
 # Filter Significant PCs, Create scaled %TE variable
 result_hima_pca_early_sig <- result_hima_pca_early %>% 
@@ -225,7 +225,7 @@ result_hima_jive_1 <- result_hima_jive %>%
 
 # Filter significant components and create scaled %TE variable
 result_hima_jive_sig <-  result_hima_jive_1 %>% 
-  tidylog::filter(BH.FDR<0.05) %>%   
+  filter(BH.FDR<0.05) %>%   
   mutate(`% Total Effect scaled` =
            round(100*`% total effect`/sum(`% total effect`),1),
          te_direction = if_else(beta < 0, 
@@ -357,7 +357,7 @@ result_hima_late_integration <- result_hima_late_integration %>%
 
 # Filter significant pcs, create scaled %TE variable
 result_hima_pca_late_sig <- result_hima_late_integration %>% 
-  tidylog::filter(BH.FDR < 0.05) %>%
+  filter(BH.FDR < 0.05) %>%
   mutate(pc_numeric = str_split_fixed(pc_num, fixed("_"), 2)[,2],
          omic_layer = str_split_fixed(pc_num, fixed("_"), 2)[,1] %>%
            str_to_sentence(),
@@ -589,7 +589,7 @@ data_long_plot <- data_long_plot %>%
 # # Panel C. Late Integration----
 # # Combine with reordered factor data
 # panel_b_dat_late_fin1_all1 <- panel_b_dat_late_fin1_all %>% 
-#   tidylog::left_join(fct_names_ordered) 
+#   left_join(fct_names_ordered) 
 # 
 # 
 # (panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1, 

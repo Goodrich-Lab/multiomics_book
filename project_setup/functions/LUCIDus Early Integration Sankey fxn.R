@@ -134,7 +134,7 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
   
   # Add color scheme to nodes
   nodes_new_plotly <- nodes1 %>% 
-    tidylog::left_join(color_pal_sankey) %>%
+    left_join(color_pal_sankey) %>%
     mutate(
       x = case_when(
         group == "exposure" ~ 0,

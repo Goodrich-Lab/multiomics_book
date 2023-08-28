@@ -156,16 +156,16 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
     # Add feature names
     bind_rows(names_features) %>% 
     mutate(id = row_number()-1) %>%
-    tidylog::left_join(sankey_colors, by = c( "color_group"= "domain"))
+    left_join(sankey_colors, by = c( "color_group"= "domain"))
   
   # Join links and nodes for color names -----
   links <- links %>%
-    tidylog::left_join(nodes %>% 
+    left_join(nodes %>% 
                          dplyr::select(id, name), 
                        by = c("source" = "name")) %>%
     rename(source_id = id) %>% 
     dplyr::select(source_id, everything()) %>%
-    tidylog::left_join(nodes %>% 
+    left_join(nodes %>% 
                          dplyr::select(id, name), 
                        by = c("target" = "name")) %>%
     rename(target_id = id) %>% 
