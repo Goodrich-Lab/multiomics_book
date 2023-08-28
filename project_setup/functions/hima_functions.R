@@ -14,7 +14,7 @@
 #'
 #' @import dplyr
 #' @importFrom tidyr as_tibble
-#' @importFrom tidylog left_join
+#' @importFrom dplyr left_join
 #' @importFrom janitor remove_empty
 #' @importFrom purrr map_lgl
 #' @importFrom stringr str_detect
@@ -92,7 +92,6 @@ hima_early_integration <- function(exposure,
 #' @importFrom dplyr select rename filter summarise 
 #' @importFrom purrr map map2 reduce 
 #' @importFrom broom tidy 
-#' @importFrom tidylog filter inner_join 
 #' @importFrom matrixStats colAnyNA rowAnyNA 
 #' @importFrom RMediation medci
 #' @importFrom boot boot detectCores
