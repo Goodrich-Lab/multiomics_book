@@ -37,7 +37,7 @@ result_hima_early_fin <- result_hima_early %>%
 
 # Filter to significant features only and scale % total effect to 100
 result_hima_early_fin <- result_hima_early_fin %>% 
-  tidylog::filter(BH.FDR < 0.05) %>%
+  filter(BH.FDR < 0.05) %>%
   mutate(pte = 100*`% total effect`/sum(`% total effect`), 
          sig = if_else(BH.FDR < 0.05, 1, 0))
 
@@ -209,7 +209,7 @@ result_hima_late_fin <- result_hima_late %>%
 
 # Filter to significant features only, scale % total effect to 100
 result_hima_late_fin <- result_hima_late_fin %>% 
-  tidylog::filter(BH.FDR < 0.05) %>%
+  filter(BH.FDR < 0.05) %>%
   mutate(pte = 100*`% total effect`/sum(`% total effect`), 
          sig = if_else(BH.FDR < 0.05, 1, 0))
 

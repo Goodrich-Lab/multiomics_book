@@ -9,11 +9,14 @@ library(epiomics)
 library(cowplot) # For combining figures
 library(ComplexHeatmap) # Additional Plotting Functions
 library(ggh4x) # For faceted plots
-# library(diagram)
 library(data.table) # For function setnames
 library(colorspace)
 library(tidytext)
 library(table1)
+
+# Not loaded
+# library(fs)
+# library(here)
 
 
 ## ---- hima_packages ----
@@ -25,6 +28,7 @@ library(xtune)
 library(RMediation) # devtools::install_github("cran/RMediation")
 # Bootstrap confidence intervals: 
 library(boot) 
+library(glmnet)
 
 
 ## ---- med_lf_packages ----

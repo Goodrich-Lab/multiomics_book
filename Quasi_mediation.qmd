@@ -220,11 +220,11 @@ M_mean2 = M_mean_l %>%
 # Filter only the top ## differential expressed features 
 M_mean2_top <- M_mean2 %>% 
   group_by(variable) %>% 
-  tidylog::filter(abs(value) == max(abs(value))) %>% 
+  filter(abs(value) == max(abs(value))) %>% 
   ungroup() %>% 
   arrange(max(abs(value))) %>% 
   group_by(omic_layer) %>% 
-  tidylog::slice_head(n=12) %>%
+  slice_head(n=12) %>%
   ungroup()
 
 # Plots top 12 features
@@ -290,7 +290,7 @@ lucid_clusters_sample_size <- lucid_pips %>%
 
 # Combine PIPs with sample size per cluster 
 lucid_clusters <- lucid_clusters_sample_size %>%
-  tidylog::left_join(exp_out_by_group) %>% 
+  left_join(exp_out_by_group) %>% 
   mutate(m = str_sub(cluster_assignment, end = -9), 
          t = str_sub(cluster_assignment, start = 4, end = 5),
          p = str_sub(cluster_assignment, start = 7)) %>%
@@ -313,7 +313,7 @@ lucid_clusters <- lucid_clusters %>%
 
 # Pivot wider on exposures and outcomes
 lucid_clusters_w <- lucid_clusters %>%
-  tidylog::pivot_wider(names_from = "exp_out", 
+  pivot_wider(names_from = "exp_out", 
                        values_from = c(estimate:conf_high))
 
 
@@ -326,7 +326,7 @@ ggplot(lucid_clusters_w,
 
 # Combine individual level data with summary data 
 lucid_pips_fin <- lucid_pips %>% 
-  tidylog::left_join(lucid_clusters_w)
+  left_join(lucid_clusters_w)
 ```
 
 ### Visualize Omics Profiles
