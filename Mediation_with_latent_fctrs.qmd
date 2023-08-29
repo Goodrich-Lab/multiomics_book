@@ -323,8 +323,8 @@ cor_p_val_data_JIVE_all <- ftr_cor_sig_pcs_jive_all_l %>%
 cor_p_val_data_JIVE_with_zeros_all <- cor_p_val_data_JIVE_all %>%
   mutate(
     in_ind_omic = str_sub(factor, 1, 5) == str_sub(omic, 1, 5),
-    Correlation = if_else(in_ind_omic | str_detect(factor, "Joint"),
-                          Correlation, 0)) %>%
+    Correlation = ifelse(in_ind_omic | str_detect(factor, "Joint"),
+                          Correlation, NA)) %>%
   left_join(result_hima_jive_long %>% dplyr::select(component,components_ord, ind_joint_num),
             by= c("factor" = "component"),
             relationship = "many-to-many")
@@ -358,7 +358,7 @@ panel_b_jive <- ggplot(data = panel_b_dat_jive_fin,
                        midpoint = 0,
                        limits = c(-1, 1),
                        breaks = c(-1, 0, 1),
-                       na.value = "grey20") +
+                       na.value = "grey") +
   theme(
     axis.text.x = element_text(size = 15,angle = 90, hjust = 1, vjust = .5),
     strip.text = element_blank(),
@@ -534,7 +534,7 @@ panel_b_late <- ggplot(data = panel_b_dat_late_fin,
                        midpoint = 0,
                        limits = c(-1, 1),
                        breaks = c(-1, 0, 1),
-                       na.value = "grey20") +
+                       na.value = "grey") +
   theme(
     axis.text.x = element_text(size = 15,angle = 90, hjust = 1, vjust = .5),
     strip.text = element_blank(),
