@@ -426,7 +426,7 @@ result_hima_late_sig <- result_hima_late_sig  %>%
            str_replace("PC", "Comp. "))
 ```
 
-This analysis identified 2 methylated CpG sites, 1 miRNA, 1 protein and 2 expressed gene transcript clutesrs (@fig-lf_late) 
+This analysis identified 2 methylated CpG sites, 1 miRNA, 1 protein and 2 expressed gene transcript clutesrs significantly mediated the association between mercury and MAFLD (@fig-lf_late). 
 
 ```{r figs pca late int, message = FALSE, warning = FALSE}
 #| label: fig-lf_late
