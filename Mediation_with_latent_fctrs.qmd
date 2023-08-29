@@ -58,11 +58,11 @@ result_hima_pca_early_sig <- result_hima_pca_early %>%
 
 In this analysis, `r n_80_pct` principal components explained >80% of the variance in the combined omics datasets. Of these `r n_80_pct` components, `r nrow(result_hima_pca_early_sig)` significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_early). 
 
-```{r 1b. early integration data processing}
+```{r 1b. early integration data processing, message=FALSE}
 #| label: fig-lf_early
 #| fig-cap: "Mediation analysis with latent factors and early integration identifies joing components which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint component." 
 #| fig-width: 4
-#| fig-height: 8
+#| fig-height: 10
 
 # Panel A Bargraph of mediation effects of PC's --------------
 pca_early_long <- result_hima_pca_early_sig %>%
@@ -174,7 +174,10 @@ The steps for intermediate integration start with performing a joint dimensional
 
 For this step, JIVE can estimate the optimal number of joint and individual ranks by changing the `method` argument in the function `jive`. For the simulated HELIX data, the optimal number, determined by setting `method = "perm"`, was 22 joint ranks and 6, 9, 5, 5, and 8 ranks for the methylome, transcriptome, miRNA, proteome, and metabolome, respectively.
 
-```{r JIVE, cache = TRUE, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
+```{r JIVE, cache = TRUE, message = FALSE, warning = FALSE}
+#| fig-width: 4
+#| fig-height: 5
+#| 
 # conduct JIVE
 # Transpose omics matrices
 omics_t <- lapply(omics_lst, t)
@@ -200,6 +203,8 @@ showVarExplained(result_jive2)
 ```
 
 ### Perform mediation analysis
+
+In this analysis, 6 joint components, 1 transcriptome specific component significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_intermediate). 
 
 ```{r JIVE mediation,message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
 # run mediation analysis
@@ -233,9 +238,13 @@ result_hima_jive_sig <-  result_hima_jive_1 %>%
                                 `% total effect`))
 ```
 
-#### Step 4. data for plot JIVE factors
 
-```{r JIVE figure,message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
+```{r JIVE figure,message = FALSE, warning = FALSE}
+#| label: fig-lf_intermediate
+#| fig-cap: "Mediation analysis with latent factors and intermediate integration identifies joint and individual variance componets which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint and individual components." 
+#| fig-width: 4
+#| fig-height: 10
+
 # Panel A: Bargraph of mediation effects of PC's --------------
 result_hima_jive_long <- result_hima_jive_sig %>%
   mutate(component = str_replace(component, "_", " ") %>% 
@@ -245,6 +254,32 @@ result_hima_jive_long <- result_hima_jive_sig %>%
          Beta = beta,
          `TE (%)` = `% Total Effect scaled`) %>%
   pivot_longer(cols = c(Alpha, Beta, `TE (%)`))
+
+# Plot  
+panel_a_jive <- ggplot(result_hima_jive_long, 
+                     aes(x = components_ord, 
+                         y = value)) +
+   geom_bar(stat = "identity", fill = "grey50") + 
+   geom_hline(yintercept = 0) +
+   facet_grid(name ~ .,
+              scales = "free",
+              space = "free_x", switch = "y") + 
+   # labs(y = NULL) +
+   facetted_pos_scales(
+     y = list(
+       name == "Alpha"  ~ scale_y_continuous(
+         limits = c(-.45,.45), breaks = c(-0.4, 0, .4)),
+       name == "Beta"   ~ scale_y_continuous(
+         limits = c(-.45,.45), breaks = c(-0.4, 0, .4)),
+       name == "TE (%)" ~ scale_y_continuous(
+         limits = panel_a_te_lim, n.breaks = 4))) + 
+   theme(axis.title = element_blank(), 
+         title = element_text(hjust = 0),
+         strip.placement = "outside",
+         axis.text.y = element_text(size = 15),
+         axis.text.x = element_blank(),
+         strip.background = element_blank(),
+         text = element_text(size = 15))
 
 # Panel B: heatmap of correlation of features vs PC's --------------
 
@@ -256,31 +291,31 @@ ftr_cor_sig_pcs_jive_all <- var.cor[,(colnames(var.cor) %in%
                                         result_hima_jive_sig$component)] 
 
 # Reshape the data
-ftr_cor_sig_pcs_jive_all_l <- ftr_cor_sig_pcs_jive_all %>% 
-  as_tibble(rownames = "Var1") %>% 
+ftr_cor_sig_pcs_jive_all_l <- ftr_cor_sig_pcs_jive_all %>%
+  as_tibble(rownames = "Var1") %>%
   pivot_longer(cols = -Var1, names_to = "Var2", values_to = "value")
 
-# Merge p-values and top 10 cor
-cor_p_val_data_JIVE_all <- ftr_cor_sig_pcs_jive_all_l %>% 
-  mutate(omic = case_when(str_detect(Var1, "pro_") ~ "Proteins", 
-                          str_detect(Var1, "miR") ~ "miRNA", 
-                          str_detect(Var1, "cg") ~ "Methylation", 
-                          str_detect(Var1, "TC") ~ "Transcriptome", 
-                          str_detect(Var1, "met") ~ "Metabolome", 
+# Get numeric omic layer for plotting
+cor_p_val_data_JIVE_all <- ftr_cor_sig_pcs_jive_all_l %>%
+  mutate(omic = case_when(str_detect(Var1, "pro_") ~ "Proteins",
+                          str_detect(Var1, "miR") ~ "miRNA",
+                          str_detect(Var1, "cg") ~ "Methylation",
+                          str_detect(Var1, "tc") ~ "Transcriptome",
+                          str_detect(Var1, "met") ~ "Metabolome",
                           TRUE ~ "error"),
-         omic_num = case_when(str_detect(Var1, "cg") ~ 1, 
-                              str_detect(Var1, "TC") ~ 2, 
+         omic_num = case_when(str_detect(Var1, "cg") ~ 1,
+                              str_detect(Var1, "tc") ~ 2,
                               str_detect(Var1, "miR") ~ 3,
-                              str_detect(Var1, "pro_") ~ 4, 
-                              str_detect(Var1, "met") ~ 5, 
+                              str_detect(Var1, "pro_") ~ 4,
+                              str_detect(Var1, "met") ~ 5,
                               TRUE ~ 9),
          Var1 = str_remove(Var1, "met_") %>%
            str_remove("hsa-") %>%
-           str_remove("pro_"), 
-         Var2 = str_replace(Var2, "_", " ") %>% 
+           str_remove("pro_"),
+         Var2 = str_replace(Var2, "_", " ") %>%
            toTitleCase()) %>%
-  rename(feature = Var1, 
-         factor = Var2, 
+  rename(feature = Var1,
+         factor = Var2,
          Correlation = value) %>%
   as_tibble()
 
@@ -288,39 +323,64 @@ cor_p_val_data_JIVE_all <- ftr_cor_sig_pcs_jive_all_l %>%
 cor_p_val_data_JIVE_with_zeros_all <- cor_p_val_data_JIVE_all %>%
   mutate(
     in_ind_omic = str_sub(factor, 1, 5) == str_sub(omic, 1, 5),
-    Correlation = if_else(in_ind_omic | str_detect(factor, "Joint"), 
-                          Correlation, 0)) %>%
-  left_join(result_hima_jive_long %>% dplyr::select(component, ind_joint_num), 
-            by= c("factor" = "component"), 
+    Correlation = ifelse(in_ind_omic | str_detect(factor, "Joint"),
+                          Correlation, NA)) %>%
+  left_join(result_hima_jive_long %>% dplyr::select(component,components_ord, ind_joint_num),
+            by= c("factor" = "component"),
             relationship = "many-to-many")
 
-# Add names of features for plotting
+# # Add names of features for plotting
 cor_p_val_data_JIVE_with_zeros1_all <- cor_p_val_data_JIVE_with_zeros_all %>%
   rename(ftr_name = feature)
 
 # Select features for plots -------
 # Select rows with values in the top 10 of their respective columns
-top10 <- apply(ftr_cor_sig_pcs_jive_all, 2, function(x) x %in% tail(sort(abs(x)), 11))
+top10 <- apply(ftr_cor_sig_pcs_jive_all, 2, function(x) x %in% tail(sort(abs(x)), 10))
 selected_rows <- which(rowSums(top10) > 0)
 ftr_cor_sig_pcs_top10 <- ftr_cor_sig_pcs_jive_all[selected_rows, ] %>%
   data.frame() %>% 
   rownames_to_column("feature")
 
+panel_b_dat_jive_fin <- cor_p_val_data_JIVE_with_zeros1_all %>%
+  filter(ftr_name %in% ftr_cor_sig_pcs_top10$feature)
 
-meta_ftr_jive <- ftr_cor_sig_pcs_top10 %>% 
-  mutate(omic = get_omic_layer(feature),
-         omic_num = get_omic_layer_numeric(feature)) %>%
-  mutate(omic_num = ifelse(omic == "miRNA", 3, omic_num))
 
-meta_ftr_plot_jive <- meta_ftr_jive %>%
-  rename(ftr_name = feature) 
+# Plot
+panel_b_jive <- ggplot(data = panel_b_dat_jive_fin,
+                        aes(y = ftr_name,
+                            x = components_ord, 
+                            fill = Correlation)) +
+  geom_tile(color = "white") +
+  facet_grid(omic ~ ., scales = "free", space = "free") +
+  scale_fill_gradient2(low  = "blue",
+                       mid  = "white",
+                       high = "red",
+                       midpoint = 0,
+                       limits = c(-1, 1),
+                       breaks = c(-1, 0, 1),
+                       na.value = "grey") +
+  theme(
+    axis.text.x = element_text(size = 15,angle = 90, hjust = 1, vjust = .5),
+    strip.text = element_blank(),
+    axis.title = element_blank(), 
+    axis.ticks.x = element_blank(),
+    legend.position = "none",
+    text = element_text(size = 20)) 
+
+# Combine Figures 
+cowplot::plot_grid(
+  NULL, panel_a_jive,  NULL, panel_b_jive, 
+  ncol = 1, align = "v", axis = "lr",
+  rel_heights  = c(.05, .75, .1, 1.75),
+  labels = c("a)","", "b) "))  
 ```
 
 ## *Late integration*
 
 For late integration, we used principal component analysis (PCA) as a dimensionality reduction step on each omics layer separately, and selected the top i principal components which explained >80% of the variance. Following the dimensionality reduction step, we used the r package HIMA [@RN33]  to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. 
 
-```{r pca late integration with HIMA on all omics together, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
+```{r pca late integration, message = FALSE, warning = FALSE}
+
 # i. get PCs and HIMA -----
 # PCA scores: Apply function to each matrix in the list and collect 
 scores_list_late_int <-  map2(omics_lst, 
@@ -348,30 +408,34 @@ result_hima_late_integration <- hima(X = exposure,
                                      M.family = c("gaussian"), 
                                      scale = FALSE) 
 
-# Modify DF
-result_hima_late_integration <- result_hima_late_integration %>%
-  as_tibble(rownames = "pc_num") %>%
-  mutate(multiomic_mthd = "Late",
-         te_direction = if_else(beta<0, -1*`% total effect`, 
-                                `% total effect`))
-
 # Filter significant pcs, create scaled %TE variable
-result_hima_pca_late_sig <- result_hima_late_integration %>% 
+result_hima_late_sig <- result_hima_late_integration %>%
+  as_tibble(rownames = "pc_num") %>%
   filter(BH.FDR < 0.05) %>%
+  mutate(
+    te_direction = if_else(beta<0, -1*`% total effect`, `% total effect`), 
+    `% Total Effect scaled` = 100*`% total effect`/sum(`% total effect`)) 
+
+result_hima_late_sig <- result_hima_late_sig  %>% 
   mutate(pc_numeric = str_split_fixed(pc_num, fixed("_"), 2)[,2],
          omic_layer = str_split_fixed(pc_num, fixed("_"), 2)[,1] %>%
            str_to_sentence(),
+         multiomic_mthd = "Late")%>%
+  mutate(omic_layer = str_replace(omic_layer, "Mirna", "miRNA" ),
          omic_pc = str_c(omic_layer, " ", pc_numeric) %>%
-           str_replace("PC", "Comp. ")) %>%
-  mutate(`% Total Effect scaled` = 100*`% total effect`/sum(`% total effect`) %>%
-           round(1))
+           str_replace("PC", "Comp. "))
 ```
 
-#### b. Data for Figures: PCA and then HIMA (Late integration)
+This analysis identified 2 methylated CpG sites, 1 miRNA, 1 protein and 2 expressed gene transcript clutesrs significantly mediated the association between mercury and MAFLD (@fig-lf_late). 
 
-```{r figs pca late int, message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
+```{r figs pca late int, message = FALSE, warning = FALSE}
+#| label: fig-lf_late
+#| fig-cap: "Mediation analysis with latent factors and late integration identifies features in each omics layer individually which mediates the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and components." 
+#| fig-width: 4
+#| fig-height: 10
+#| 
 # i. Data: Panel A Bargraph of mediation effects of PC's --------------
-pca_late_long <- result_hima_pca_late_sig %>%
+pca_late_long <- result_hima_late_sig %>%
   mutate(pcs_ordered = forcats::fct_reorder(omic_pc, `te_direction`)) %>%
   dplyr::select(multiomic_mthd, omic_pc, omic_layer, pc_num, pcs_ordered,
                 alpha, beta, `% Total Effect scaled`) %>%
@@ -380,6 +444,25 @@ pca_late_long <- result_hima_pca_late_sig %>%
          `TE (%)` = `% Total Effect scaled`) %>%
   pivot_longer(cols = c(Alpha, Beta, `TE (%)`)) %>%
   mutate(omic_num = get_omic_layer_numeric(omic_layer))
+
+# Plot 
+pan_a_late <- ggplot(pca_late_long, aes(x = pcs_ordered, y = value)) +
+  geom_bar(stat = "identity", fill = "grey50") + 
+  geom_hline(yintercept = 0) +
+  facet_grid(name ~ omic_num, scales = "free", space = "free_x", switch = "y") + 
+  ggh4x::facetted_pos_scales(
+    y = list(name == "Alpha"  ~ scale_y_continuous(
+      limits = c(-.45,.45), breaks = c(-0.4, 0, .4)),
+      name == "Beta"   ~ scale_y_continuous(
+        limits = c(-.45,.45), breaks = c(-0.4, 0, .4)),
+      name == "TE (%)" ~ scale_y_continuous(
+        limits = panel_a_te_lim, n.breaks = 4))) + 
+  theme(axis.title = element_blank(), 
+        strip.placement = "outside",
+        strip.text = element_blank(),
+        axis.text.x = element_blank(),
+        strip.background = element_blank(),
+        text = element_text(size = 15))
 
 # ii. Data: Panel B: heatmap of correlation of features vs PC's-----
 # Extract variable correlation with principal components
@@ -397,7 +480,7 @@ var.cor <- map_df(names(omics_lst), function(type) {
 
 # Select only significant PCs
 ftr_cor_sig_pcs_late <- var.cor %>%
-  dplyr::select(result_hima_pca_late_sig$pc_num) 
+  dplyr::select(result_hima_late_sig$pc_num) 
 
 # Rownames to column
 ftr_cor_sig_pcs_late1 <- ftr_cor_sig_pcs_late %>%
@@ -418,8 +501,8 @@ panel_b_dat_late_full <- left_join(ftr_late_pcs_long_full,
 
 # Get omic layer
 panel_b_dat_late_fin_full <- panel_b_dat_late_full %>%
-  mutate(omic_num = get_omic_layer_numeric(feature),
-         omic_num2 = get_omic_layer_numeric(pc_num)) 
+  mutate(omic_num1 = get_omic_layer_numeric(feature),
+    omic_num2 = get_omic_layer_numeric(pc_num)) 
 
 # Add names of features for plotting
 panel_b_dat_late_fin1_all <- panel_b_dat_late_fin_full %>%
@@ -434,197 +517,38 @@ selected_rows <- which(rowSums(top_late_int, na.rm = TRUE) > 0)
 
 ftr_cor_sig_pcs_late <- ftr_cor_sig_pcs_late[selected_rows, ]
 
-# Rownames to column
-ftr_cor_sig_pcs_late <- ftr_cor_sig_pcs_late %>%
-  rownames_to_column("feature")
-```
+# Add names of features for plotting
+panel_b_dat_late_fin <- panel_b_dat_late_fin1_all %>% 
+  filter(ftr_name %in% rownames(ftr_cor_sig_pcs_late))
 
-## Figures: Mediation with Latent Factors
+# Plot
+panel_b_late <- ggplot(data = panel_b_dat_late_fin,
+                        aes(y = ftr_name,
+                            x = pcs_ordered, 
+                            fill = Correlation)) +
+  geom_tile(color = "white") +
+  facet_grid(omic_num1 ~ omic_num2, scales = "free", space = "free") +
+  scale_fill_gradient2(low  = "blue",
+                       mid  = "white",
+                       high = "red",
+                       midpoint = 0,
+                       limits = c(-1, 1),
+                       breaks = c(-1, 0, 1),
+                       na.value = "grey") +
+  theme(
+    axis.text.x = element_text(size = 15,angle = 90, hjust = 1, vjust = .5),
+    strip.text = element_blank(),
+    axis.title = element_blank(), 
+    axis.ticks.x = element_blank(),
+    legend.position = "none",
+    text = element_text(size = 20)) 
 
-```{r combine data}
-# Combine mediation results into single df
-data_long_plot <- result_hima_jive_long %>% 
-  dplyr::rename(pcs_ordered = components_ord) %>%
-  bind_rows(pca_early_long, 
-            pca_late_long) %>%
-  dplyr::select(pcs_ordered, name, value, multiomic_mthd) %>% 
-  rename(method = multiomic_mthd)
-
-# Get order of PCs based on 
-mediation_results_wide <- data_long_plot %>% 
-  pivot_wider(id_cols = c(pcs_ordered, method),
-              names_from = name, 
-              values_from = value)
-
-# Get PC names and order for figures
-mediation_results_wide <- mediation_results_wide %>%
-  mutate(factor_type = str_split_fixed(as.character(pcs_ordered), " ", 2)[,1],
-         factor_renamed = pcs_ordered %>%
-           str_replace("Joint", "Joint Comp.") %>%
-           str_replace("Methylome", "Methylome Comp.") %>%
-           str_replace("Transcriptome", "Transcriptome Comp.") %>%
-           str_replace("Comp. Comp.", "Comp."), 
-         factor_renamed_fin = ifelse(`TE (%)` > 15,
-                                     paste0(factor_renamed, "*"), 
-                                     factor_renamed)) %>%
-  arrange(method, factor_type, Beta, `TE (%)`) %>%
-  mutate(factor_renamed = fct_inorder(factor_renamed),
-         factor_renamed_fin = fct_inorder(factor_renamed_fin),
-         pcs_ordered = fct_inorder(pcs_ordered))
-
-fct_names_ordered <- mediation_results_wide %>%
-  dplyr::select(-c(Alpha:`TE (%)`))
-
-# Reorder PCs
-data_long_plot <- data_long_plot %>% 
-  left_join(fct_names_ordered, by = c("pcs_ordered", "method")) %>% 
-  mutate(pcs_ordered = factor(pcs_ordered, 
-                              levels = fct_names_ordered$pcs_ordered))
-```
-
-### A) Joint Components: Mediation bargraph results (Fig 4a)
-
-```{r mediation bargraph}
-# Plot  
-(hima_plot <- ggplot(data_long_plot, 
-                     aes(x = pcs_ordered, 
-                         y = value)) +
-   geom_bar(stat = "identity", fill = "grey50") + 
-   geom_hline(yintercept = 0) +
-   facet_grid(name ~ method,
-              scales = "free",
-              space = "free_x", switch = "y") + 
-   ggh4x::facetted_pos_scales(
-     y = list(
-       name == "Alpha"  ~ scale_y_continuous(
-         limits = c(-.45,.45), breaks = c(-0.4, 0, .4)),
-       name == "Beta"   ~ scale_y_continuous(
-         limits = c(-.45,.45), breaks = c(-0.4, 0, .4)),
-       name == "TE (%)" ~ scale_y_continuous(
-         limits = panel_a_te_lim, n.breaks = 4))) + 
-   theme(axis.title = element_blank(), 
-         title = element_text(hjust = 0),
-         strip.placement = "outside",
-         axis.text.x = element_text(size = 15,angle = 90, hjust = 1),
-         # strip.text.y = element_blank(),
-         # strip.text.x = element_blank(),
-         axis.text.y = element_text(size = 15),
-         # axis.text.x = element_text(size = 8),
-         strip.background = element_blank(),
-         text = element_text(size = 15)))
-```
-
-### Comparison of Component and Feature Associations Across Methods
-
-```{r Mediation results plot, include=FALSE}
-# # Panel A: Early integration ----
-# # Combine with reordered factor data
-# panel_b_dat_early_fin1_all_ft1 <- panel_b_dat_early_fin1_all_ft %>%
-#   left_join(fct_names_ordered, by = "pcs_ordered")
-# 
-# # Plot
-# (panel_b_early <- ggplot(data = panel_b_dat_early_fin1_all_ft1,
-#                          aes(x = ftr_name,
-#                              # factor(,levels = c(feature_name_reorder)), 
-#                              y = fct_rev(factor_renamed_fin), 
-#                              fill = Correlation)) +
-#     geom_tile(color = "white") +
-#     facet_grid(~omic, scales = "free") +
-#     scale_fill_gradient2(low  = "blue",
-#                          mid  = "white",
-#                          high = "red",
-#                          midpoint = 0,
-#                          limits = c(-1, 1),
-#                          breaks = c(-1, 0, 1),
-#                          na.value = "grey20") +
-#     theme(
-#       axis.text.x = element_blank(),
-#       strip.text = element_blank(),
-#       axis.title = element_blank(), 
-#       axis.ticks.x = element_blank(),
-#       legend.position = "none",
-#       text = element_text(size = 20)) )
-# 
-# # Panel B. Intermediate----
-# # Combine with reordered factor data
-# cor_p_val_data_JIVE_with_zeros1_all1 <- cor_p_val_data_JIVE_with_zeros1_all %>% 
-#   left_join(fct_names_ordered %>% 
-#               filter(method == "Intermediate") %>% 
-#               mutate(pcs_ordered2 = pcs_ordered), 
-#             by = c("factor" = "pcs_ordered2")) %>% 
-#   arrange(pcs_ordered) %>% 
-#   mutate(factor_renamed_fin = fct_inorder(factor_renamed_fin))
-# 
-# # Replace 0 with NA and filter only features for plotting
-# cor_p_val_data_JIVE_final_for_fin <- cor_p_val_data_JIVE_with_zeros1_all1 %>%
-#   mutate(Correlation = ifelse(Correlation== 0, NA, Correlation)) 
-# 
-# # Plot
-# (panel_b_JIVE <- ggplot(data = cor_p_val_data_JIVE_final_for_fin , 
-#                         aes(x = ftr_name, 
-#                             # factor(, levels = c(feature_name_reorder)), 
-#                             y = fct_rev(factor_renamed_fin), 
-#                             fill = Correlation)) +
-#     geom_tile(color = "white") + 
-#     scale_fill_gradient2(low  = "blue", mid  = "white", high = "red",
-#                          midpoint = 0,
-#                          limits =  c(-1, 1),
-#                          breaks = c(-1,0,1),
-#                          na.value = "grey") +
-#     facet_grid(ind_joint_num~ omic,
-#                scales = "free", space = "free", shrink = TRUE) +
-#     theme(
-#       # axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-#       axis.text.x = element_blank(),
-#       strip.text = element_blank(),
-#       # axis.text.y = element_blank(),
-#       axis.title = element_blank(), 
-#       axis.ticks.x = element_blank(),
-#       # axis.line.x = element_blank(),
-#       legend.position = "none",
-#       panel.spacing.y = unit(-.1, "lines"),
-#       text = element_text(size = 30)))
-# 
-# 
-# # Panel C. Late Integration----
-# # Combine with reordered factor data
-# panel_b_dat_late_fin1_all1 <- panel_b_dat_late_fin1_all %>% 
-#   left_join(fct_names_ordered) 
-# 
-# 
-# (panel_b_late <- ggplot(data = panel_b_dat_late_fin1_all1, 
-#                         aes(x = ftr_name, 
-#                             # factor(,levels = c(feature_name_reorder)), 
-#                             y = fct_rev(factor_renamed_fin), 
-#                             fill = Correlation)) +
-#     geom_tile(color = "white") +
-#     scale_fill_gradient2(low = "blue", mid = "white", high = "red",
-#                          midpoint = 0,
-#                          limits = c(-1, 1),
-#                          breaks = c(-1,0,1),
-#                          na.value = "grey") +
-#     facet_grid(omic_num2 ~ omic,
-#                scales = "free",
-#                space = "free",
-#                shrink = TRUE) +
-#     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5),
-#           # axis.text.y = element_blank(),
-#           strip.text = element_blank(),
-#           legend.position = "none",
-#           panel.spacing.y = unit(-.1, "lines"),
-#           axis.title = element_blank(), 
-#           # axis.line.x = element_blank(), 
-#           # axis.ticks = element_blank(),
-#           text = element_text(size = 20)))
-# 
-# 
-# # Fig 5a: Join plots ----
-# (fig_med_lf_ftr_comp <- cowplot::plot_grid(
-#   NULL, panel_b_early,  NULL, panel_b_JIVE, NULL, panel_b_late,
-#   ncol = 1, align = "hv", axis = "lr",
-#   rel_heights  = c(.1, .75, .1, 1.25, .1, 1),
-#   labels = c("a) Early","", "b) Intermediate","", "c) Late",""),
-#   label_x = c(-0.016, 0, -0.04, 0, -0.015,0)))
+# Combine Figures 
+cowplot::plot_grid(
+  NULL, pan_a_late,  NULL, panel_b_late, 
+  ncol = 1, align = "v", axis = "lr",
+  rel_heights  = c(.05, .75, .1, 1.75),
+  labels = c("a)","", "b) "))
 ```
 
 ### Pathway Analysis.

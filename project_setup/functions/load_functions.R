@@ -29,13 +29,13 @@ get_omic_layer_numeric <- function(x){
   if(str_detect(paste(x, collapse = " "), "cg")){
   omic_num = case_when(str_detect(x, "cg") ~ 1, 
                        str_detect(x, "tc") ~ 2, 
-                       str_detect(x, "miR") ~ 3,
+                       str_detect(x, "mir") ~ 3,
                        str_detect(x, "pro_") ~ 4, 
                        str_detect(x, "met") ~ 5)
   } else{
     omic_num = case_when(str_detect(x, "meth") ~ 1, 
                          str_detect(x, "transc") ~ 2, 
-                         str_detect(x, "miR") ~ 3,
+                         str_detect(x, "mir") ~ 3,
                          str_detect(x, "pro") ~ 4, 
                          str_detect(x, "met") ~ 5)
   }
