@@ -204,6 +204,8 @@ showVarExplained(result_jive2)
 
 ### Perform mediation analysis
 
+In this analysis, 6 joint components, 1 transcriptome specific component significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_intermediate). 
+
 ```{r JIVE mediation,message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
 # run mediation analysis
 result_hima_jive <- hima(X = exposure,
@@ -236,11 +238,13 @@ result_hima_jive_sig <-  result_hima_jive_1 %>%
                                 `% total effect`))
 ```
 
-### Visualize mediation analysis result
 
 ```{r JIVE figure,message = FALSE, warning = FALSE}
+#| label: fig-lf_intermediate
+#| fig-cap: "Mediation analysis with latent factors and intermediate integration identifies joint and individual variance componets which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint and individual components." 
 #| fig-width: 4
 #| fig-height: 10
+
 # Panel A: Bargraph of mediation effects of PC's --------------
 result_hima_jive_long <- result_hima_jive_sig %>%
   mutate(component = str_replace(component, "_", " ") %>% 
@@ -422,8 +426,11 @@ result_hima_late_sig <- result_hima_late_sig  %>%
            str_replace("PC", "Comp. "))
 ```
 
+This analysis identified 2 methylated CpG sites, 1 miRNA, 1 protein and 2 expressed gene transcript clutesrs (@fig-lf_late) 
 
 ```{r figs pca late int, message = FALSE, warning = FALSE}
+#| label: fig-lf_late
+#| fig-cap: "Mediation analysis with latent factors and late integration identifies features in each omics layer individually which mediates the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and components." 
 #| fig-width: 4
 #| fig-height: 10
 #| 
