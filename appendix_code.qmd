@@ -5,11 +5,6 @@
 knitr::read_chunk("project_setup/functions/load_functions.R")
 ```
 
-```{r HIMA_early, eval=FALSE}
-```
-
-
-
 ## High Dimensional Mediation Analysis Code
 
 ```{r read-in, include=FALSE}
@@ -30,7 +25,6 @@ knitr::read_chunk("project_setup/functions/hima_functions.R")
 
 ```{r HIMA_late, eval=FALSE}
 ```
-
 
 
 ## Mediation with Latent Factors Analysis Code
