@@ -101,10 +101,10 @@ hima_early_integration <- function(exposure,
 #' @importFrom glmnet::predict.cv.glmnet predict.cv.glmnet
 #' @importFrom matrixStats colAlls rowSds rowMeans
 #' @importFrom stringr str_detect
-hima_intermediate_integration <- function(omics_lst, 
-                                          covs = NULL, 
+hima_intermediate_integration <- function(exposure, 
                                           outcome, 
-                                          exposure, 
+                                          omics_lst,   
+                                          covs = NULL, 
                                           n_boot, 
                                           Y.family = "gaussian") {
   ## Change omics elements to dataframes 
@@ -141,7 +141,7 @@ hima_intermediate_integration <- function(omics_lst,
   } else if(Y.family == "gaussian"){ 
     gamma_est <- coef(lm(outcome ~ exposure ))[["exposure"]]  
   }
-  
+   
   # 1) X --> M ----------
   # Model 1: x --> m
   x_m_reg <- epiomics::owas(df = full_data,
@@ -168,9 +168,9 @@ hima_intermediate_integration <- function(omics_lst,
   # Run xtune
   invisible(
     capture.output(
-    xtune.fit_all_data <- xtune(X = X, Y = Y, Z = Z, U = U,
-                                c = 1, 
-                                family = "linear")
+      xtune.fit_all_data <- xtune(X = X, Y = Y, Z = Z, U = U,
+                                  c = 1, 
+                                  family = "linear")
     )
   )
   
@@ -196,11 +196,11 @@ hima_intermediate_integration <- function(omics_lst,
     while(!success & attempts < 10) {
       tryCatch({
         # Run xtune
-          xtune.fit <- xtune(X = X, Y = Y, Z = as.matrix(external_info), U = U,
-                             sigma.square = estimateVariance(X,Y), 
-                             c = 0, 
-                             family = "linear", message = FALSE)
-      
+        xtune.fit <- xtune(X = X, Y = Y, Z = as.matrix(external_info), U = U,
+                           sigma.square = estimateVariance(X,Y), 
+                           c = 0, 
+                           family = "linear", message = FALSE)
+        
         
         # If the xtune call is successful, proceed with the rest of the code
         # Select betas, drop intercept
@@ -339,7 +339,7 @@ hima_late_integration <- function(exposure,
   # Start the computation
   result_hima_late <- vector(mode = "list", length = n_omics)
   for(i in 1:n_omics) {
-        # Run HIMA with input data
+    # Run HIMA with input data
     result_hima_late[[i]] <- hima(X = exposure,
                                   Y = outcome,
                                   M = omics_lst[[i]],
