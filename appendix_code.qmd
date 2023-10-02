@@ -7,7 +7,7 @@ knitr::read_chunk("project_setup/functions/load_functions.R")
 
 ## High Dimensional Mediation Analysis Code
 
-```{r read-in, include=FALSE}
+```{r read-in_hima, include=FALSE}
 knitr::read_chunk("project_setup/functions/hima_functions.R")
 ```
 
@@ -21,7 +21,7 @@ knitr::read_chunk("project_setup/functions/hima_functions.R")
 ```{r HIMA_intermediate, eval=FALSE}
 ```
 
-### Late Integration of omics datasets
+### Late Integration of omics datasets {#sec-code_hima_late}
 
 ```{r HIMA_late, eval=FALSE}
 ```
@@ -29,13 +29,24 @@ knitr::read_chunk("project_setup/functions/hima_functions.R")
 
 ## Mediation with Latent Factors Analysis Code
 
-### Early Integration of omics datasets
+```{r read-in_mediation_with_latent_fctrs, include=FALSE}
+knitr::read_chunk("project_setup/functions/mediation_with_latent_fctrs_function.R")
+```
 
-### Intermediate Integration of omics datasets
+### Early Integration of omics datasets {#sec-code_med_with_latent_fctrs_early}
 
-### Late Integration of omics datasets
+```{r Mediation with latent fctrs early, eval=FALSE}
+```
 
+### Intermediate Integration of omics datasets {#sec-code_med_with_latent_fctrs_int}
 
+```{r Mediation with latent fctrs intermediate, eval=FALSE}
+```
+
+### Late Integration of omics datasets {#sec-code_med_with_latent_fctrs_late}
+
+```{r Mediation with latent fctrs late, eval=FALSE}
+```
 
 ## Integrated/Quasi Mediation Analysis Code
 
