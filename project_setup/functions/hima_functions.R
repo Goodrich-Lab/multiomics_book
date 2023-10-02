@@ -31,6 +31,14 @@ hima_early_integration <- function(exposure,
   # Combines omics data into one dataframe
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
   
+  meta_df <- imap_dfr(omics_lst_df, ~tibble(omic_layer = .y, ftr_name = names(.x)))%>%
+    filter(ftr_name != "name") %>%
+    mutate(omic_num = case_when(str_detect(omic_layer, "meth") ~ 1, 
+                                str_detect(omic_layer, "transc") ~ 2, 
+                                str_detect(omic_layer, "miR") ~ 3,
+                                str_detect(omic_layer, "pro") ~ 4, 
+                                str_detect(omic_layer, "met") ~ 5))
+  
   # Create data frame of omics data
   omics_df <- omics_lst_df  %>% 
     purrr::reduce(left_join) %>%
@@ -57,6 +65,14 @@ hima_early_integration <- function(exposure,
     dplyr::select(multiomic_mthd, mediation_mthd, 
                   ftr_name, 
                   everything())
+  
+  # Merge results with feature metadata 
+  result_hima_early <- result_hima_early %>% 
+    mutate(pte = 100*`% total effect`/sum(`% total effect`), 
+           sig = if_else(BH.FDR < 0.05, 1, 0)) %>%
+    rename(ie = 'alpha*beta', 
+           `TE (%)` = pte) %>% 
+    left_join(meta_df, by = "ftr_name")
   
   # Return result
   return(result_hima_early)
@@ -109,6 +125,15 @@ hima_intermediate_integration <- function(exposure,
                                           Y.family = "gaussian") {
   ## Change omics elements to dataframes 
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
+  
+  meta_df <- imap_dfr(omics_lst_df, ~tibble(omic = .y, ftr_name = names(.x)))%>%
+    filter(ftr_name != "name") %>%
+    mutate(omic_num = case_when(str_detect(omic, "meth") ~ 1, 
+                                str_detect(omic, "transc") ~ 2, 
+                                str_detect(omic, "miR") ~ 3,
+                                str_detect(omic, "pro") ~ 4, 
+                                str_detect(omic, "met") ~ 5))
+  
   ## Create data frame of omics data
   omics_df <- omics_lst_df  %>% 
     purrr::reduce(left_join, by = "name") %>%
