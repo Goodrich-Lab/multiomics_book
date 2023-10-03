@@ -200,9 +200,9 @@ M_mean = as_tibble(fit$res_Mu_Sigma$Mu[[1]], rownames = "variable") %>%
 
 # Reorder results because mirna order is reversed
 M_mean1 <- M_mean %>% 
-  bind_cols(meta_df) %>%
-  mutate(`Low Risk`  =  if_else(omic_layer == "mirna", V2, V1), 
-         `High Risk` =  if_else(omic_layer == "mirna", V1, V2)) %>%
+  left_join(meta_df, by = c("variable" = "ftr_name")) %>%
+  mutate(`Low Risk`  =  if_else(omic_layer == "miRna", V2, V1), 
+         `High Risk` =  if_else(omic_layer == "miRna", V1, V2)) %>%
   dplyr::select(-c("V1", "V2"))
 
 # Pivot longer for figure 
@@ -215,9 +215,9 @@ M_mean_l <- M_mean1 %>%
 M_mean2 = M_mean_l %>%
   mutate(color_label = case_when(omic_layer == "methylome" ~ "1", 
                                  omic_layer == "transcriptome" ~ "2", 
-                                 omic_layer == "mirna" ~ "3"), 
+                                 omic_layer == "miRna" ~ "3"), 
          low_high = if_else(str_detect(cluster, "Low"), 0,1),
-         omic = if_else(omic_layer == "mirna", 
+         omic = if_else(omic_layer == "miRna", 
                         "miR",
                         str_sub(omic_layer, end = 1) %>% toupper()),
          omic_cluster = str_c(omic, low_high))
