@@ -36,6 +36,15 @@ med_with_latent_fctrs_early_integration <- function(exposure,
   # Combines omics data into one dataframe
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
   
+  # Meta data
+  meta_df <- imap_dfr(omics_lst_df, ~tibble(omic_layer = .y, ftr_name = names(.x)))%>%
+    filter(ftr_name != "name") %>%
+    mutate(omic_num = case_when(str_detect(omic_layer, "meth") ~ 1, 
+                                str_detect(omic_layer, "transc") ~ 2, 
+                                str_detect(omic_layer, "miR") ~ 3,
+                                str_detect(omic_layer, "pro") ~ 4, 
+                                str_detect(omic_layer, "met") ~ 5))
+  
   # i. Obtain PCs----
   omics_df_pca <- prcomp(omics_df, center = TRUE, scale. = TRUE)
   
@@ -70,7 +79,12 @@ med_with_latent_fctrs_early_integration <- function(exposure,
       te_direction = if_else(beta<0, -1*`% total effect`, `% total effect`), 
       `% Total Effect scaled` = 100*`% total effect`/sum(`% total effect`) %>%
         round(1), 
-      multiomic_mthd = "Early")
+      multiomic_mthd = "Early") %>%
+    mutate(pc_named = str_replace(pc_num, "PC", "Joint Comp. "),
+           pcs_ordered = forcats::fct_reorder(pc_named, `te_direction`)) %>%
+    rename(Alpha = alpha, 
+           Beta = beta,
+           `TE (%)` = `% Total Effect scaled`) 
   
   # ii correlation of features vs PC's --------------
   # Extract variable correlation with principal components
@@ -82,9 +96,8 @@ med_with_latent_fctrs_early_integration <- function(exposure,
   
   ftr_cor_sig_pcs_df <- ftr_cor_sig_pcs %>%
     as_tibble(rownames = "feature") %>%
-    mutate(omic = get_omic_layer(feature),
-           omic_num = get_omic_layer_numeric(feature)) %>%
-    mutate(omic_num = ifelse(grepl("miR",feature), 3, omic_num))
+    left_join(meta_df, by = c("feature" = "ftr_name"))
+    
   
   res = list(result_hima_pca_early_sig = result_hima_pca_early_sig, 
              result_ftr_cor_sig_pcs_early = ftr_cor_sig_pcs_df)
@@ -125,7 +138,17 @@ med_with_latent_fctrs_intermediate_integration <- function(exposure,
                                                     Y.family = "gaussian",
                                                     M.family = "gaussian",
                                                     fdr.level = 0.05) {
-
+  # Combines omics data into one dataframe
+  omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
+  
+  # Meta data
+  meta_df <- imap_dfr(omics_lst_df, ~tibble(omic_layer = .y, ftr_name = names(.x)))%>%
+    filter(ftr_name != "name") %>%
+    mutate(omic_num = case_when(str_detect(omic_layer, "meth") ~ 1, 
+                                str_detect(omic_layer, "transc") ~ 2, 
+                                str_detect(omic_layer, "miR") ~ 3,
+                                str_detect(omic_layer, "pro") ~ 4, 
+                                str_detect(omic_layer, "met") ~ 5))
   # Transpose omics matrices
   omics_t <- lapply(omics_lst, t)
   
@@ -223,7 +246,11 @@ med_with_latent_fctrs_intermediate_integration <- function(exposure,
              round(100*`% total effect`/sum(`% total effect`),1),
            te_direction = if_else(beta < 0, 
                                   -1 * `% total effect`, 
-                                  `% total effect`))
+                                  `% total effect`)) %>%
+    mutate(components_ord = forcats::fct_reorder(component, `te_direction`)) %>%
+    rename(Alpha = alpha, 
+           Beta = beta,
+           `TE (%)` = `% Total Effect scaled`)
   
   # correlation of features vs JIVE factors --------------
   # Extract variable correlation with JIVE Factors
@@ -235,9 +262,7 @@ med_with_latent_fctrs_intermediate_integration <- function(exposure,
   
   ftr_cor_sig_pcs_jive_df <- ftr_cor_sig_pcs_jive %>%
     as_tibble(rownames = "feature") %>%
-    mutate(omic = get_omic_layer(feature),
-           omic_num = get_omic_layer_numeric(feature)) %>%
-    mutate(omic_num = ifelse(grepl("miR",feature), 3, omic_num))
+    left_join(meta_df, by = c("feature" = "ftr_name"))
   
   res = list(result_hima_jive_sig = result_hima_jive_sig, 
              result_ftr_cor_sig_pcs_jive = ftr_cor_sig_pcs_jive_df)
@@ -280,6 +305,18 @@ med_with_latent_fctrs_late_integration <- function(exposure,
                                                     Y.family = "gaussian",
                                                     M.family = "gaussian",
                                                     fdr.level = 0.05) {
+  
+  # Combines omics data into one dataframe
+  omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
+  
+  # Meta data
+  meta_df <- imap_dfr(omics_lst_df, ~tibble(omic_layer = .y, ftr_name = names(.x)))%>%
+    filter(ftr_name != "name") %>%
+    mutate(omic_num = case_when(str_detect(omic_layer, "meth") ~ 1, 
+                                str_detect(omic_layer, "transc") ~ 2, 
+                                str_detect(omic_layer, "miR") ~ 3,
+                                str_detect(omic_layer, "pro") ~ 4, 
+                                str_detect(omic_layer, "met") ~ 5))
   
   # Define function to run PCA on a matrix and return loadings and scores
   run_pca <- function(mat, omic_name) {
@@ -357,7 +394,18 @@ med_with_latent_fctrs_late_integration <- function(exposure,
            multiomic_mthd = "Late")%>%
     mutate(omic_layer = str_replace(omic_layer, "Mirna", "miRNA" ),
            omic_pc = str_c(omic_layer, " ", pc_numeric) %>%
-             str_replace("PC", "Comp. "))
+             str_replace("PC", "Comp. ")) %>%
+    mutate(pcs_ordered = forcats::fct_reorder(omic_pc, `te_direction`)) %>%
+    dplyr::select(multiomic_mthd, omic_pc, omic_layer, pc_num, pcs_ordered,
+                  alpha, beta, `% Total Effect scaled`) %>%
+    rename(Alpha = alpha, 
+           Beta = beta,
+           `TE (%)` = `% Total Effect scaled`)%>%
+    mutate(omic_num = case_when(str_detect(pc_num, "meth") ~ 1, 
+                                str_detect(pc_num, "transc") ~ 2, 
+                                str_detect(pc_num, "miR") ~ 3,
+                                str_detect(pc_num, "pro") ~ 4, 
+                                str_detect(pc_num, "met") ~ 5))
   
   
   # Extract variable correlation with principal components
@@ -377,9 +425,7 @@ med_with_latent_fctrs_late_integration <- function(exposure,
   ftr_cor_sig_pcs_late <- var.cor %>%
     dplyr::select(result_hima_late_sig$pc_num) %>%
     as_tibble(rownames = "feature") %>%
-    mutate(omic = get_omic_layer(feature),
-           omic_num = get_omic_layer_numeric(feature)) %>%
-    mutate(omic_num = ifelse(grepl("miR",feature), 3, omic_num))
+    left_join(meta_df, by = c("feature" = "ftr_name"))
   
   res = list(result_hima_late_sig = result_hima_late_sig, 
              result_ftr_cor_sig_pcs_late = ftr_cor_sig_pcs_late)

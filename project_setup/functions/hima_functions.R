@@ -65,13 +65,16 @@ hima_early_integration <- function(exposure,
     dplyr::select(multiomic_mthd, mediation_mthd, 
                   ftr_name, 
                   everything())
-  
-  # Merge results with feature metadata 
+  # Filter to significant features only and scale % total effect to 100
   result_hima_early <- result_hima_early %>% 
+    filter(BH.FDR < 0.05) %>%
     mutate(pte = 100*`% total effect`/sum(`% total effect`), 
            sig = if_else(BH.FDR < 0.05, 1, 0)) %>%
     rename(ie = 'alpha*beta', 
-           `TE (%)` = pte) %>% 
+           `TE (%)` = pte)
+  
+  # Merge results with feature metadata 
+  result_hima_early <- result_hima_early %>% 
     left_join(meta_df, by = "ftr_name")
   
   # Return result
@@ -126,13 +129,13 @@ hima_intermediate_integration <- function(exposure,
   ## Change omics elements to dataframes 
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
   
-  meta_df <- imap_dfr(omics_lst_df, ~tibble(omic = .y, ftr_name = names(.x)))%>%
+  meta_df <- imap_dfr(omics_lst_df, ~tibble(omic_layer = .y, ftr_name = names(.x)))%>%
     filter(ftr_name != "name") %>%
-    mutate(omic_num = case_when(str_detect(omic, "meth") ~ 1, 
-                                str_detect(omic, "transc") ~ 2, 
-                                str_detect(omic, "miR") ~ 3,
-                                str_detect(omic, "pro") ~ 4, 
-                                str_detect(omic, "met") ~ 5))
+    mutate(omic_num = case_when(str_detect(omic_layer, "meth") ~ 1, 
+                                str_detect(omic_layer, "transc") ~ 2, 
+                                str_detect(omic_layer, "miR") ~ 3,
+                                str_detect(omic_layer, "pro") ~ 4, 
+                                str_detect(omic_layer, "met") ~ 5))
   
   ## Create data frame of omics data
   omics_df <- omics_lst_df  %>% 
@@ -202,7 +205,7 @@ hima_intermediate_integration <- function(exposure,
   # Extract estimates
   xtune_betas_all_data <- as_tibble(as.matrix(xtune.fit_all_data$beta.est),
                                     rownames = "feature_name") %>% 
-    mutate(omic_layer = get_omic_layer(feature_name)) %>%
+    left_join(meta_df, by = c("feature_name" = "ftr_name")) %>%
     dplyr::filter(feature_name %in% colnames(omics_df))
   
   # 3) Calculate SE for Model 3: x+m to y reg -----
@@ -283,11 +286,11 @@ hima_intermediate_integration <- function(exposure,
     feature_name = rownames(external_info), 
     beta_bootstrap = colMeans(replace_na(boot_out$t, 0)), 
     beta_se = apply(replace_na(boot_out$t, 0), 2, sd)) %>%
-    mutate(omic_layer = get_omic_layer(feature_name))
+    left_join(meta_df, by = c("feature_name" = "ftr_name"))
   
   # 3.4) Join unpenalized results with glasso results ----
   int_med_coefs <- dplyr::inner_join(xtune_betas_all_data, glasso_boot_results, 
-                                     by = c("feature_name", "omic_layer")) %>%
+                                     by = c("feature_name", "omic_layer", "omic_num")) %>%
     dplyr::inner_join(x_m_reg, by = "feature_name")
   
   # Calculate confidence intervals -----
@@ -318,9 +321,18 @@ hima_intermediate_integration <- function(exposure,
            pte = (indirect)/gamma, 
            sig = if_else(lcl>0|ucl<0, 1, 0))
   
+    # Filter to significant features only and scale % total effect to 100
+  intermediate_int_res <- intermediate_int_res %>% 
+    filter(sig == 1) %>%
+    mutate(pte = 100*pte/sum(pte))
+  
+  
   # Rename feature name
   intermediate_int_res <- intermediate_int_res %>% 
-    dplyr::rename(ftr_name = feature_name)
+    dplyr::rename(ftr_name = feature_name,
+                  ie = indirect, 
+                  beta = beta_bootstrap, 
+                  `TE (%)` = pte)
   
   return(intermediate_int_res)
 }
@@ -361,6 +373,17 @@ hima_late_integration <- function(exposure,
   # Get number of omics layers
   n_omics <- length(omics_lst)
   omics_name <- names(omics_lst)
+  
+  # Meta data
+  omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
+  
+  meta_df <- imap_dfr(omics_lst_df, ~tibble(omic_layer = .y, ftr_name = names(.x)))%>%
+    filter(ftr_name != "name") %>%
+    mutate(omic_num = case_when(str_detect(omic_layer, "meth") ~ 1, 
+                                str_detect(omic_layer, "transc") ~ 2, 
+                                str_detect(omic_layer, "miR") ~ 3,
+                                str_detect(omic_layer, "pro") ~ 4, 
+                                str_detect(omic_layer, "met") ~ 5))
   # Start the computation
   result_hima_late <- vector(mode = "list", length = n_omics)
   for(i in 1:n_omics) {
@@ -390,6 +413,14 @@ hima_late_integration <- function(exposure,
     dplyr::select(multiomic_mthd, mediation_mthd, 
                   omic_layer, ftr_name, 
                   everything())
+  
+  # Filter to significant features only and scale % total effect to 100
+  result_hima_late_df <- result_hima_late_df %>% 
+    filter(BH.FDR < 0.05) %>%
+    mutate(pte = 100*`% total effect`/sum(`% total effect`), 
+           sig = if_else(BH.FDR < 0.05, 1, 0)) %>%
+    rename(ie = 'alpha*beta', 
+           `TE (%)` = pte)
   
   # Return the final table
   return(result_hima_late_df)

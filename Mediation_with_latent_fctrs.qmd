@@ -6,7 +6,6 @@ We define mediation with latent factors as a two step approach, in which we firs
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj, "libraries.R"))
 source(fs::path(dir_proj, "load_simu_data.R"))
-source(fs::path(dir_proj, "functions", "load_functions.R"))
 source(fs::path(dir_proj, "functions","mediation_with_latent_fctrs_function.R"))
 options(knitr.table.format = "html")
 ```
@@ -35,11 +34,6 @@ In this analysis,  principal components explained >80% of the variance in the co
 
 # Panel A Bargraph of mediation effects of PC's --------------
 pca_early_long <- result_med_with_latent_fctrs_early$result_hima_pca_early_sig%>%
-  mutate(pc_named = str_replace(pc_num, "PC", "Joint Comp. "),
-         pcs_ordered = forcats::fct_reorder(pc_named, `te_direction`)) %>%
-  rename(Alpha = alpha, 
-         Beta = beta,
-         `TE (%)` = `% Total Effect scaled`) %>%
   pivot_longer(cols = c(Alpha, Beta, `TE (%)`))
 
 # Plot 
@@ -64,7 +58,7 @@ panel_a_early <- ggplot(pca_early_long, aes(x = pcs_ordered, y = value)) +
 
 # Select features for plots -------
 ## Select rows with values in the top 10 of their respective columns 
-top <- apply(result_med_with_latent_fctrs_early$result_ftr_cor_sig_pcs_early %>% select(-omic, -omic_num) %>% column_to_rownames("feature"), 2, function(x) x %in% tail(sort(abs(x)), 10)) 
+top <- apply(result_med_with_latent_fctrs_early$result_ftr_cor_sig_pcs_early %>% select(-omic_layer, -omic_num) %>% column_to_rownames("feature"), 2, function(x) x %in% tail(sort(abs(x)), 10)) 
 
 ## Filter selected rows
 ftr_cor_sig_pcs_top <- result_med_with_latent_fctrs_early$result_ftr_cor_sig_pcs_early[which(rowSums(top) > 0), ] 
@@ -88,7 +82,7 @@ panel_b_early <- ggplot(data = panel_b_dat_early_top_ft,
                             x = fct_rev(pcs_ordered), 
                             fill = Correlation)) +
   geom_tile(color = "white") +
-  facet_grid(omic ~ ., scales = "free", space = "free") +
+  facet_grid(omic_layer ~ ., scales = "free", space = "free") +
   scale_fill_gradient2(low  = "blue",
                        mid  = "white",
                        high = "red",
@@ -142,12 +136,6 @@ result_med_with_latent_fctrs_JIVE <- med_with_latent_fctrs_intermediate_integrat
 
 # Panel A: Bargraph of mediation effects of PC's --------------
 result_hima_jive_long <- result_med_with_latent_fctrs_JIVE$result_hima_jive_sig %>%
-  mutate(component = str_replace(component, "_", " ") %>% 
-           toTitleCase(), 
-         components_ord = forcats::fct_reorder(component, `te_direction`)) %>%
-  rename(Alpha = alpha, 
-         Beta = beta,
-         `TE (%)` = `% Total Effect scaled`) %>%
   pivot_longer(cols = c(Alpha, Beta, `TE (%)`))
 
 # Plot  
@@ -180,7 +168,7 @@ panel_a_jive <- ggplot(result_hima_jive_long,
 
 # Select features for plots -------
 # Select rows with values in the top 10 of their respective columns
-top10 <- apply(result_med_with_latent_fctrs_JIVE$result_ftr_cor_sig_pcs_jive %>% select(-omic, -omic_num) %>% column_to_rownames("feature"), 2, function(x) x %in% tail(sort(abs(x)), 10))
+top10 <- apply(result_med_with_latent_fctrs_JIVE$result_ftr_cor_sig_pcs_jive%>% select(-omic_layer, -omic_num) %>% column_to_rownames("feature"), 2, function(x) x %in% tail(sort(abs(x)), 10))
 
 ftr_cor_sig_pcs_top <- result_med_with_latent_fctrs_JIVE$result_ftr_cor_sig_pcs_jive[which(rowSums(top10) > 0), ]
 
@@ -194,22 +182,23 @@ ftr_jive_pcs_long_top_ft <-
 # Change features which are in wrong JIVE individual component to zero
 panel_b_dat_jive_fin <- ftr_jive_pcs_long_top_ft %>%
   mutate(
-    component = str_replace_all(component, "_", " ") %>% toTitleCase(),
-    in_ind_omic = str_sub(component, 1, 5) == str_sub(omic, 1, 5),
+    in_ind_omic = str_sub(component, 1, 5) == str_sub(omic_layer, 1, 5),
     Correlation = ifelse(in_ind_omic | str_detect(component, "Joint"),
                           Correlation, NA)) %>%
   left_join(result_hima_jive_long %>% 
               filter(name == "Alpha") %>%
               dplyr::select(component,components_ord, ind_joint_num),
             by= "component",
-            relationship = "many-to-many")
+            relationship = "many-to-many") %>%
+  mutate(component = str_replace_all(component, "_", " ") %>% toTitleCase())
+
 # Plot
 panel_b_jive <- ggplot(data = panel_b_dat_jive_fin,
                         aes(y = feature,
                             x = components_ord, 
                             fill = Correlation)) +
   geom_tile(color = "white") +
-  facet_grid(omic ~ ., scales = "free", space = "free") +
+  facet_grid(omic_layer ~ ., scales = "free", space = "free") +
   scale_fill_gradient2(low  = "blue",
                        mid  = "white",
                        high = "red",
@@ -256,17 +245,10 @@ This analysis identified 2 methylated CpG sites, 1 miRNA, 1 protein and 2 expres
 #| 
 # i. Data: Panel A Bargraph of mediation effects of PC's --------------
 pca_late_long <- result_med_with_latent_fctrs_late$result_hima_late_sig %>%
-  mutate(pcs_ordered = forcats::fct_reorder(omic_pc, `te_direction`)) %>%
-  dplyr::select(multiomic_mthd, omic_pc, omic_layer, pc_num, pcs_ordered,
-                alpha, beta, `% Total Effect scaled`) %>%
-  rename(Alpha = alpha, 
-         Beta = beta,
-         `TE (%)` = `% Total Effect scaled`) %>%
-  pivot_longer(cols = c(Alpha, Beta, `TE (%)`)) %>%
-  mutate(omic_num = get_omic_layer_numeric(omic_layer))
+  pivot_longer(cols = c(Alpha, Beta, `TE (%)`))
 
 # Plot 
-pan_a_late <- ggplot(pca_late_long, aes(x = pcs_ordered, y = value)) +
+panel_a_late <- ggplot(pca_late_long, aes(x = pcs_ordered, y = value)) +
   geom_bar(stat = "identity", fill = "grey50") + 
   geom_hline(yintercept = 0) +
   facet_grid(name ~ omic_num, scales = "free", space = "free_x", switch = "y") + 
@@ -287,7 +269,7 @@ pan_a_late <- ggplot(pca_late_long, aes(x = pcs_ordered, y = value)) +
 # ii. Data: Panel B: heatmap of correlation of features vs PC's-----
 # Select features for plots -------
 # Select rows with values in the top 10 of their respective columns
-top_late_int <- apply(result_med_with_latent_fctrs_late$result_ftr_cor_sig_pcs_late %>% select(-feature,-omic, -omic_num) %>% janitor::remove_empty(which = "rows"), 2,
+top_late_int <- apply(result_med_with_latent_fctrs_late$result_ftr_cor_sig_pcs_late %>% select(-feature,-omic_layer, -omic_num) %>% janitor::remove_empty(which = "rows"), 2,
                       function(x) x %in% tail(sort(abs(x)), 10))
 selected_rows <- which(rowSums(top_late_int, na.rm = TRUE) > 0)
 
@@ -305,7 +287,11 @@ panel_b_dat_late_top <- left_join(ftr_late_pcs_long_top_ft,
                                      filter(name == "Alpha") %>%
                                      dplyr::select(pc_num, pcs_ordered), 
                                    by = "pc_num") %>%
-  mutate(omic_num2 = get_omic_layer_numeric(pc_num))
+  mutate(omic_num2 = case_when(str_detect(pc_num, "meth") ~ 1, 
+                         str_detect(pc_num, "transc") ~ 2, 
+                         str_detect(pc_num, "miR") ~ 3,
+                         str_detect(pc_num, "pro") ~ 4, 
+                         str_detect(pc_num, "met") ~ 5))
 
 # Plot
 panel_b_late <- ggplot(data = panel_b_dat_late_top,
@@ -331,7 +317,7 @@ panel_b_late <- ggplot(data = panel_b_dat_late_top,
 
 # Combine Figures 
 cowplot::plot_grid(
-  NULL, pan_a_late,  NULL, panel_b_late, 
+  NULL, panel_a_late,  NULL, panel_b_late, 
   ncol = 1, align = "v", axis = "lr",
   rel_heights  = c(.05, .75, .1, 1.75),
   labels = c("a)","", "b) "))
