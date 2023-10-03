@@ -30,26 +30,8 @@ result_hima_early <- hima_early_integration(exposure = exposure,
                                             Y.family = "gaussian", 
                                             M.family = "gaussian")
 
-# Merge results with feature metadata 
-result_hima_early_fin <- result_hima_early %>%
-  mutate(across(where(is.character), ~na_if(., "")), 
-         omic_layer = get_omic_layer(ftr_name))
-
-# Filter to significant features only and scale % total effect to 100
-result_hima_early_fin <- result_hima_early_fin %>% 
-  filter(BH.FDR < 0.05) %>%
-  mutate(pte = 100*`% total effect`/sum(`% total effect`), 
-         sig = if_else(BH.FDR < 0.05, 1, 0))
-
-# Format for figures
-early <- result_hima_early_fin %>%
-  dplyr::select(ftr_name, 'alpha*beta', pte, alpha, beta, sig) %>%
-  mutate(omic_layer = get_omic_layer(ftr_name)) %>%
-  rename(ie = 'alpha*beta', 
-         `TE (%)` = pte)
-
 # Pivot longer for figure
-early_long <- early %>% 
+early_long <- result_hima_early %>% 
   pivot_longer(cols = c(`TE (%)`:beta), 
                names_to = "name") %>%
   mutate(name = factor(name, levels = c("alpha", "beta", "TE (%)")))
@@ -185,7 +167,7 @@ ggplot(intermediate_long,
 
 High dimensional mediation with late multiomic integration (@fig-1, panel c) identified differentially methylated CpG sites, gene transcript clusters, and miRNA which mediated associations of prenatal mercury with MAFLD risk in adolescents (@fig-hima_late). High dimensional mediation with late multiomic integration differs from the early and intermediate integration in that each omics layer is analyzed individually. Thus, this approach does not condition on features within the other omics layers in the analysis.  
 
-Combining all omics layers before analysis identifies the strongest mediating feature across all omics layers without accounting for the differences in underlying correlation structure. For this analysis, we used High Dimensional Mediation Analysis (HIMA), a penalization-based mediation method implemented in the R package HIMA [@RN33]. 
+Combining all omics layers before analysis identifies the strongest mediating feature across all omics layers without accounting for the differences in underlying correlation structure. For this analysis, we used High Dimensional Mediation Analysis (HIMA), a penalization-based mediation method implemented in the R package HIMA [@RN33]. The full code for the `hima_late_integration` function is provided in {#sec-code_hima_late}
 
 
 

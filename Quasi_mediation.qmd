@@ -12,7 +12,7 @@ First, we need to set up the project, and then we'll implement three LUCID diffe
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj,"libraries.R"))
 source(fs::path(dir_proj,"load_simu_data.R"))
-source(fs::path(dir_proj,"functions", "load_functions.R"))
+# source(fs::path(dir_proj,"functions", "load_functions.R"))
 source(fs::path(dir_proj,"functions", "lucid_reorder_plot_without_y.R"))
 source(fs::path(dir_proj,"functions", "LUCIDus Early Integration Sankey fxn.R"))
 source(fs::path(dir_proj,"functions", "LUCIDus", "dependency.R"))
@@ -140,11 +140,16 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 Prepare data for quasi-mediation analysis with LUCID in Parallel.
 
 ```{r data preparation lucid in parallel}
-# JG note- do we need this? ----
-meta_df <- data.frame(ftr_name = c(colnames(omics_lst$methylome),
-                                   colnames(omics_lst$transcriptome),
-                                   colnames(omics_lst$miRNA))) %>%
-  mutate(omic_layer = get_omic_layer_lowercase(ftr_name))
+# get feature meta data
+omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x))
+  
+meta_df <- imap_dfr(omics_lst_df, ~tibble(omic_layer = .y, ftr_name = names(.x)))
+# 
+# # JG note- do we need this? ----
+# meta_df <- data.frame(ftr_name = c(colnames(omics_lst$methylome),
+#                                    colnames(omics_lst$transcriptome),
+#                                    colnames(omics_lst$miRNA))) %>%
+#   left_join(ftr_meta, by = "ftr_name")
 
 
 omics_lst_nmd_ftr = omics_lst

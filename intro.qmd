@@ -116,19 +116,22 @@ omics_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name")) %>%
   purrr::reduce(left_join, by = "name") %>%
   column_to_rownames("name")
 
+meta_df <- imap_dfr(purrr::map(omics_lst, ~as_tibble(.x)), ~tibble(omic_layer = .y, ftr_name = names(.x)))
+
 # Correlation Matrix
 cormat <- cor(omics_df, method = "pearson")
 
 # Annotations
 annotation <- data.frame(
   ftr_name = colnames(cormat),
-  Type = get_omic_layer(colnames(cormat)), 
-  index = 1:ncol(cormat))
+  index = 1:ncol(cormat)) %>%
+  left_join(meta_df, by = "ftr_name") %>%
+  mutate(omic_layer = toTitleCase(omic_layer))
 
 # Make Plot
 Heatmap(cormat, 
-        row_split = annotation$Type,
-        column_split = annotation$Type,
+        row_split = annotation$omic_layer,
+        column_split = annotation$omic_layer,
         show_row_names = FALSE,
         show_column_names = FALSE, 
         heatmap_legend_param = list(title = "Correlation"))
