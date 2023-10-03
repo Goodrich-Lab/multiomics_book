@@ -38,11 +38,7 @@ In order to replicate the style of the figures in this book, you will also have 
 
 ## Custom Functions   
 
-The analyses in this book rely on several custom functions. The code for extra functions are provided in [Chapter @sec-code]. 
-
-```{r fxns}
-source(fs::path(dir_proj, "functions", "load_functions.R"))
-```
+The analyses in this book rely on several custom functions. The code for  functions are provided in [Chapter @sec-code]. 
 
 
 ## The Data
