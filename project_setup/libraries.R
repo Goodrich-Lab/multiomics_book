@@ -21,6 +21,7 @@ library(table1)
 
 ## ---- hima_packages ----
 # For running High Dimensional Mediation Analysis:
+library(qvalue)
 library(HIMA)
 # For group lasso in high dimensional mediation/intermediate integration:
 library(xtune)
