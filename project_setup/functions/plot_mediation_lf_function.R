@@ -101,7 +101,7 @@ plot_med_lf <- function(med_lf_list) {
                          midpoint = 0,
                          limits = c(-1, 1),
                          breaks = c(-1, 0, 1),
-                         na.value = "grey20") +
+                         na.value = "grey50") +
     theme(
       axis.text.x = element_text(size = 15,angle = 90, hjust = 1, vjust = .5),
       strip.text = element_blank(),

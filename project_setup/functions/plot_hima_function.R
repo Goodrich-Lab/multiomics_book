@@ -14,9 +14,11 @@
 plot_hima <- function(result_hima) {
   # Pivot longer for figure
   result_hima_long <- result_hima %>% 
-    pivot_longer(cols = c(alpha, beta,`TE (%)`), 
+    rename(Alpha = alpha,
+           Beta = beta) %>%
+    pivot_longer(cols = c(Alpha, Beta,`TE (%)`), 
                  names_to = "name") %>%
-    mutate(name = factor(name, levels = c("alpha", "beta", "TE (%)")))
+    mutate(name = factor(name, levels = c("Alpha", "Beta", "TE (%)")))
   
   # Plot features
   p <- ggplot(result_hima_long, 
