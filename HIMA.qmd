@@ -80,9 +80,7 @@ Finally, for each omic feature, we calculated the mediation effect and 95% confi
 
 The full code for the `hima_intermediate_integration` and `hima_intermediate_integration_plot` function is provided in @sec-code_hima_int. *Note: For the actual analysis, we would normally set n_boot to a higher value (1000 or more). In the example code, it is set to 12 to improve the speed of the function.*
 
-```{r 2. intermediate integration analysis, cache=TRUE,fig.height= 5, fig.width= 6}
-#| label: fig-hima_int
-#| fig-cap: "High dimensional mediation analysis with intermediate integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
+```{r 2. intermediate integration analysis, cache=TRUE}
 
 # Run Analysis
 result_hima_intermediate <- hima_intermediate_integration(
@@ -92,11 +90,14 @@ result_hima_intermediate <- hima_intermediate_integration(
   exposure = exposure,
   n_boot = 12,
   Y.family = "gaussian")
+```
 
+```{r 2. plot for hima int,fig.height= 5, fig.width= 6}
+#| label: fig-hima_int
+#| fig-cap: "High dimensional mediation analysis with intermediate integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
 # plot
 (plot_hima(result_hima_intermediate))
 ```
-
 
 ## *Late integration*
 
