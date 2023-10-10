@@ -6,8 +6,8 @@ We define mediation with latent factors as a two step approach, in which we firs
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj, "libraries.R"))
 source(fs::path(dir_proj, "load_simu_data.R"))
-source(fs::path(dir_proj, "functions","mediation_with_latent_fctrs_function.R"))
-source(fs::path(dir_proj, "functions","mediation_with_latent_fctrs_plot_function.R"))
+source(fs::path(dir_proj, "functions","mediation_with_latent_fctrs_functions.R"))
+source(fs::path(dir_proj, "functions","plot_mediation_lf_function.R"))
 
 options(knitr.table.format = "html")
 ```
@@ -15,25 +15,25 @@ options(knitr.table.format = "html")
 
 ## *Early integration*
 
-For early integration, we used principal component analysis (PCA) as a dimensionality reduction step and selected the top i principal components which explained >80% of the variance. Following the joint dimensionality reduction step, we used the r package HIMA [@RN33] to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. The full code for the `med_with_latent_fctrs_early_integration` and `med_with_latent_fctrs_early_integration_plot`function is provided in @sec-code_med_with_latent_fctrs_early.
+For early integration, we used principal component analysis (PCA) as a dimensionality reduction step and selected the top i principal components which explained >80% of the variance. Following the joint dimensionality reduction step, we used the r package HIMA [@RN33] to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. The full code for the `med_with_latent_fctrs_early_integration` function is provided in @sec-code_med_with_latent_fctrs_early and `plot_med_lf` function is provided in @sec-code_plot_med_lf.
 
 In this analysis,  principal components explained >80% of the variance in the combined omics datasets. Of these  components, 7 significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_early). 
 
 ```{r 1a. early integration analysis, message=FALSE}
 #| label: fig-lf_early
 #| fig-cap: "Mediation analysis with latent factors and early integration identifies joing components which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint component." 
-#| fig-width: 4
+#| fig-width: 5
 #| fig-height: 10
 
 # Run Analysis
 result_med_with_latent_fctrs_early <-
-  med_with_latent_fctrs_early_integration(exposure, outcome,
-                                          omics_lst, covs = NULL, 
-                                          Y.family = "gaussian",
-                                          M.family = "gaussian",
-                                          fdr.level = 0.05)
+  med_lf_early(exposure, outcome,
+               omics_lst, covs = NULL,
+               Y.family = "gaussian",
+               M.family = "gaussian",
+               fdr.level = 0.05)
 # Plot
-(med_with_latent_fctrs_early_integration_plot(result_med_with_latent_fctrs_early))
+(plot_med_lf(result_med_with_latent_fctrs_early))
 ```
 
 
@@ -50,20 +50,20 @@ For this step, JIVE can estimate the optimal number of joint and individual rank
 
 In this analysis, 6 joint components, 1 transcriptome specific component significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_intermediate).The full code for the `med_with_latent_fctrs_intermediate_integration` function is provided in @sec-code_med_with_latent_fctrs_int. 
 
-```{r JIVE mediation,message = FALSE, warning = FALSE, fig.height= 10, fig.width= 10}
+```{r JIVE mediation,message = FALSE, warning = FALSE}
 #| label: fig-lf_intermediate
 #| fig-cap: "Mediation analysis with latent factors and intermediate integration identifies joint and individual variance componets which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint and individual components." 
-#| fig-width: 4
-#| fig-height: 10
+#| fig-width: 5
+#| fig-height: 11
 
 # Run analysis
-result_med_with_latent_fctrs_JIVE <- med_with_latent_fctrs_intermediate_integration(exposure, outcome,
+result_med_with_latent_fctrs_JIVE <- med_lf_intermediate(exposure, outcome,
                                           omics_lst, covs = NULL, 
                                           Y.family = "gaussian",
                                           M.family = "gaussian",
                                           fdr.level = 0.05)
 
-(med_with_latent_fctrs_intermediate_integration_plot(result_med_with_latent_fctrs_JIVE))
+(plot_med_lf(result_med_with_latent_fctrs_JIVE))
 ```
 
 ## *Late integration*
@@ -79,27 +79,15 @@ This analysis identified 2 methylated CpG sites, 1 miRNA, 1 protein and 2 expres
 #| fig-height: 10
 
 
-result_med_with_latent_fctrs_late <-
-  med_with_latent_fctrs_late_integration(exposure, outcome,
-                                          omics_lst, covs = NULL, 
-                                          Y.family = "gaussian",
-                                          M.family = "gaussian",
-                                          fdr.level = 0.05)
+result_med_with_latent_fctrs_late <-med_lf_late(exposure, outcome,
+                                                omics_lst, covs = NULL,
+                                                Y.family = "gaussian",
+                                                M.family = "gaussian",
+                                                fdr.level = 0.05)
 
-(med_with_latent_fctrs_late_integration_plot(result_med_with_latent_fctrs_late))
+(plot_med_lf(result_med_with_latent_fctrs_late))
 ```
 
 ### Pathway Analysis.
 
 Following this analysis, you can use the correlation p-values to perform pathway analysis with appropriate pathway analysis software.
-
-
-## Alternate Approaches
-
-```{r}
-# library(IntNMF)
-# library(omicade4)
-# library(MOFA2)
-# library(tensorBSS)
-# library(RGCCA)
-```

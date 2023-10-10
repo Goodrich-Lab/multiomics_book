@@ -1,4 +1,4 @@
-## ---- Mediation with latent fctrs early ----
+## ---- Mediation_lf_early ----
 #' Conduct principal component analysis (PCA) as a dimensional reduction step 
 #' and selected the top i principal components which explained >80% of the variance. 
 #' Following the joint dimensional reduction step, conduct mediation analysis.
@@ -13,6 +13,7 @@
 #' @param covs A numeric matrix representing the covariates
 #'
 #' @return A list including two tidy dataframes summarizing the results of HIMA analysis
+#' and one vector indicating integration type 
 #' one dataframe including the significant result of HIMA analysis with PCs as mediators.
 #' another dataframe including the result of feature correlation with significant PCs.
 #' 
@@ -25,13 +26,13 @@
 #' @importFrom base cumsum min sum scale apply
 #' @importFrom stringr str_replace
 #'
-med_with_latent_fctrs_early_integration <- function(exposure, 
-                                   outcome, 
-                                   omics_lst, 
-                                   covs = NULL, 
-                                   Y.family = "gaussian",
-                                   M.family = "gaussian",
-                                   fdr.level = 0.05) {
+med_lf_early <- function(exposure,
+                         outcome,
+                         omics_lst,
+                         covs = NULL,
+                         Y.family = "gaussian",
+                         M.family = "gaussian",
+                         fdr.level = 0.05) {
   
   # Combines omics data into one dataframe
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
@@ -70,7 +71,7 @@ med_with_latent_fctrs_early_integration <- function(exposure,
                               scale = FALSE)
   
   # Change to tibble and select significant PCs
-  result_hima_pca_early <- as_tibble(result_hima_comb_pc, rownames = "pc_num") %>% 
+  result_hima_pca_early <- as_tibble(result_hima_comb_pc, rownames = "lf_num") %>% 
     filter(BH.FDR < fdr.level) 
   
   # Filter Significant PCs, Create scaled %TE variable
@@ -80,11 +81,18 @@ med_with_latent_fctrs_early_integration <- function(exposure,
       `% Total Effect scaled` = 100*`% total effect`/sum(`% total effect`) %>%
         round(1), 
       multiomic_mthd = "Early") %>%
-    mutate(pc_named = str_replace(pc_num, "PC", "Joint Comp. "),
-           pcs_ordered = forcats::fct_reorder(pc_named, `te_direction`)) %>%
+    mutate(lf_named = str_replace(lf_num, "PC", "Joint Comp. "),
+           lf_ordered = forcats::fct_reorder(lf_named, `te_direction`)) %>%
     rename(Alpha = alpha, 
            Beta = beta,
-           `TE (%)` = `% Total Effect scaled`) 
+           `TE (%)` = `% Total Effect scaled`) %>%
+    mutate(omic_num = case_when(str_detect(lf_num, "meth") ~ 1, 
+                                str_detect(lf_num, "transc") ~ 2, 
+                                str_detect(lf_num, "miR") ~ 3,
+                                str_detect(lf_num, "pro") ~ 4, 
+                                str_detect(lf_num, "met") ~ 5,
+                                TRUE ~ 0))
+  
   
   # ii correlation of features vs PC's --------------
   # Extract variable correlation with principal components
@@ -92,7 +100,7 @@ med_with_latent_fctrs_early_integration <- function(exposure,
   
   # Select only significant PCs
   ftr_cor_sig_pcs <- var.cor[,(colnames(var.cor) %in% 
-                                 result_hima_pca_early_sig$pc_num)]
+                                 result_hima_pca_early_sig$lf_num)]
   
   ftr_cor_sig_pcs_df <- ftr_cor_sig_pcs %>%
     as_tibble(rownames = "feature") %>%
@@ -100,13 +108,16 @@ med_with_latent_fctrs_early_integration <- function(exposure,
     
   
   res = list(result_hima_pca_early_sig = result_hima_pca_early_sig, 
-             result_ftr_cor_sig_pcs_early = ftr_cor_sig_pcs_df)
+             result_ftr_cor_sig_pcs_early = ftr_cor_sig_pcs_df,
+             integration_type = " Early")
   return(res)
 }
 
-## ---- Mediation with latent fctrs intermediate ----
-#' Perform a joint dimensionality reduction step using Joint and Individual Variance Explained (JIVE). 
-#' Following the joint dimensionality reduction step, conduct mediation analysis.
+## ---- Mediation_lf_intermediate ----
+#' Perform a joint dimensionality reduction step 
+#' using Joint and Individual Variance Explained (JIVE). 
+#' Following the joint dimensionality reduction step, 
+#' conduct mediation analysis.
 
 
 #' Given exposure, outcome and multiple omics data,
@@ -119,7 +130,9 @@ med_with_latent_fctrs_early_integration <- function(exposure,
 #' @param covs A numeric matrix representing the covariates
 #'
 #' @return A list including two tidy dataframes summarizing the results of HIMA analysis
-#' one dataframe including the significant result of HIMA analysis with latent factors as mediators.
+#' and one vector indicating integration type.
+#' one dataframe including the significant result of 
+#' HIMA analysis with latent factors as mediators.
 #' another dataframe including the result of feature correlation with significant PCs.
 #' 
 #' @import dplyr
@@ -131,13 +144,13 @@ med_with_latent_fctrs_early_integration <- function(exposure,
 #' @importFrom base min sum scale apply svd diag
 #' @importFrom stringr str_replace
 #'
-med_with_latent_fctrs_intermediate_integration <- function(exposure, 
-                                                    outcome, 
-                                                    omics_lst, 
-                                                    covs = NULL, 
-                                                    Y.family = "gaussian",
-                                                    M.family = "gaussian",
-                                                    fdr.level = 0.05) {
+med_lf_intermediate <- function(exposure, 
+                                outcome,
+                                omics_lst,
+                                covs = NULL,
+                                Y.family = "gaussian",
+                                M.family = "gaussian",
+                                fdr.level = 0.05) {
   # Combines omics data into one dataframe
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
   
@@ -231,9 +244,9 @@ med_with_latent_fctrs_intermediate_integration <- function(exposure,
   
   # Modify and filter significant                
   result_hima_jive_1 <- result_hima_jive %>% 
-    rownames_to_column("component") %>% 
+    rownames_to_column("lf_num") %>% 
     mutate(multiomic_mthd = "Intermediate",
-           ind_joint = str_split_fixed(component, fixed("_"), 2)[,1], 
+           ind_joint = str_split_fixed(lf_num, fixed("_"), 2)[,1], 
            ind_joint_num = case_when(ind_joint == "Joint" ~ 1, 
                                      ind_joint == "methylome" ~ 2,
                                      ind_joint == "transcriptome" ~ 3)) %>% 
@@ -247,10 +260,16 @@ med_with_latent_fctrs_intermediate_integration <- function(exposure,
            te_direction = if_else(beta < 0, 
                                   -1 * `% total effect`, 
                                   `% total effect`)) %>%
-    mutate(components_ord = forcats::fct_reorder(component, `te_direction`)) %>%
+    mutate(lf_ordered = forcats::fct_reorder(lf_num, `te_direction`)) %>%
     rename(Alpha = alpha, 
            Beta = beta,
-           `TE (%)` = `% Total Effect scaled`)
+           `TE (%)` = `% Total Effect scaled`)%>%
+    mutate(omic_num = case_when(str_detect(lf_num, "meth") ~ 1, 
+                                str_detect(lf_num, "transc") ~ 2, 
+                                str_detect(lf_num, "miR") ~ 3,
+                                str_detect(lf_num, "pro") ~ 4, 
+                                str_detect(lf_num, "met") ~ 5,
+                                TRUE ~ 0))
   
   # correlation of features vs JIVE factors --------------
   # Extract variable correlation with JIVE Factors
@@ -258,19 +277,20 @@ med_with_latent_fctrs_intermediate_integration <- function(exposure,
   
   # Select only significant PCs
   ftr_cor_sig_pcs_jive <- var.cor[,(colnames(var.cor) %in% 
-                                          result_hima_jive_sig$component)] 
+                                          result_hima_jive_sig$lf_num)] 
   
   ftr_cor_sig_pcs_jive_df <- ftr_cor_sig_pcs_jive %>%
     as_tibble(rownames = "feature") %>%
     left_join(meta_df, by = c("feature" = "ftr_name"))
   
   res = list(result_hima_jive_sig = result_hima_jive_sig, 
-             result_ftr_cor_sig_pcs_jive = ftr_cor_sig_pcs_jive_df)
+             result_ftr_cor_sig_pcs_jive = ftr_cor_sig_pcs_jive_df,
+             integration = "Intermediate")
   return(res)
 }
 
 
-## ---- Mediation with latent fctrs late ----
+## ---- Mediation_lf_late ----
 #' Conduct principal component analysis (PCA) as a dimensionality reduction step  
 #' on each omics layer separately 
 #' and selected the top i principal components which explained >80% of the variance. 
@@ -285,9 +305,12 @@ med_with_latent_fctrs_intermediate_integration <- function(exposure,
 #' @param omics_lst A list of numeric matrices representing omics data
 #' @param covs A numeric matrix representing the covariates
 #'
-#' @return A list including two tidy dataframes summarizing the results of HIMA analysis
-#' one dataframe including the significant result of HIMA analysis with PCs as mediators for each omics layer.
-#' another dataframe including the result of feature correlation with significant PCs.
+#' @return A list including two tidy dataframes and one vector. 
+#' Two tidy dataframes summarized the results of HIMA analysis
+#' one dataframe including the significant result of 
+#' HIMA analysis with PCs as mediators for each omics layer.
+#' another dataframe including the result of feature correlation with significant PCs. 
+#' One vector includes the integration type. 
 #' 
 #' @import dplyr
 #' @importFrom tidyr as_tibble
@@ -298,13 +321,13 @@ med_with_latent_fctrs_intermediate_integration <- function(exposure,
 #' @importFrom base cumsum min sum scale apply
 #' @importFrom stringr str_replace
 #'
-med_with_latent_fctrs_late_integration <- function(exposure, 
-                                                    outcome, 
-                                                    omics_lst, 
-                                                    covs = NULL, 
-                                                    Y.family = "gaussian",
-                                                    M.family = "gaussian",
-                                                    fdr.level = 0.05) {
+med_lf_late <- function(exposure,
+                        outcome,
+                        omics_lst,
+                        covs = NULL, 
+                        Y.family = "gaussian",
+                        M.family = "gaussian",
+                        fdr.level = 0.05) {
   
   # Combines omics data into one dataframe
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
@@ -381,31 +404,31 @@ med_with_latent_fctrs_late_integration <- function(exposure,
   
   # Filter significant pcs, create scaled %TE variable
   result_hima_late_sig <- result_hima_late_integration %>%
-    as_tibble(rownames = "pc_num") %>%
+    as_tibble(rownames = "lf_num") %>%
     filter(BH.FDR < 0.05) %>%
     mutate(
       te_direction = if_else(beta<0, -1*`% total effect`, `% total effect`), 
       `% Total Effect scaled` = 100*`% total effect`/sum(`% total effect`)) 
   
   result_hima_late_sig <- result_hima_late_sig  %>% 
-    mutate(pc_numeric = str_split_fixed(pc_num, fixed("_"), 2)[,2],
-           omic_layer = str_split_fixed(pc_num, fixed("_"), 2)[,1] %>%
+    mutate(lf_numeric = str_split_fixed(lf_num, fixed("_"), 2)[,2],
+           omic_layer = str_split_fixed(lf_num, fixed("_"), 2)[,1] %>%
              str_to_sentence(),
            multiomic_mthd = "Late")%>%
     mutate(omic_layer = str_replace(omic_layer, "Mirna", "miRNA" ),
-           omic_pc = str_c(omic_layer, " ", pc_numeric) %>%
+           omic_pc = str_c(omic_layer, " ", lf_numeric) %>%
              str_replace("PC", "Comp. ")) %>%
-    mutate(pcs_ordered = forcats::fct_reorder(omic_pc, `te_direction`)) %>%
-    dplyr::select(multiomic_mthd, omic_pc, omic_layer, pc_num, pcs_ordered,
+    mutate(lf_ordered = forcats::fct_reorder(omic_pc, `te_direction`)) %>%
+    dplyr::select(multiomic_mthd, omic_pc, omic_layer, lf_num, lf_ordered,
                   alpha, beta, `% Total Effect scaled`) %>%
     rename(Alpha = alpha, 
            Beta = beta,
            `TE (%)` = `% Total Effect scaled`)%>%
-    mutate(omic_num = case_when(str_detect(pc_num, "meth") ~ 1, 
-                                str_detect(pc_num, "transc") ~ 2, 
-                                str_detect(pc_num, "miR") ~ 3,
-                                str_detect(pc_num, "pro") ~ 4, 
-                                str_detect(pc_num, "met") ~ 5))
+    mutate(omic_num = case_when(str_detect(lf_num, "meth") ~ 1, 
+                                str_detect(lf_num, "transc") ~ 2, 
+                                str_detect(lf_num, "miR") ~ 3,
+                                str_detect(lf_num, "pro") ~ 4, 
+                                str_detect(lf_num, "met") ~ 5))
   
   
   # Extract variable correlation with principal components
@@ -423,12 +446,13 @@ med_with_latent_fctrs_late_integration <- function(exposure,
   
   # Select only significant PCs
   ftr_cor_sig_pcs_late <- var.cor %>%
-    dplyr::select(result_hima_late_sig$pc_num) %>%
+    dplyr::select(result_hima_late_sig$lf_num) %>%
     as_tibble(rownames = "feature") %>%
     left_join(meta_df, by = c("feature" = "ftr_name"))
   
   res = list(result_hima_late_sig = result_hima_late_sig, 
-             result_ftr_cor_sig_pcs_late = ftr_cor_sig_pcs_late)
+             result_ftr_cor_sig_pcs_late = ftr_cor_sig_pcs_late,
+             intergration_type = "Late")
   return(res)
   
 }

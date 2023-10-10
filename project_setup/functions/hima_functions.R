@@ -289,8 +289,10 @@ hima_intermediate_integration <- function(exposure,
     left_join(meta_df, by = c("feature_name" = "ftr_name"))
   
   # 3.4) Join unpenalized results with glasso results ----
-  int_med_coefs <- dplyr::inner_join(xtune_betas_all_data, glasso_boot_results, 
-                                     by = c("feature_name", "omic_layer", "omic_num")) %>%
+  int_med_coefs <- dplyr::inner_join(xtune_betas_all_data, 
+                                     glasso_boot_results, 
+                                     by = c("feature_name", 
+                                            "omic_layer", "omic_num")) %>% 
     dplyr::inner_join(x_m_reg, by = "feature_name")
   
   # Calculate confidence intervals -----

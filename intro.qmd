@@ -102,7 +102,7 @@ ggplot(data = simulated_data[["phenotype"]],
 
 @fig-cor shows the correlation within and between the omics layers in the simulated data. 
 
-```{r with ComplexHeatmap}
+```{r with ComplexHeatmap,fig.height= 8, fig.width= 8}
 #| label: fig-cor
 #| fig-cap: "Heatmap illustrating the correlation of molecular features within and between different omics layers." 
 #| fig-height: 6
@@ -112,7 +112,8 @@ omics_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name")) %>%
   purrr::reduce(left_join, by = "name") %>%
   column_to_rownames("name")
 
-meta_df <- imap_dfr(purrr::map(omics_lst, ~as_tibble(.x)), ~tibble(omic_layer = .y, ftr_name = names(.x)))
+meta_df <- imap_dfr(purrr::map(omics_lst, ~as_tibble(.x)),
+                    ~tibble(omic_layer = .y, ftr_name = names(.x)))
 
 # Correlation Matrix
 cormat <- cor(omics_df, method = "pearson")
@@ -130,6 +131,8 @@ Heatmap(cormat,
         column_split = annotation$omic_layer,
         show_row_names = FALSE,
         show_column_names = FALSE, 
+        column_title_gp = gpar(fontsize = 12),
+        row_title_gp = gpar(fontsize = 12),
         heatmap_legend_param = list(title = "Correlation"))
 ```
 
