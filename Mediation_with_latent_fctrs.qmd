@@ -1,8 +1,9 @@
-# Mediation with latent factrs {#sec-med_lf}
+# Mediation with latent factors {#sec-med_lf}
 
 We define mediation with latent factors as a two step approach, in which we first perform dimensionality reduction on the omics data and then use the factors/clusters as latent mediator for the mediation analysis between the exposure and the outcome. 
 
-```{r set up data, include = FALSE, echo = FALSE}
+## Set up project for High Dimensional Mediation Analysis
+```{r set up data, include = TRUE, echo = TRUE, message=FALSE, warning=FALSE}
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj, "libraries.R"))
 source(fs::path(dir_proj, "load_simu_data.R"))
@@ -15,16 +16,12 @@ options(knitr.table.format = "html")
 
 ## *Early integration*
 
-For early integration, we used principal component analysis (PCA) as a dimensionality reduction step and selected the top i principal components which explained >80% of the variance. Following the joint dimensionality reduction step, we used the r package HIMA [@RN33] to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. The full code for the `med_with_latent_fctrs_early_integration` function is provided in @sec-code_med_with_latent_fctrs_early and `plot_med_lf` function is provided in @sec-code_plot_med_lf.
+For early integration, we used principal component analysis (PCA) as a dimensionality reduction step and selected the top i principal components which explained >80% of the variance. Following the joint dimensionality reduction step, we used the r package HIMA [@RN33] to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. The full code for the `med_lf_early` function is provided in @sec-code_med_with_latent_fctrs_early and `plot_med_lf` function is provided in @sec-code_plot_med_lf.
 
 In this analysis,  principal components explained >80% of the variance in the combined omics datasets. Of these  components, 7 significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_early). 
 
+### HIMA Early Integration
 ```{r 1a. early integration analysis, message=FALSE}
-#| label: fig-lf_early
-#| fig-cap: "Mediation analysis with latent factors and early integration identifies joing components which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint component." 
-#| fig-width: 5
-#| fig-height: 10
-
 # Run Analysis
 result_med_with_latent_fctrs_early <-
   med_lf_early(exposure, outcome,
@@ -32,10 +29,18 @@ result_med_with_latent_fctrs_early <-
                Y.family = "gaussian",
                M.family = "gaussian",
                fdr.level = 0.05)
+```
+
+### Plot Early Integration
+```{r 1b. plot early integration, message=FALSE}
+#| label: fig-lf_early
+#| fig-cap: "Mediation analysis with latent factors and early integration identifies joing components which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint component." 
+#| fig-width: 4
+#| fig-height: 7
+
 # Plot
 (plot_med_lf(result_med_with_latent_fctrs_early))
 ```
-
 
 ## *Intermediate Integration*
 
@@ -48,36 +53,36 @@ For this step, JIVE can estimate the optimal number of joint and individual rank
 
 #### Perform mediation analysis
 
-In this analysis, 6 joint components, 1 transcriptome specific component significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_intermediate).The full code for the `med_with_latent_fctrs_intermediate_integration` function is provided in @sec-code_med_with_latent_fctrs_int. 
+In this analysis, 6 joint components, 1 transcriptome specific component significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_intermediate).The full code for the `med_lf_intermediate` function is provided in @sec-code_med_with_latent_fctrs_int and `plot_med_lf` function is provided in @sec-code_plot_med_lf. 
 
 ```{r JIVE mediation,message = FALSE, warning = FALSE}
-#| label: fig-lf_intermediate
-#| fig-cap: "Mediation analysis with latent factors and intermediate integration identifies joint and individual variance componets which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint and individual components." 
-#| fig-width: 5
-#| fig-height: 11
-
 # Run analysis
 result_med_with_latent_fctrs_JIVE <- med_lf_intermediate(exposure, outcome,
                                           omics_lst, covs = NULL, 
                                           Y.family = "gaussian",
                                           M.family = "gaussian",
                                           fdr.level = 0.05)
+```
+
+### Plot Intermediate Integration
+
+```{r plot JIVE mediation,message = FALSE, warning = FALSE}
+#| label: fig-lf_intermediate
+#| fig-cap: "Mediation analysis with latent factors and intermediate integration identifies joint and individual variance componets which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint and individual components." 
+#| fig-width: 4
+#| fig-height: 7.2
 
 (plot_med_lf(result_med_with_latent_fctrs_JIVE))
 ```
 
 ## *Late integration*
 
-For late integration, we used principal component analysis (PCA) as a dimensionality reduction step on each omics layer separately, and selected the top i principal components which explained >80% of the variance. Following the dimensionality reduction step, we used the r package HIMA [@RN33]  to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. The full code for the `med_with_latent_fctrs_late_integration` function is provided in @sec-code_med_with_latent_fctrs_late.
+For late integration, we used principal component analysis (PCA) as a dimensionality reduction step on each omics layer separately, and selected the top i principal components which explained >80% of the variance. Following the dimensionality reduction step, we used the r package HIMA [@RN33]  to examine whether the variance components mediated associations of in utero mercury exposure with MAFLD. The full code for the `med_lf_late` function is provided in @sec-code_med_with_latent_fctrs_late and `plot_med_lf` function is provided in @sec-code_plot_med_lf
 
 This analysis identified 2 methylated CpG sites, 1 miRNA, 1 protein and 2 expressed gene transcript clutesrs significantly mediated the association between mercury and MAFLD (@fig-lf_late).
 
+### HIMA Late Integration
 ```{r pca late integration, message = FALSE, warning = FALSE}
-#| label: fig-lf_late
-#| fig-cap: "Mediation analysis with latent factors and late integration identifies features in each omics layer individually which mediates the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and components." 
-#| fig-width: 4
-#| fig-height: 10
-
 
 result_med_with_latent_fctrs_late <-med_lf_late(exposure, outcome,
                                                 omics_lst, covs = NULL,
@@ -85,9 +90,18 @@ result_med_with_latent_fctrs_late <-med_lf_late(exposure, outcome,
                                                 M.family = "gaussian",
                                                 fdr.level = 0.05)
 
+```
+
+### Plot Late Integration
+```{r plot pca late integration, message = FALSE, warning = FALSE}
+#| label: fig-lf_late
+#| fig-cap: "Mediation analysis with latent factors and late integration identifies features in each omics layer individually which mediates the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and components." 
+#| fig-width: 4
+#| fig-height: 7
+
 (plot_med_lf(result_med_with_latent_fctrs_late))
 ```
 
-### Pathway Analysis.
+## Pathway Analysis.
 
-Following this analysis, you can use the correlation p-values to perform pathway analysis with appropriate pathway analysis software.
+Following mediation analysis, you can use the correlation p-values to perform pathway analysis with appropriate pathway analysis software.

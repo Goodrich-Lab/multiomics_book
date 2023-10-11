@@ -41,7 +41,7 @@ plot_med_lf <- function(med_lf_list) {
           strip.text = element_blank(),
           axis.text.x = element_blank(),
           strip.background = element_blank(),
-          text = element_text(size = 15))
+          axis.text.y = element_text(size = 8))
   
   # Panel B: heatmap of correlation of features vs PC's --------------
   
@@ -103,18 +103,19 @@ plot_med_lf <- function(med_lf_list) {
                          breaks = c(-1, 0, 1),
                          na.value = "grey50") +
     theme(
-      axis.text.x = element_text(size = 15,angle = 90, hjust = 1, vjust = .5),
+      axis.text.x = element_text(size = 8,angle = 90, hjust = 1, vjust = .5),
+      axis.text.y = element_text(size = 8),
       strip.text = element_blank(),
       axis.title = element_blank(), 
       axis.ticks.x = element_blank(),
       legend.position = "none",
-      text = element_text(size = 20)) 
+      text = element_text(size = 8)) 
   
   # Combine Figures 
   p <- cowplot::plot_grid(
     NULL, panel_a,  NULL, panel_b, 
     ncol = 1, align = "v", axis = "lr",
-    rel_heights  = c(.05, .75, .1, 1.75),
+    rel_heights  = c(.05, .6, .1, 1.75),
     labels = c("a)","", "b) "))
 
   return(p)
