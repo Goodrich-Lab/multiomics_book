@@ -6,7 +6,7 @@
 #'
 #' @param result_hima  a tidy dataframe summarizing the results of HIMA analysis
 #'
-#' @return a figure of the result of hima intermediate integration 
+#' @return a figure of the result of HIMA analysis
 #'
 #' @import dplyr
 #' @importFrom ggplot2 ggplot
