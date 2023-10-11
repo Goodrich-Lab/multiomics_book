@@ -2,7 +2,7 @@
 
 We define mediation with latent factors as a two step approach, in which we first perform dimensionality reduction on the omics data and then use the factors/clusters as latent mediator for the mediation analysis between the exposure and the outcome. 
 
-## Set up project for High Dimensional Mediation Analysis
+## Set up project for Mediation Analysis with Latent factors 
 ```{r set up data, include = TRUE, echo = TRUE, message=FALSE, warning=FALSE}
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj, "libraries.R"))
