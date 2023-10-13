@@ -1,3 +1,4 @@
+## ---- plot_LUCID_in_Serial ----
 
 # Plot Lucid In Serial Function ------
 source(fs::path(dir_proj, "functions", "lucid_reorder_plot_without_y.R"))

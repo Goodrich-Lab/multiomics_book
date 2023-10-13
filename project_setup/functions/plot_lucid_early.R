@@ -1,102 +1,107 @@
-# This function plot top 25% of the feature in each omics layer
-
-# Get sankey dataframe ----
-get_sankey_df <- function(x,
-                          G_color = "dimgray", 
-                          X_color = "#eb8c30",
-                          Z_color = "#2fa4da", 
-                          Y_color = "#afa58e", 
-                          pos_link_color = "#67928b", 
-                          neg_link_color = "#d1e5eb", 
-                          fontsize = 10) {
-  K <- x$K
-  var.names <- x$var.names
-  pars <- x$pars
-  dimG <- length(var.names$Gnames)
-  dimZ <- length(var.names$Znames)
-  valueGtoX <- as.vector(t(x$pars$beta[, -1]))
-  valueXtoZ <- as.vector(t(x$pars$mu))
-  valueXtoY <- as.vector(x$pars$gamma$beta)[1:K]
-  
-  # GtoX
-  GtoX <- data.frame(
-    source = rep(x$var.names$Gnames, K), 
-    target = paste0("Latent Cluster", 
-                    as.vector(sapply(1:K, function(x) rep(x, dimG)))), 
-    value = abs(valueGtoX), 
-    group = as.factor(valueGtoX > 0))
-  
-  # XtoZ
-  XtoZ <- data.frame(
-    source = paste0("Latent Cluster", 
-                    as.vector(sapply(1:K, 
-                                     function(x) rep(x, dimZ)))), 
-    target = rep(var.names$Znames, 
-                 K), value = abs(valueXtoZ),
-    group = as.factor(valueXtoZ > 
-                        0))
-  
-  # subset top 25% of each omics layer
-  top25<- XtoZ %>%
-    filter(source == "Latent Cluster1") %>%
-    mutate(omics = case_when(grepl("cg", target) ~ "Methylation",
-                             grepl("tc", target) ~ "Transcriptome",
-                             grepl("miR", target) ~ "miRNA")) %>%
-    group_by(omics) %>%
-    arrange(desc(value)) %>%
-    slice(1:7) %>%
-    ungroup()
-
-  XtoZ_sub<- XtoZ %>%
-    filter(target %in% top25$target)
-    
-  
-  # XtoY
-  XtoY <- data.frame(source = paste0("Latent Cluster", 1:K), 
-                     target = rep(var.names$Ynames, K), value = abs(valueXtoY), 
-                     group = as.factor(valueXtoY > 0))
-  links <- rbind(GtoX, XtoZ_sub, XtoY)
-  # links <- rbind(GtoX, XtoZ, XtoY)
-  
-  nodes <- data.frame(
-    name = unique(c(as.character(links$source), 
-                    as.character(links$target))), 
-    group = as.factor(c(rep("exposure",
-                            dimG), rep("lc", K), rep("biomarker", nrow(XtoZ_sub)/2), "outcome")))
-    # group = as.factor(c(rep("exposure", 
-                            # dimG), rep("lc", K), rep("biomarker", dimZ), "outcome")))
-  ## the following two lines were used to exclude covars from the plot
-  links <- links %>% filter(!grepl("cohort", source) & 
-                              !grepl("age", source) & 
-                              !grepl("fish", source) &
-                              !grepl("sex", source))
-  nodes <- nodes %>% filter(!grepl("cohort", name) &
-                              !grepl("age", name) & 
-                              !grepl("fish", name) &
-                              !grepl("sex", name)) 
-  
-  links$IDsource <- match(links$source, nodes$name) - 1
-  links$IDtarget <- match(links$target, nodes$name) - 1
-  
-  color_scale <- data.frame(
-    domain = c("exposure", "lc", "biomarker", 
-               "outcome", "TRUE", "FALSE"), 
-    range = c(G_color, X_color, 
-              Z_color, Y_color, pos_link_color, neg_link_color))
-  
-  sankey_df = list(links = links, 
-                   nodes = nodes)
-  return(sankey_df)
-}
+## ---- plot_LUCID_Early ----
+#' Plot Sankey Diagram for LUCID in Early integration
+#' 
+#' Given an object of class from LUCID
+#'
+#' @param lucid_fit1  an object of class from LUCID
+#' @param text_size  size of the text in sankey diagram
+#'
+#' @return a Sankey Diagram for LUCID in Early integration
+#'
+#' @import dplyr
+#' @importFrom ggplot2 ggplot
 
 
-
-
-# Sankey Function ----
-
-# lucid_fit1 <- fit1
 
 sankey_early_integration <- function(lucid_fit1, text_size = 15) {
+  # Get sankey dataframe ----
+  get_sankey_df <- function(x,
+                            G_color = "dimgray", 
+                            X_color = "#eb8c30",
+                            Z_color = "#2fa4da", 
+                            Y_color = "#afa58e", 
+                            pos_link_color = "#67928b", 
+                            neg_link_color = "#d1e5eb", 
+                            fontsize = 10) {
+    K <- x$K
+    var.names <- x$var.names
+    pars <- x$pars
+    dimG <- length(var.names$Gnames)
+    dimZ <- length(var.names$Znames)
+    valueGtoX <- as.vector(t(x$pars$beta[, -1]))
+    valueXtoZ <- as.vector(t(x$pars$mu))
+    valueXtoY <- as.vector(x$pars$gamma$beta)[1:K]
+    
+    # GtoX
+    GtoX <- data.frame(
+      source = rep(x$var.names$Gnames, K), 
+      target = paste0("Latent Cluster", 
+                      as.vector(sapply(1:K, function(x) rep(x, dimG)))), 
+      value = abs(valueGtoX), 
+      group = as.factor(valueGtoX > 0))
+    
+    # XtoZ
+    XtoZ <- data.frame(
+      source = paste0("Latent Cluster", 
+                      as.vector(sapply(1:K, 
+                                       function(x) rep(x, dimZ)))), 
+      target = rep(var.names$Znames, 
+                   K), value = abs(valueXtoZ),
+      group = as.factor(valueXtoZ > 
+                          0))
+    
+    # subset top 25% of each omics layer
+    top25<- XtoZ %>%
+      filter(source == "Latent Cluster1") %>%
+      mutate(omics = case_when(grepl("cg", target) ~ "Methylation",
+                               grepl("tc", target) ~ "Transcriptome",
+                               grepl("miR", target) ~ "miRNA")) %>%
+      group_by(omics) %>%
+      arrange(desc(value)) %>%
+      slice(1:7) %>%
+      ungroup()
+    
+    XtoZ_sub<- XtoZ %>%
+      filter(target %in% top25$target)
+    
+    
+    # XtoY
+    XtoY <- data.frame(source = paste0("Latent Cluster", 1:K), 
+                       target = rep(var.names$Ynames, K), value = abs(valueXtoY), 
+                       group = as.factor(valueXtoY > 0))
+    links <- rbind(GtoX, XtoZ_sub, XtoY)
+    # links <- rbind(GtoX, XtoZ, XtoY)
+    
+    nodes <- data.frame(
+      name = unique(c(as.character(links$source), 
+                      as.character(links$target))), 
+      group = as.factor(c(rep("exposure",
+                              dimG), rep("lc", K), rep("biomarker", nrow(XtoZ_sub)/2), "outcome")))
+    # group = as.factor(c(rep("exposure", 
+    # dimG), rep("lc", K), rep("biomarker", dimZ), "outcome")))
+    ## the following two lines were used to exclude covars from the plot
+    links <- links %>% filter(!grepl("cohort", source) & 
+                                !grepl("age", source) & 
+                                !grepl("fish", source) &
+                                !grepl("sex", source))
+    nodes <- nodes %>% filter(!grepl("cohort", name) &
+                                !grepl("age", name) & 
+                                !grepl("fish", name) &
+                                !grepl("sex", name)) 
+    
+    links$IDsource <- match(links$source, nodes$name) - 1
+    links$IDtarget <- match(links$target, nodes$name) - 1
+    
+    color_scale <- data.frame(
+      domain = c("exposure", "lc", "biomarker", 
+                 "outcome", "TRUE", "FALSE"), 
+      range = c(G_color, X_color, 
+                Z_color, Y_color, pos_link_color, neg_link_color))
+    
+    sankey_df = list(links = links, 
+                     nodes = nodes)
+    return(sankey_df)
+  }
   # 1. Get sankey dataframes ----
   sankey_dat <- get_sankey_df(lucid_fit1)
   n_omics <- length(lucid_fit1$var.names$Znames)
@@ -230,6 +235,5 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
       size = text_size
     ))
   )
-  
   return(fig)
 }
