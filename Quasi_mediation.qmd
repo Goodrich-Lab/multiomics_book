@@ -14,8 +14,9 @@ source(fs::path(dir_proj,"libraries.R"))
 source(fs::path(dir_proj,"load_simu_data.R"))
 # source(fs::path(dir_proj,"functions", "load_functions.R"))
 source(fs::path(dir_proj,"functions", "lucid_reorder_plot_without_y.R"))
-source(fs::path(dir_proj,"functions", "LUCIDus Early Integration Sankey fxn.R"))
+source(fs::path(dir_proj,"functions", "plot_lucid_early.R"))
 source(fs::path(dir_proj,"functions", "LUCIDus", "dependency.R"))
+source(fs::path(dir_proj, "functions", "plot_omics_profiles.R"))
 
 # For some reason, knitr version 1.42 is required in order to be compatible with htmlwidgets when rendering
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
@@ -43,7 +44,7 @@ omics_df_analysis <- omics_df %>%
   dplyr::select(contains("cg"), contains("TC"), contains("miR"))
 ```
 
-When using `estimate_lucid()` to fit the Early Integration LUCID model, we specify `lucid_model = "early"`, and `K` is an integer representing number of latent clusters. `G`, `Z`, `Y` are the inputs for exposure, omics data matrix, and the outcome, respectively.`CoY` are the covariates to be adjusted for the $X$ to $Y$ association and `CoG` are the covariates to be adjusted for the $G$ to $X$ association. We specify `useY = TRUE` to construct supervised LUCID model. Otherwise, `useY = FALSE` will construct unsupervised LUCID model. `init_par = "random"` means that we initiate the parameters with random guess. We specify `family = "normal"` since the outcome is continuous. If the outcome is binary, we would specify `family = "binary"`.
+When using `estimate_lucid()` to fit the Early Integration LUCID model, we specify `lucid_model = "early"`, and `K` is an integer representing number of latent clusters. `G`, `Z`, `Y` are the inputs for exposure, omics data matrix, and the outcome, respectively.`CoY` are the covariates to be adjusted for the $X$ to $Y$ association and `CoG` are the covariates to be adjusted for the $G$ to $X$ association. We specify `useY = TRUE` to construct supervised LUCID model. Otherwise, `useY = FALSE` will construct unsupervised LUCID model. `init_par = "random"` means that we initiate the parameters with random guess. We specify `family = "normal"` since the outcome is continuous. If the outcome is binary, we would specify `family = "binary"`.The full code for the `sankey_early_integration` function is provided in @sec-code_plot_lucid_early
 
 ```{r LUCID mod 1 early int, fig.height= 15, fig.width= 12,collapse = TRUE}
 G = exposure %>%
@@ -71,41 +72,10 @@ p1 <- sankey_early_integration(fit1, text_size = 20)
 
 ### Early Integration Results
 
-Omics profiles for each cluster determined using Early Integration LUCID.
+Omics profiles for each cluster determined using Early Integration LUCID. The full code for the `plot_omics_profiles` function is provided in @sec-code_plot_omics_profiles
 
 ```{r early integration omics profiles, fig.height= 10, fig.width= 10}
-M_mean = as.data.frame(fit1$pars$mu)
-M_mean$cluster = as.factor(1:2)
-
-# Reshape the data
-M_mean_melt <- M_mean %>% 
-  pivot_longer(cols = -cluster, names_to = "variable", values_to = "value")
-
-M_mean_melt <- M_mean_melt %>% 
-  mutate(cluster = ifelse(cluster == 2, "High Risk", "Low Risk"))
-# add color label for omics layer
-M_mean_melt = M_mean_melt %>%
-  mutate(color_label = case_when(str_detect(variable,  "cg") ~ "1", 
-                                 str_detect(variable, "TC") ~ "2", 
-                                 TRUE ~ "3"))
-
-ggplot(M_mean_melt, aes(fill = color_label, y = value, x = variable)) +
-  geom_bar(position="dodge", stat="identity") +
-  ggtitle("Omics profiles for 2 latent clusters - Lucid early integration") +
-  # facet_wrap(~(cluster)) +
-  facet_grid(rows = vars(cluster), scales = "free_y") +
-  theme(legend.position="none") +
-  geom_hline(yintercept = 0) +
-  xlab("") +
-  theme(text = element_text(size=10),
-        axis.text.x = element_text(angle = 90, vjust = 1,
-                                   hjust = 1),
-        plot.margin = margin(10, 10, 10, 80),
-        panel.background = element_rect(fill="white"), 
-        strip.background = element_rect(fill = "white"),
-        axis.line.x = element_line(color = "black"),
-        axis.line.y = element_line(color = "black"),) +
-  scale_fill_manual(values = c("#2fa4da", "#A77E69", "#e7b6c1"))
+plot_omics_profiles(fit1, "Early")
 ```
 
 ## *Intermediate Integration*
@@ -130,7 +100,7 @@ We a-priori assigned the number of clusters for each omic layer to two. LUCID in
 Set up the project for analysis.
 
 ```{r lucid in parallel setup, include = FALSE, echo = FALSE}
-source(fs::path(dir_fxn, "LUCIDusM in Parallel Sankey fxn Plotly.R"))
+source(fs::path(dir_fxn, "plot_lucid_in_parallel.R"))
 source(fs::path(dir_fxn, "LUCIDusM_get_pips.R"))
 source(fs::path(dir_fxn, "plot_lucid_networks.R"))
 
@@ -180,6 +150,7 @@ fit_reordered <- reorder_lucidM(fit, reference = c(2,2,2))
 ```
 
 ### Sankey diagram
+The full code for the `plot_lucid_in_parellel_plotly` function is provided in @sec-code_plot_lucid_int
 
 ```{r sankey diagram plotly lucid in parallel, message = FALSE, warning = FALSE,fig.height= 12, fig.width= 10}
 p2 <- plot_lucid_in_parallel_plotly(fit_reordered,
@@ -192,65 +163,9 @@ p2 <- plot_lucid_in_parallel_plotly(fit_reordered,
 ![The Sankey Diagram for LUCID in Parallel (Intermediate Integration).](lucid_intermediate.png){#fig-l_int}
 
 ### Omics profiles for each cluster predicted by LUCID
-
+The full code for the `plot_omics_profiles` function is provided in @sec-code_plot_omics_profiles
 ```{r omics profiles lucid in parellel, fig.height= 8, fig.width= 10}
-M_mean = as_tibble(fit$res_Mu_Sigma$Mu[[1]], rownames = "variable") %>%
-  bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[2]], rownames = "variable")) %>%
-  bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[3]], rownames = "variable"))
-
-# Reorder results because mirna order is reversed
-M_mean1 <- M_mean %>% 
-  left_join(meta_df, by = c("variable" = "ftr_name")) %>%
-  mutate(`Low Risk`  =  if_else(omic_layer == "miRna", V2, V1), 
-         `High Risk` =  if_else(omic_layer == "miRna", V1, V2)) %>%
-  dplyr::select(-c("V1", "V2"))
-
-# Pivot longer for figure 
-M_mean_l <- M_mean1 %>% 
-  pivot_longer(cols = c(`Low Risk`, `High Risk`),
-               names_to = "cluster",
-               values_to = "value")
-
-# add color label for omics layer
-M_mean2 = M_mean_l %>%
-  mutate(color_label = case_when(omic_layer == "methylome" ~ "1", 
-                                 omic_layer == "transcriptome" ~ "2", 
-                                 omic_layer == "miRna" ~ "3"), 
-         low_high = if_else(str_detect(cluster, "Low"), 0,1),
-         omic = if_else(omic_layer == "miRna", 
-                        "miR",
-                        str_sub(omic_layer, end = 1) %>% toupper()),
-         omic_cluster = str_c(omic, low_high))
-
-# Filter only the top ## differential expressed features 
-M_mean2_top <- M_mean2 %>% 
-  group_by(variable) %>% 
-  filter(abs(value) == max(abs(value))) %>% 
-  ungroup() %>% 
-  arrange(max(abs(value))) %>% 
-  group_by(omic_layer) %>% 
-  slice_head(n=12) %>%
-  ungroup()
-
-# Plots top 12 features
-ggplot(M_mean2  %>% filter(variable %in% M_mean2_top$variable),
-       aes(fill = color_label, y = value, x = variable)) +
-  geom_bar(position="dodge", stat="identity") +
-  ggtitle("Omics profiles for 2 latent clusters - Lucid in Parallel") +
-  facet_grid(rows = vars(cluster),
-             cols = vars(omic_layer), scales = "free_x", space = "free") +
-  theme(legend.position="none") +
-  geom_hline(yintercept = 0) +
-  xlab("") +
-  theme(text = element_text(size=10),
-        axis.text.x = element_text(angle = 90, vjust = 1,
-                                   hjust = 1),
-        plot.margin = margin(10, 10, 10, 80),
-        panel.background = element_rect(fill="white"),
-        strip.background = element_rect(fill = "white"),
-        axis.line.x = element_line(color = "black"),
-        axis.line.y = element_line(color = "black"),) +
-  scale_fill_manual(values = c("#2fa4da", "#A77E69", "#e7b6c1"))
+plot_omics_profiles(fit_reordered, "Intermediate")
 ```
 
 ### Calculate PIPs and determine cluster assignment for each participant
@@ -272,7 +187,7 @@ lucid_pips <- lucid_pips %>%
 For late integration, LUCID in serial is implemented, which successively links multiple single omics LUCID models using the Early Integration LUCID model. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; there is an ordered collection of $m$ omics data, denoted by $Z_1$, . . . , $Z_a$, . . . , $Z_m$ with corresponding dimensions $p_1$, . . . , $p_a$, . . . , $p_m$. Successive omics layers $Z_a$ are linked by using each observations' posterior inclusion probability (PIP) for latent clusters $X_a$ in the initial LUCID model to be the "exposure" variable for each successive model. The omics layers are ordered in a sequential fashion based on the biological relationships between omics layers. For the first model, an unsupervised Early Integration LUCID model using $G$ as the exposure and $Z_1$ as the omics layer. The PIPs of the non-reference clusters were extracted and used as the input for the exposure for the following unsupervised Early Integration LUCID model. This procedure is iterated until the last omics layer $Z_m$, for which a supervised Early Integration LUCID model is used to conduct integrated clustering while using PIPs from the previous LUCID model and information on the outcome $Y$.
 
 ```{r lucid in serial setup, include = FALSE, echo = FALSE}
-source(fs::path(dir_proj, "functions","LUCIDusM in Serial Sankey fxn.R"))
+source(fs::path(dir_proj, "functions","plot_lucid_in_serial.R"))
 ```
 
 When using `estimate_lucid()` to fit LUCID in serial model, we specify `lucid_model = "serial"`, and `K` is a list with the same length as the number of ordered omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer. `G`, `Z`, `Y` are the inputs for exposure, omics data matrix, and the outcome, respectively. Note that here Z is list of omics layers (vectors). `CoY` are the covariates to be adjusted for the $X$ to $Y$ association and `CoG` are the covariates to be adjusted for the $G$ to $X$ association. We specify `useY = TRUE` to construct supervised LUCID in serial model. We specify `family = "normal"` since the outcome is continuous. If the outcome is binary, we would specify `family = "binary"`. We specify `Rho_Z_Mu = 10` and `Rho_Z_Cov = .3` to use LASSO penalty to regularize cluster-specific means and variance for $Z$. We will get a selection of $Z$ features for each layer, and then we refit the LUCID in serial model with only selected $Z$ features to construct the final model.
@@ -327,6 +242,8 @@ fit3$var.names$Gnames[1] <- "<b>miRNA\nProfile 1</b>"
 ```
 
 ### Sankey Diagram
+
+The full code for the `sankey_in_serial` function is provided in @sec-code_plot_lucid_late
 
 ```{r Sankey Diagram lucid in serial, fig.height= 15, fig.width= 12}
 col_pal <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")

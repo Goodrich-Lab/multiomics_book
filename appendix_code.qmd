@@ -54,8 +54,26 @@ knitr::read_chunk("project_setup/functions/plot_mediation_lf_function.R")
 
 ## Integrated/Quasi Mediation Analysis Code
 
-### Early Integration of omics datasets
+```{r read-in_quasi_mediation, include=FALSE}
+knitr::read_chunk("project_setup/functions/plot_omics_profiles.R")
+knitr::read_chunk("project_setup/functions/plot_lucid_early.R")
+knitr::read_chunk("project_setup/functions/plot_lucid_in_parallel.R")
+knitr::read_chunk("project_setup/functions/plot_lucid_in_serial.R")
+```
 
-### Intermediate Integration of omics datasets
+### Early Integration of omics datasets {#sec-code_plot_lucid_early}
+```{r plot_LUCID_Early, eval=FALSE}
+```
 
-### Late Integration of omics datasets
+### Intermediate Integration of omics datasets {#sec-code_plot_lucid_int}
+```{r plot_LUCID_in_parallel, eval=FALSE}
+```
+
+### Late Integration of omics datasets {#sec-code_plot_lucid_late}
+```{r plot_LUCID_in_Serial, eval=FALSE}
+```
+
+### Plot Omics Profile {#sec-code_plot_omics_profiles}
+```{r plot_Omics_Profiles, eval=FALSE}
+```
+

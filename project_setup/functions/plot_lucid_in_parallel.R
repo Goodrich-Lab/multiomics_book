@@ -1,3 +1,6 @@
+## ---- plot_LUCID_in_Parallel ----
+
+
 # lucidus_fit <- fit
 # n_z_ftrs_to_plot <- c(7, 7, 7)
 
