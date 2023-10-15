@@ -51,6 +51,7 @@ library(glasso)
 library(nnet)
 library(boot)
 library(progress)
+library(jsonlite)
 
 ## ---- set_theme ----
 ggplot2::theme_set(cowplot::theme_cowplot())

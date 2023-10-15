@@ -320,7 +320,6 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   
   
   # 6. Plotly Version ----
-  library(plotly)
   
   # Add color scheme to nodes
   nodes_new_plotly <- nodes_new_nodup %>% 

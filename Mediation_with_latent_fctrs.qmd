@@ -24,8 +24,10 @@ In this analysis,  principal components explained >80% of the variance in the co
 ```{r 1a. early integration analysis, message=FALSE}
 # Run Analysis
 result_med_with_latent_fctrs_early <-
-  med_lf_early(exposure, outcome,
-               omics_lst, covs = NULL,
+  med_lf_early(exposure, 
+               outcome,
+               omics_lst, 
+               covs = covs,
                Y.family = "gaussian",
                M.family = "gaussian",
                fdr.level = 0.05)
@@ -56,12 +58,16 @@ For this step, JIVE can estimate the optimal number of joint and individual rank
 In this analysis, 6 joint components, 1 transcriptome specific component significantly mediated the relationship between maternal mercury and childhood liver injury (@fig-lf_intermediate).The full code for the `med_lf_intermediate` function is provided in @sec-code_med_with_latent_fctrs_int and `plot_med_lf` function is provided in @sec-code_plot_med_lf. 
 
 ```{r JIVE mediation,message = FALSE, warning = FALSE}
-# Run analysis
-result_med_with_latent_fctrs_JIVE <- med_lf_intermediate(exposure, outcome,
-                                          omics_lst, covs = NULL, 
-                                          Y.family = "gaussian",
-                                          M.family = "gaussian",
-                                          fdr.level = 0.05)
+# Run analysis with rnkJ and rankA provided
+result_med_with_latent_fctrs_JIVE <- 
+  med_lf_intermediate(exposure, outcome,
+                      jive.rankJ = 22,
+                      jive.rankA = c(6, 9, 5, 5, 8),
+                      omics_lst,
+                      covs = covs, 
+                      Y.family = "gaussian",
+                      M.family = "gaussian",
+                      fdr.level = 0.05)
 ```
 
 ### Plot Intermediate Integration
@@ -83,13 +89,13 @@ This analysis identified 2 methylated CpG sites, 1 miRNA, 1 protein and 2 expres
 
 ### HIMA Late Integration
 ```{r pca late integration, message = FALSE, warning = FALSE}
-
-result_med_with_latent_fctrs_late <-med_lf_late(exposure, outcome,
-                                                omics_lst, covs = NULL,
+result_med_with_latent_fctrs_late <- med_lf_late(exposure, 
+                                                outcome,
+                                                omics_lst, 
+                                                covs = covs,
                                                 Y.family = "gaussian",
                                                 M.family = "gaussian",
                                                 fdr.level = 0.05)
-
 ```
 
 ### Plot Late Integration

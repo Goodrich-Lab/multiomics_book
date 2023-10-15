@@ -1,6 +1,3 @@
-library(LUCIDus)
-library(networkD3)
-library(jsonlite)
 
 
 #---------------------------- 1. reorder cluster estimated from LUCID ------------------

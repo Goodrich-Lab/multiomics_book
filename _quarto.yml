@@ -2,7 +2,7 @@ project:
   type: book
 
 book:
-  title: "Supplemental Materials: Multi-omic Analyses for Precision Health"
+  title: "Supplemental Materials: Integrating Multi-Omics with Environmental data for Precision Health"
   author: "Goodrich JA, Wang H, Jia Q, et. al"
   date: "8/20/2023"
   chapters:
@@ -11,6 +11,7 @@ book:
     - HIMA.qmd
     - Mediation_with_latent_fctrs.qmd
     - Quasi_mediation.qmd
+    - software.qmd
     - appendix_code.qmd
     - references.qmd
 

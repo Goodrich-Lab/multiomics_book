@@ -29,10 +29,16 @@
 med_lf_early <- function(exposure,
                          outcome,
                          omics_lst,
-                         covs = NULL,
+                         covs,
                          Y.family = "gaussian",
                          M.family = "gaussian",
                          fdr.level = 0.05) {
+  
+  # Give error if covs is NULL
+  if (is.null(covs)) {
+    stop("Currently, hima does not support analysis without covariates.
+         Please provide covariates.")
+  }
   
   # Combines omics data into one dataframe
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
@@ -61,14 +67,16 @@ med_lf_early <- function(exposure,
   PCs <- omics_df_pca$x[, 1:n_80_pct] %>% scale()
   
   # ii. Perform HIMA with PCs as mediator----
-  result_hima_comb_pc <- hima(X = exposure,
-                              Y = outcome,
-                              M = PCs,
-                              COV.MY = covs,
-                              COV.XM = covs,
-                              Y.family =  Y.family,
-                              M.family = M.family, 
-                              scale = FALSE)
+  
+  result_hima_comb_pc <- hima(X  = exposure,
+                               Y = outcome,
+                               M = PCs,
+                               COV.XM = covs,
+                               COV.MY = covs,
+                               Y.family =  Y.family,
+                               M.family = M.family, 
+                               scale = FALSE)
+  
   
   # Change to tibble and select significant PCs
   result_hima_pca_early <- as_tibble(result_hima_comb_pc, rownames = "lf_num") %>% 
@@ -127,6 +135,11 @@ med_lf_early <- function(exposure,
 #' @param exposure A numeric vector for the exposure variable
 #' @param outcome A numeric vector for the outcome variable
 #' @param omics_lst A list of numeric matrices representing omics data
+#' @param jive.rankJ Number of joint factors for JIVE to estimate. If NULL, 
+#' then jive estimates the optimum number of joint factors.
+#' @param jive.rankA Number of individual factors for JIVE to estimate. If NULL,
+#' then jive estimates this variable. Should be a numeric vector with the same 
+#' length as dim(omics_lst)   
 #' @param covs A numeric matrix representing the covariates
 #'
 #' @return A list including two tidy dataframes summarizing the results of HIMA analysis
@@ -147,10 +160,19 @@ med_lf_early <- function(exposure,
 med_lf_intermediate <- function(exposure, 
                                 outcome,
                                 omics_lst,
-                                covs = NULL,
+                                covs,
+                                jive.rankJ = NULL,
+                                jive.rankA = NULL,  
                                 Y.family = "gaussian",
                                 M.family = "gaussian",
                                 fdr.level = 0.05) {
+
+  # Give error if covs is NULL
+  if (is.null(covs)) {
+    stop("Currently, hima does not support analysis without covariates.
+         Please provide covariates.")
+  }
+  
   # Combines omics data into one dataframe
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
   
@@ -168,10 +190,22 @@ med_lf_intermediate <- function(exposure,
   # Rename omics datasets
   names(omics_t) = names(omics_lst)
   
-  # Run JIVE with the optimal ranks provided:----- 
+  # Run JIVE----- 
+  if (is.null(jive.rankJ) | is.null(jive.rankA)) {
+    jive.message <- "Step A) Starting JIVE analysis..."
+  } else {jive.message <- "Step A) Starting JIVE analysis with ranks given..."}
+  message(paste0(jive.message, "    (", 
+                 Sys.time() %>% 
+                   format("%H:%M:%S") %>% 
+                   str_split(":") %>% 
+                   unlist() %>% 
+                   .[1:3] %>% 
+                   paste(collapse = ":"), 
+                 ")\n"))
+  
   result_jive2 <- jive(data = omics_t,
-                       rankJ = 22,
-                       rankA = c(6, 9, 5, 5, 8),
+                       rankJ = jive.rankJ,
+                       rankA = jive.rankA,
                        method = "given",
                        conv = 1e-04,
                        maxiter = 100,
@@ -232,6 +266,19 @@ med_lf_intermediate <- function(exposure,
     dplyr::mutate(across(everything(), ~as.vector(scale(.))))
   
   # run mediation analysis------
+  message(paste0("Step B) Starting hima on JIVE factors...    (", 
+                 Sys.time() %>% 
+                   format("%H:%M:%S") %>% 
+                   str_split(":") %>% 
+                   unlist() %>% 
+                   .[1:3] %>% 
+                   paste(collapse = ":"), 
+                ")\n"))
+  
+  # Select only HH:MM:SS from Sys.time()
+  
+  
+  
   result_hima_jive <- hima(X = exposure,
                            Y = outcome,
                            M = factors_jive,
@@ -239,7 +286,7 @@ med_lf_intermediate <- function(exposure,
                            COV.XM = covs,
                            Y.family = c("gaussian"),
                            M.family = c("gaussian"), 
-                           verbose = TRUE,
+                           verbose = FALSE,
                            scale = FALSE)
   
   # Modify and filter significant                
@@ -325,10 +372,15 @@ med_lf_intermediate <- function(exposure,
 med_lf_late <- function(exposure,
                         outcome,
                         omics_lst,
-                        covs = NULL, 
+                        covs, 
                         Y.family = "gaussian",
                         M.family = "gaussian",
                         fdr.level = 0.05) {
+  # Give error if covs is NULL
+  if (is.null(covs)) {
+    stop("Currently, hima does not support analysis without covariates.
+         Please provide covariates.")
+  }
   
   # Combines omics data into one dataframe
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
@@ -387,7 +439,7 @@ med_lf_late <- function(exposure,
   loadings_list_late_int <- map2(omics_lst, 
                                  names(omics_lst),
                                  ~run_pca(.x, .y)$loadings)
-  loadings_df <- purrr::reduce(loadings_list_late_int, full_join)
+  loadings_df <- purrr::reduce(loadings_list_late_int, full_join, by = "feature")
   
   # Number of PCs explain >80%: Get number of PCs for each omic
   late_int_pcs_80 <- purrr::map(omics_lst, ~run_pca(.x, NULL)$n_pcs_80_pct) %>%

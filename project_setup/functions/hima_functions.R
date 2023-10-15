@@ -24,9 +24,14 @@
 hima_early_integration <- function(exposure, 
                                    outcome, 
                                    omics_lst, 
-                                   covs = NULL, 
+                                   covs, 
                                    Y.family = "binomial",
                                    M.family = "gaussian") {
+  # Give error if covs is NULL
+  if (is.null(covs)) {
+    stop("Currently, hima does not support analysis without covariates.
+         Please provide covariates.")
+  }
   
   # Combines omics data into one dataframe
   omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x, rownames = "name"))
@@ -368,9 +373,15 @@ hima_intermediate_integration <- function(exposure,
 hima_late_integration <- function(exposure,
                                   outcome,
                                   omics_lst,
-                                  covs = NULL, 
+                                  covs, 
                                   Y.family,
                                   M.family = "gaussian") {
+  
+  # Give error if covs is NULL
+  if (is.null(covs)) {
+    stop("Currently, hima does not support analysis without covariates.
+         Please provide covariates.")
+  }
   
   # Get number of omics layers
   n_omics <- length(omics_lst)
@@ -393,7 +404,7 @@ hima_late_integration <- function(exposure,
     result_hima_late[[i]] <- hima(X = exposure,
                                   Y = outcome,
                                   M = omics_lst[[i]],
-                                  # COV.XM = covs,
+                                  COV.XM = covs,
                                   Y.family = Y.family,
                                   M.family = M.family, 
                                   max.iter = 100000, 

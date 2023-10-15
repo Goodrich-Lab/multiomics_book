@@ -1,6 +1,6 @@
 ####################early_Estep####################
 
-library(nnet)
+# needs package (nnet)
 # Use uniform distributon to initialzie variance covariance matrices
 gen_cov_matrices <- function(dimZ, K) {
   x <- matrix(runif(dimZ^2, min = -0.5, max = 0.5), nrow = dimZ)
