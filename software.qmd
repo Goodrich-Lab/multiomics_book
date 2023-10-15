@@ -1,0 +1,65 @@
+---
+title: "Software"
+---
+
+## *R packages*
+
+\renewcommand{\arraystretch}{0.8} <!-- decrease line spacing for the table -->
+```{r packages, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center", out.width='100%', results='asis'}
+library(devtools)
+source(fs::path(here::here(),"project_setup","directories.R"))
+source(fs::path(dir_proj,"libraries.R"))
+
+# get session info
+df_packages <- devtools::session_info()$packages %>% 
+  # unlist(.) %>% 
+  as.data.frame(.) %>% 
+  remove_rownames(.) %>% 
+  mutate(attached = if_else(attached == TRUE, "Attached", "Loaded")) %>%
+  arrange(attached) %>% 
+  select(package, loadedversion, attached, date, source)
+
+colnames(df_packages) <- c("Package", "Version", "Attached or Loaded",
+                           "Date/Publication", "Source")
+
+kableExtra::kable(
+  df_packages, 
+  booktabs = T, 
+  align = "l"
+  # caption = "(ref:R-packages)", # complete caption for main document
+) %>% 
+  kableExtra::kable_styling(full_width = F,
+                            latex_options = c(
+                              "hold_position" # stop table floating
+                            ) 
+  ) 
+```
+\renewcommand{\arraystretch}{1} <!-- reset row height/line spacing -->
+
+## *Software Environment* 
+
+This book was developed on the following platform. 
+
+\renewcommand{\arraystretch}{0.8} <!-- decrease line spacing for the table -->
+```{r Reproducibility-SessionInfo-R-environment, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center", out.width='100%', results='asis'}
+
+# get session info
+df_session_platform <- devtools::session_info()$platform %>% 
+  unlist(.) %>% 
+  as.data.frame(.) %>% 
+  rownames_to_column(.)
+
+colnames(df_session_platform) <- c("Setting", "Value")
+
+kableExtra::kable(
+  df_session_platform, 
+  booktabs = T, 
+  align = "l"
+) %>% 
+  kableExtra::kable_styling(full_width = F,
+                            latex_options = c(
+                              "hold_position" # stop table floating
+                            ) 
+  ) 
+```
+\renewcommand{\arraystretch}{1} <!-- reset row height/line spacing -->
