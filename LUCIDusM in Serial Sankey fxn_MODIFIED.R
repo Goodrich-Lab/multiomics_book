@@ -56,8 +56,10 @@ get_sankey_df <- function(x,
   nodes <- data.frame(
     name = unique(c(as.character(links$source), 
                     as.character(links$target))), 
-    group = as.factor(c(rep("exposure", 
-                            dimG), rep("lc", K), rep("biomarker", length(unique(XtoZsub$target))), "outcome")))
+    group = as.factor(c(rep("exposure", dimG), 
+                        rep("lc", K), 
+                        rep("biomarker", length(unique(XtoZsub$target))), 
+                        "outcome")))
   
   ## the following two lines were used to exclude covars from the plot #HW added
   links <- links %>% filter(!grepl("cohort", source) & 
@@ -106,7 +108,8 @@ get_sankey_df <- function(x,
 # lucid_fit3 <- fit3 
 
 # sankey_in_serial Function ----
-sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sankey, text_size = 15) {
+sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, 
+                             color_pal_sankey, text_size = 15) {
   
   # 1. Get sankey dataframes ----
   sankey_dat1 <- get_sankey_df(lucid_fit1)
@@ -118,15 +121,21 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   n_omics_3 <- length(lucid_fit3$var.names$Znames)
   
   # combine link data
-  lnks1_methylation <- sankey_dat1[["links"]] %>% mutate(analysis = "1_methylation")
-  lnks2_miRNA  <- sankey_dat2[["links"]] %>% mutate(analysis = "2_miRNA")
-  lnks3_transcription    <- sankey_dat3[["links"]] %>% mutate(analysis = "3_transcript")
+  lnks1_methylation <- sankey_dat1[["links"]] %>% 
+    mutate(analysis = "1_methylation")
+  lnks2_miRNA  <- sankey_dat2[["links"]] %>% 
+    mutate(analysis = "2_miRNA")
+  lnks3_transcription    <- sankey_dat3[["links"]] %>% 
+    mutate(analysis = "3_transcript")
   links <- bind_rows(lnks1_methylation, lnks2_miRNA, lnks3_transcription)
   
   # combine node data
-  nodes1_methylation <- sankey_dat1[["nodes"]] %>% mutate(analysis = "1_methylation")
-  nodes2_miRNA  <- sankey_dat2[["nodes"]] %>% mutate(analysis = "2_miRNA")
-  nodes3_transcription    <- sankey_dat3[["nodes"]] %>% mutate(analysis = "3_transcript")
+  nodes1_methylation <- sankey_dat1[["nodes"]] %>% 
+    mutate(analysis = "1_methylation")
+  nodes2_miRNA  <- sankey_dat2[["nodes"]] %>% 
+    mutate(analysis = "2_miRNA")
+  nodes3_transcription    <- sankey_dat3[["nodes"]] %>% 
+    mutate(analysis = "3_transcript")
   nodes <- bind_rows(nodes1_methylation, nodes2_miRNA, nodes3_transcription)
   
   
@@ -135,7 +144,8 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   ## 2.1 Get new and original latent cluster names (from the next analysis) ----
   names_clusters_1 <- data.frame(
     name_og = c("Latent Cluster1", "Latent Cluster2"), 
-    name_new = c("<b>Methylation\nProfile 0</b>", "<b>Methylation\nProfile 1</b>"))
+    name_new = c("<b>Methylation\nProfile 0</b>", 
+                 "<b>Methylation\nProfile 1</b>"))
   
   ## 2.2 Change link names ----
   # Change link names and 
@@ -221,7 +231,8 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   ## 4.1 Get new and og latent cluster names ----
   names_clusters_3 <- tibble(
     name_og = c("Latent Cluster1", "Latent Cluster2"),
-    name_new = c("<b>Transcriptome\nProfile 0</b>", "<b>Transcriptome\nProfile 1</b>")) 
+    name_new = c("<b>Transcriptome\nProfile 0</b>", 
+                 "<b>Transcriptome\nProfile 1</b>")) 
   
   
   ## 4.2 Change cluster names ----

@@ -9,13 +9,12 @@ source(fs::path(here::here(),"project_setup","directories.R"))
 knitr::read_chunk("project_setup/libraries.R")
 ```
 
-The following is a list of packages that are used throughout this book that need to be loaded before any analysis:
+The following is a list of packages that are used throughout this book that need to be loaded before any analysis. A complete list of all the packages used in the book can be found in [Chapter @sec-software].
 ```{r packages_loaded, message = FALSE, warning=FALSE, collapse=FALSE}
 #| code-fold: show
 ```
 
 In order to replicate the style of the figures in this book, you will also have to set the ggplot theme:
-
 ```{r set_theme, message = FALSE, warning=FALSE}
 #| code-fold: show
 ```
@@ -25,6 +24,7 @@ In order to replicate the style of the figures in this book, you will also have 
 
 The analyses in this book rely on several custom functions. The code for  functions are provided in [Chapter @sec-code]. 
 
+\newpage   
 
 ## The Data
 
@@ -54,6 +54,8 @@ You can read this data into R using the following code:
 table1::table1(~., data = simulated_data[["phenotype"]][,-1])
 ```
 
+\newpage   
+
 ### Mercury exposure and childhood MAFLD risk
 
 ```{r lr example, eval=FALSE}
@@ -81,12 +83,13 @@ ggplot(data = simulated_data[["phenotype"]],
   ylab("CK-18 Levels (Scaled)")
 ```
 
+\newpage   
 
 ### Correlation of omics features
 
 @fig-cor shows the correlation within and between the omics layers in the simulated data. 
 
-```{r with ComplexHeatmap,fig.height= 8, fig.width= 8}
+```{r with ComplexHeatmap,fig.height= 7, fig.width= 6}
 #| label: fig-cor
 #| fig-cap: "Heatmap illustrating the correlation of molecular features within and between different omics layers." 
 #| fig-height: 6

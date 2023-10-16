@@ -1,16 +1,13 @@
 # High Dimensional Mediation {#sec-HIMA}
 
-## Set up project for High Dimensional Mediation Analysis
-
-```{r 0. setup, include = TRUE, echo = TRUE, message=FALSE, warning=FALSE}
+```{r 0. setup, include = FALSE, echo = FALSE, message=FALSE, warning=FALSE}
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj,"libraries.R"))
-
 source(fs::path(dir_proj, "load_simu_data.R"))
 source(fs::path(dir_proj, "functions", "hima_functions.R"))
 source(fs::path(dir_proj, "functions", "plot_hima_function.R"))
 
-options(knitr.table.format = "html")
+# options(knitr.table.format = "html")
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
@@ -18,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 High dimensional mediation with early multiomic integration (@fig-1, panel a) identified differentially methylated CpG sites, gene transcript clusters, metabolites, and proteins which mediated associations of prenatal mercury with MAFLD risk in adolescents (@fig-hima_early). Combining all omics layers before analysis identifies the strongest mediating feature across all omics layers without accounting for the differences in underlying correlation structure. For this analysis, we used High Dimensional Mediation Analysis (HIMA), a penalization-based mediation method implemented in the R package HIMA [@RN33]. The full code for the `hima_early_integration` function is provided in @sec-code_hima_early and `plot_hima` function is provided in @sec-code_plot_hima.
 
-```{r 1. early integration,fig.height= 5, fig.width= 6}
+```{r 1. early integration, fig.height= 5, fig.width= 6}
 #| label: fig-hima_early
 #| fig-cap: "High dimensional mediation analysis with early integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
 
@@ -32,6 +29,8 @@ result_hima_early <- hima_early_integration(exposure = exposure,
 # Plot Result
 (plot_hima(result_hima_early))
 ```
+
+\newpage   
 
 ## *Intermediate Integration*
 
@@ -97,6 +96,8 @@ result_hima_intermediate <- hima_intermediate_integration(
 # plot
 (plot_hima(result_hima_intermediate))
 ```
+
+\newpage   
 
 ## *Late integration*
 
