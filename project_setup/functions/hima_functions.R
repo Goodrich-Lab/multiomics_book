@@ -46,7 +46,7 @@ hima_early_integration <- function(exposure,
   
   # Create data frame of omics data
   omics_df <- omics_lst_df  %>% 
-    purrr::reduce(left_join) %>%
+    purrr::reduce(left_join, by = "name") %>%
     column_to_rownames("name")
   
   # Run hima
@@ -111,7 +111,6 @@ hima_early_integration <- function(exposure,
 #'                     n_boot = 100)
 #' 
 #' @importFrom epiomics owas
-#' @importFrom data.table setnames
 #' @importFrom dplyr bind_cols group_by inner_join mutate 
 #' @importFrom dplyr select rename filter summarise 
 #' @importFrom purrr map map2 reduce 
@@ -162,7 +161,7 @@ hima_intermediate_integration <- function(exposure,
   # Convert each data frame to a long format and extract the unique column names
   external_info <- purrr::map(omics_lst, 
                               ~data.frame(column = colnames(.x), val = 1)) %>%
-    map2(names(omics_lst), ~data.table::setnames(.x, 'val', .y)) %>%
+    map2(names(omics_lst), ~dplyr::rename(.x, !!.y := val)) %>%
     purrr::reduce(., full_join, by = "column") %>%
     replace(is.na(.), 0) %>%
     column_to_rownames("column")

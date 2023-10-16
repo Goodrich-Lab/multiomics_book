@@ -1,15 +1,15 @@
 # Load packages
 
 ## ---- general_packages_loaded ----
-# Tidyverse packages, including those from dplyr and ggplot2
+# General Packages
 library(tidyverse)
 library(tools)
 library(parallel)
-library(epiomics)
+
+# Plotting Packages
 library(cowplot) # For combining figures
 library(ComplexHeatmap) # Additional Plotting Functions
 library(ggh4x) # For faceted plots
-library(data.table) # For function setnames
 library(colorspace)
 library(tidytext)
 library(table1)
