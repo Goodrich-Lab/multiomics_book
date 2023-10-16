@@ -1,18 +1,10 @@
 # Integrated/Quasi-Mediation {#sec-quasi}
 
-**Exposure (G): Hg (Mercury)**
-
-**Omics (Z): Methylation (CpG), Transcriptome, miRNA**
-
-**Outcome (Y): MAFLD (Metabolic Associatied Fatty Liver Disease)**
-
-First, we need to set up the project, and then we'll implement three LUCID different models to conduct the Integrated/Quasi-Mediation analysis.
 
 ```{r lucid early integration setup, include = FALSE, echo = FALSE}
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj,"libraries.R"))
 source(fs::path(dir_proj,"load_simu_data.R"))
-# source(fs::path(dir_proj,"functions", "load_functions.R"))
 source(fs::path(dir_proj,"functions", "lucid_reorder_plot_without_y.R"))
 source(fs::path(dir_proj,"functions", "plot_lucid_early.R"))
 source(fs::path(dir_proj,"functions", "LUCIDus", "dependency.R"))
@@ -114,12 +106,6 @@ Prepare data for quasi-mediation analysis with LUCID in Parallel.
 omics_lst_df <- purrr::map(omics_lst, ~as_tibble(.x))
   
 meta_df <- imap_dfr(omics_lst_df, ~tibble(omic_layer = .y, ftr_name = names(.x)))
-# 
-# # JG note- do we need this? ----
-# meta_df <- data.frame(ftr_name = c(colnames(omics_lst$methylome),
-#                                    colnames(omics_lst$transcriptome),
-#                                    colnames(omics_lst$miRNA))) %>%
-#   left_join(ftr_meta, by = "ftr_name")
 
 
 omics_lst_nmd_ftr = omics_lst
@@ -168,9 +154,9 @@ The full code for the `plot_omics_profiles` function is provided in @sec-code_pl
 plot_omics_profiles(fit_reordered, "Intermediate")
 ```
 
-### Calculate PIPs and determine cluster assignment for each participant
 
-```{r get pips}
+```{r get pips, include = FALSE}
+### Calculate PIPs and determine cluster assignment for each participant (not included)
 lucid_pips <- get_pips(fit) %>% as_tibble()
 
 # Add rownames, exposures, and outcome
@@ -192,7 +178,7 @@ source(fs::path(dir_proj, "functions","plot_lucid_in_serial.R"))
 
 When using `estimate_lucid()` to fit LUCID in serial model, we specify `lucid_model = "serial"`, and `K` is a list with the same length as the number of ordered omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer. `G`, `Z`, `Y` are the inputs for exposure, omics data matrix, and the outcome, respectively. Note that here Z is list of omics layers (vectors). `CoY` are the covariates to be adjusted for the $X$ to $Y$ association and `CoG` are the covariates to be adjusted for the $G$ to $X$ association. We specify `useY = TRUE` to construct supervised LUCID in serial model. We specify `family = "normal"` since the outcome is continuous. If the outcome is binary, we would specify `family = "binary"`. We specify `Rho_Z_Mu = 10` and `Rho_Z_Cov = .3` to use LASSO penalty to regularize cluster-specific means and variance for $Z$. We will get a selection of $Z$ features for each layer, and then we refit the LUCID in serial model with only selected $Z$ features to construct the final model.
 
-```{r LUCID model 1}
+```{r LUCID model 1, message=FALSE, warning=FALSE}
 set.seed(100)
 G_Hg = exposure %>% as.matrix()
 Z = list(omics_lst$methylome,
@@ -213,7 +199,7 @@ fit <- estimate_lucid(lucid_model = "serial",
                       Rho_Z_Mu = 10,
                       Rho_Z_Cov = .3)
 
-#extract the selected Z features to make the selected Z matrix to refit the lUCID in serial
+#extract selected Z features to to refit lUCID in serial
 selected_Z = vector(mode = "list", length = length(Z))
 for (i in (1:length(Z))){
   fiti_select_Z = fit$submodel[[i]]$select$selectZ

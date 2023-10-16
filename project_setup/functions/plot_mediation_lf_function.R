@@ -38,7 +38,8 @@ plot_med_lf <- function(med_lf_list) {
           limits = c(-1,55), n.breaks = 4))) + 
     theme(axis.title = element_blank(), 
           strip.placement = "outside",
-          strip.text = element_blank(),
+          strip.text.x = element_blank(),
+          strip.text.y = element_text(angle = 0, size = 9),
           axis.text.x = element_blank(),
           strip.background = element_blank(),
           axis.text.y = element_text(size = 8))
@@ -76,10 +77,10 @@ plot_med_lf <- function(med_lf_list) {
   # Join with long format of mediation effects of latent factors 
   # to get the ordered latent factor
   panel_b_dat_top_ft <- left_join(ftr_cor_sig_lf_top_ft_l,
-                                        med_long %>%
-                                          filter(name == "Alpha") %>%
-                                          dplyr::select(lf_num, lf_ordered),
-                                          by = "lf_num") %>%
+                                  med_long %>%
+                                    filter(name == "Alpha") %>%
+                                    dplyr::select(lf_num, lf_ordered),
+                                  by = "lf_num") %>%
     mutate(omic_num2 = case_when(str_detect(lf_num, "meth") ~ 1, 
                                  str_detect(lf_num, "transc") ~ 2, 
                                  str_detect(lf_num, "miR") ~ 3,
@@ -90,9 +91,9 @@ plot_med_lf <- function(med_lf_list) {
   
   # Plot
   panel_b <- ggplot(data = panel_b_dat_top_ft,
-                          aes(y = feature,
-                              x = lf_ordered, 
-                              fill = Correlation)) +
+                    aes(y = feature,
+                        x = lf_ordered, 
+                        fill = Correlation)) +
     geom_tile(color = "white") +
     facet_grid(omic_layer ~ omic_num2, scales = "free", space = "free") +
     scale_fill_gradient2(low  = "blue",
@@ -117,6 +118,6 @@ plot_med_lf <- function(med_lf_list) {
     ncol = 1, align = "v", axis = "lr",
     rel_heights  = c(.05, .6, .1, 1.75),
     labels = c("a)","", "b) "))
-
+  
   return(p)
 }

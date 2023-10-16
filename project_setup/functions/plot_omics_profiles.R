@@ -21,18 +21,17 @@ plot_omics_profiles <- function(fit, integration_type) {
       pivot_longer(cols = -cluster, names_to = "variable", values_to = "value")
     
     M_mean_melt <- M_mean_melt %>% 
-      mutate(cluster = ifelse(cluster == 2, "High Risk", "Low Risk"))
+      mutate(cluster = paste0("Cluster ", cluster))
     # add color label for omics layer
     M_mean_melt = M_mean_melt %>%
       mutate(color_label = case_when(str_detect(variable,  "cg") ~ "1", 
-                                     str_detect(variable, "TC") ~ "2", 
+                                     str_detect(variable, "tc") ~ "2", 
                                      TRUE ~ "3"))
     
     fig <- ggplot(M_mean_melt, 
                   aes(fill = color_label, y = value, x = variable)) +
       geom_bar(position="dodge", stat="identity") +
-      ggtitle("Omics profiles for 2 latent clusters") +
-      # facet_wrap(~(cluster)) +
+      ggtitle("Omics profiles for the two latent clusters") +
       facet_grid(rows = vars(cluster), scales = "free_y") +
       theme(legend.position="none") +
       geom_hline(yintercept = 0) +
@@ -46,7 +45,7 @@ plot_omics_profiles <- function(fit, integration_type) {
             axis.line.x = element_line(color = "black"),
             axis.line.y = element_line(color = "black"),) +
       scale_fill_manual(values = c("#2fa4da", "#A77E69", "#e7b6c1"))
-  }else if(integration_type == "Intermediate"){
+  } else if(integration_type == "Intermediate"){
     M_mean = as_tibble(fit$res_Mu_Sigma$Mu[[1]], rownames = "variable") %>%
       bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[2]], rownames = "variable")) %>%
       bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[3]], rownames = "variable"))
@@ -87,7 +86,7 @@ plot_omics_profiles <- function(fit, integration_type) {
     
     # Plots top 12 features
     fig <- ggplot(M_mean2  %>% filter(variable %in% M_mean2_top$variable),
-           aes(fill = color_label, y = value, x = variable)) +
+                  aes(fill = color_label, y = value, x = variable)) +
       geom_bar(position="dodge", stat="identity") +
       ggtitle("Omics profiles for 2 latent clusters - Lucid in Parallel") +
       facet_grid(rows = vars(cluster),

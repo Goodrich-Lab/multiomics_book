@@ -10,7 +10,7 @@ source(fs::path(dir_proj, "load_simu_data.R"))
 source(fs::path(dir_proj, "functions","mediation_with_latent_fctrs_functions.R"))
 source(fs::path(dir_proj, "functions","plot_mediation_lf_function.R"))
 
-options(knitr.table.format = "html")
+# options(knitr.table.format = "html")
 ```
 
 

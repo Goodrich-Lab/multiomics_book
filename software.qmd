@@ -1,6 +1,5 @@
----
-title: "Software"
----
+# Software {#sec-software}
+
 
 ## *R packages*
 
@@ -22,17 +21,16 @@ df_packages <- devtools::session_info()$packages %>%
 colnames(df_packages) <- c("Package", "Version", "Attached or Loaded",
                            "Date/Publication", "Source")
 
-kableExtra::kable(
-  df_packages, 
-  booktabs = T, 
-  align = "l"
-  # caption = "(ref:R-packages)", # complete caption for main document
-) %>% 
+kableExtra::kable(df_packages, 
+                  booktabs = T, 
+                  align = "l", 
+                  longtable=T, 
+                  caption = "List of all R Packages used in this book.") %>% 
   kableExtra::kable_styling(full_width = F,
-                            latex_options = c(
-                              "hold_position" # stop table floating
-                            ) 
-  ) 
+                            latex_options = c("repeat_header", "striped"), 
+                            position = "center")
+
+
 ```
 \renewcommand{\arraystretch}{1} <!-- reset row height/line spacing -->
 
@@ -54,12 +52,9 @@ colnames(df_session_platform) <- c("Setting", "Value")
 kableExtra::kable(
   df_session_platform, 
   booktabs = T, 
-  align = "l"
-) %>% 
+  align = "l") %>% 
   kableExtra::kable_styling(full_width = F,
-                            latex_options = c(
-                              "hold_position" # stop table floating
-                            ) 
-  ) 
+                            latex_options = c("repeat_header", "striped"), 
+                            position = "center")
 ```
 \renewcommand{\arraystretch}{1} <!-- reset row height/line spacing -->

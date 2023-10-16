@@ -27,6 +27,11 @@ format:
     toc: true
     number-sections: true
     colorlinks: true
+    geometry:
+      - top=20mm
+      - left=20mm
+      - right=20mm
+      - heightrounded
   
   
 editor: source
