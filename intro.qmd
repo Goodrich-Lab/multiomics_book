@@ -10,22 +10,7 @@ knitr::read_chunk("project_setup/libraries.R")
 ```
 
 The following is a list of packages that are used throughout this book that need to be loaded before any analysis:
-```{r general_packages_loaded, message = FALSE, warning=FALSE, collapse=FALSE}
-#| code-fold: show
-```
-
-Additional packages for [Chapter @sec-HIMA] are:
-```{r hima_packages, message = FALSE, warning=FALSE}
-#| code-fold: show
-```
-
-Additional packages for [Chapter @sec-med_lf] are:
-```{r med_lf_packages, message = FALSE, warning=FALSE}
-#| code-fold: show
-```
-
-Additional packages for [Chapter @sec-quasi] are:
-```{r lucid_packages, message = FALSE, warning=FALSE}
+```{r packages_loaded, message = FALSE, warning=FALSE, collapse=FALSE}
 #| code-fold: show
 ```
 
@@ -57,7 +42,6 @@ You can read this data into R using the following code:
 ```{r load_data, collapse=FALSE}
 # readRDS("https://raw.githubusercontent.com/Goodrich-Lab/multiomics_book/blob/main/data/simulate_Hg_ck18_screened_scaled_omics.RDS")
 ```
-
 
 
 ### Descriptive Statistics  

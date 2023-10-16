@@ -1,55 +1,35 @@
 # Load packages
 
-## ---- general_packages_loaded ----
-# General Packages
+## ---- packages_loaded ----
+# General Packages:
 library(tidyverse)
 library(tools)
 library(parallel)
-
-# Plotting Packages
-library(cowplot) # For combining figures
-library(ComplexHeatmap) # Additional Plotting Functions
-library(ggh4x) # For faceted plots
-library(colorspace)
-library(tidytext)
+library(boot) 
 library(table1)
 
-# Not loaded
-# library(fs)
-# library(here)
+# Plotting Packages:
+library(ggplot2)
+library(cowplot) 
+library(ComplexHeatmap) 
 
-
-## ---- hima_packages ----
-# For running High Dimensional Mediation Analysis:
-library(qvalue)
+# High Dimensional Mediation Packages:
 library(HIMA)
-# For group lasso in high dimensional mediation/intermediate integration:
 library(xtune)
-# Mediated effect for intermediate integration: 
-library(RMediation) # devtools::install_github("cran/RMediation")
-# Bootstrap confidence intervals: 
-library(boot) 
+library(RMediation)
 library(glmnet)
 
-
-## ---- med_lf_packages ----
-# Functions for JIVE 
+# Mediation with Latent Factors Packages:
 library(r.jive)
 
-
-## ---- lucid_packages ----
-# For running LUCID analysis:
+# Quasi-mediation Packages:
 library(LUCIDus)
-# Functions for LUCID in parallel:
 library(mclust)
-# For Plotting Sankey Diagrams:
 library(networkD3)
 library(plotly)
 library(htmlwidgets)
-library(glmnet)
 library(glasso)
 library(nnet)
-library(boot)
 library(progress)
 library(jsonlite)
 
