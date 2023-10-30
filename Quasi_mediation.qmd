@@ -12,7 +12,6 @@ First, we need to set up the project, and then we'll implement three LUCID diffe
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj,"libraries.R"))
 source(fs::path(dir_proj,"load_simu_data.R"))
-# source(fs::path(dir_proj,"functions", "load_functions.R"))
 source(fs::path(dir_proj,"functions", "lucid_reorder_plot_without_y.R"))
 source(fs::path(dir_proj,"functions", "plot_lucid_early.R"))
 source(fs::path(dir_proj,"functions", "LUCIDus", "dependency.R"))
