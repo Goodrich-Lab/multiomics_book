@@ -66,7 +66,7 @@ knitr::read_chunk("project_setup/functions/plot_lucid_in_serial.R")
 ```
 
 ### Intermediate Integration of omics datasets {#sec-code_plot_lucid_int}
-```{r plot_LUCID_in_parallel, eval=FALSE}
+```{r plot_LUCID_in_Parallel, eval=FALSE}
 ```
 
 ### Late Integration of omics datasets {#sec-code_plot_lucid_late}

@@ -1,7 +1,5 @@
 ## ---- plot_LUCID_in_Serial ----
-
-# Plot Lucid In Serial Function ------
-source(fs::path(dir_proj, "functions", "lucid_reorder_plot_without_y.R"))
+#' Plot Sankey Diagram for LUCID in late integration
 
 # Get sankey dataframe
 get_sankey_df <- function(x,
@@ -73,29 +71,10 @@ get_sankey_df <- function(x,
   
   sankey_df = list(links = links, 
                    nodes = nodes)
-  
-  # p <- sankeyNetwork(
-  #   Links = sankey_df$links, 
-  #   Nodes = sankey_df$nodes, 
-  #   Source = "IDsource", 
-  #   Target = "IDtarget",
-  #   Value = "value", 
-  #   NodeID = "name", 
-  #   colourScale = JS(sprintf("d3.scaleOrdinal()\n .domain(%s)\n .range(%s)\n ", 
-  #                            jsonlite::toJSON(color_scale$domain), 
-  #                            jsonlite::toJSON(color_scale$range))), 
-  #   LinkGroup = "group", 
-  #   NodeGroup = "group", 
-  #   sinksRight = FALSE, 
-  #   fontSize = fontsize)
-  # p
+
   return(sankey_df)
 }
 
-
-# lucid_fit1 <- fit1 
-# lucid_fit2 <- fit2 
-# lucid_fit3 <- fit3 
 
 # sankey_in_serial Function ----
 sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sankey, text_size = 15) {
