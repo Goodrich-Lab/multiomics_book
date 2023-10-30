@@ -1,8 +1,19 @@
 ## ---- plot_LUCID_in_Parallel ----
+#' Plot Sankey Diagram for LUCID in parallel
 
-
-# lucidus_fit <- fit
-# n_z_ftrs_to_plot <- c(7, 7, 7)
+#' @param lucidus_fit  an object of class from LUCID
+#' @param sankey_colors a matrix including colors for each item in related sankey diagram
+#' @param text_size  size of the text in sankey diagram
+#' @param n_z_ftrs_to_plot an vector with numbers of features to show 
+#' in the sankey diagram for each omic layer
+#' 
+#' @return a Sankey Diagram for LUCID in parallel
+#'
+#' @import dplyr
+#' @importFrom ggplot2 ggplot
+#' @importFrom purrr map
+#' @importFrom tidyr as_tibble
+#' @importFrom dplyr left_join
 
 plot_lucid_in_parallel_plotly<- function(lucidus_fit,
                                          sankey_colors,
