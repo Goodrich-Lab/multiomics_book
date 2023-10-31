@@ -64,7 +64,7 @@ fit1 <- estimate_lucid(lucid_model = "early",
 p1 <- sankey_early_integration(fit1, text_size = 20)
 ```
 
-![The Sankey Diagram for LUCID (Early Integration).](lucid_early.png){#fig-l_early}
+![The Sankey Diagram for LUCID (Early Integration).](figs_for_publication/lucid_early.png){#fig-l_early}
 
 ### Early Integration Results
 
@@ -150,7 +150,7 @@ p2 <- plot_lucid_in_parallel_plotly(fit_reordered,
 
 ```
 
-![The Sankey Diagram for LUCID in Parallel (Intermediate Integration).](lucid_intermediate.png){#fig-l_int}
+![The Sankey Diagram for LUCID in Parallel (Intermediate Integration).](figs_for_publication/lucid_intermediate.png){#fig-l_int}
 
 ### Omics profiles for each cluster predicted by LUCID
 The full code for the `plot_omics_profiles` function is provided in @sec-code_plot_omics_profiles
@@ -260,4 +260,4 @@ p3<- sankey_in_serial(fit1,
                  text_size = 24)
 ```
 
-![The Sankey Diagram for LUCID in Serial (Late Integration).](lucid_late.png){#fig-l_late}
+![The Sankey Diagram for LUCID in Serial (Late Integration).](figs_for_publication/lucid_late.png){#fig-l_late}

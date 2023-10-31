@@ -6,4 +6,4 @@ This book is intended as a resource for researchers aiming to incorporate omics 
 
 This book has three sections corresponding to each column shown in @fig-1. In [Chapter @sec-HIMA], we provide an example of high dimensional mediation with early, intermediate, and late integration, as shown in the first column of @fig-1. In [Chapter @sec-med_lf], we provide an example of mediation with latent factors, a two-step approach that first uses dimensionality reduction on the omics datasets and then performs mediation on the resulting factors, as shown in the second column of @fig-1. In [Chapter @sec-quasi], we provide an example of quasi/intermediate integration, an approach where information on environmental factors and information on multiple omic layers are analyzed jointly in a single unified analysis, as shown in column 3 of @fig-1. 
 
-![Conceptual diagram illustrating the analytic framework for mediation analysis with multiple omic layers.](Multiomic_Mediation_Framework.png){#fig-1}
+![Conceptual diagram illustrating the analytic framework for mediation analysis with multiple omic layers.](figs_for_publication/Multiomic_Mediation_Framework.png){#fig-1}
