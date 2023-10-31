@@ -1,15 +1,17 @@
 # Integrated/Quasi-Mediation {#sec-quasi}
 
+Set up the project for analysis.
 
-```{r lucid early integration setup, include = FALSE, echo = FALSE}
+```{r lucid early integration setup, include = TRUE, echo = TRUE,warning = FALSE,message = FALSE}
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj,"libraries.R"))
 source(fs::path(dir_proj,"load_simu_data.R"))
 source(fs::path(dir_proj,"functions", "lucid_reorder_plot_without_y.R"))
 source(fs::path(dir_proj,"functions", "plot_lucid_early.R"))
-source(fs::path(dir_proj,"functions", "LUCIDus", "dependency.R"))
 source(fs::path(dir_proj, "functions", "plot_omics_profiles.R"))
-
+#LUCIDus Version 3.0.1 is required for this analysis
+#LUCIDus Version 3.0.1 was submitted to CRAN for review on 10.30.2023
+library(LUCIDus)
 # For some reason, knitr version 1.42 is required in order to be compatible with htmlwidgets when rendering
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
                       fig.height= 15, fig.width= 12,collapse = TRUE)
@@ -54,10 +56,12 @@ fit1 <- estimate_lucid(lucid_model = "early",
                        useY = TRUE,
                        init_par = "random",
                        family = "normal")
+```
 
-# Sankey Diagram
+### Sankey Diagram
+
+```{r lucid early sankey, fig.height= 15, fig.width= 12,collapse = TRUE}
 p1 <- sankey_early_integration(fit1, text_size = 20)
-
 ```
 
 ![The Sankey Diagram for LUCID (Early Integration).](lucid_early.png){#fig-l_early}
@@ -91,7 +95,7 @@ We a-priori assigned the number of clusters for each omic layer to two. LUCID in
 
 Set up the project for analysis.
 
-```{r lucid in parallel setup, include = FALSE, echo = FALSE}
+```{r lucid in parallel setup, include = TRUE, echo = TRUE}
 source(fs::path(dir_fxn, "plot_lucid_in_parallel.R"))
 source(fs::path(dir_fxn, "LUCIDusM_get_pips.R"))
 source(fs::path(dir_fxn, "plot_lucid_networks.R"))
@@ -112,11 +116,11 @@ omics_lst_nmd_ftr = omics_lst
 # END NODE
 ```
 
-### Analysis: Lucid with 3 omics layers in parallel
+### Analysis: LUCID with 3 omics layers in parallel
 
 When using `estimate_lucid()` to fit LUCID in parallel model, we specify `lucid_model = "parallel"`, and `K` is a list with the same length as the number of omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer. `max_itr = 200` means that the algorithm will stop when the iterations reaches 200 if still not reaching convergence. We specify `useY = TRUE` to construct supervised LUCID model. `modelName` is a vector of strings specifies the geometric model of omics data, the default `modelName` is "VVV", but here "EEV" is more suitable.
 
-```{r lucid in parallel, echo=FALSE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE, fig.height= 15,fig.width= 12}
+```{r lucid in parallel, include = TRUE, echo=TRUE, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE, fig.height= 15,fig.width= 12}
 G = exposure %>% as.matrix()
 Z = omics_lst[c(1:3)]
 Y = outcome 
@@ -129,13 +133,13 @@ fit <- estimate_lucid(lucid_model = "parallel",
                       family = "normal", 
                       max_itr = 200, 
                       useY = TRUE, 
-                      modelName = "EEV")
+                      init_omic.data.model  = "EEV")
 
 # Reorder the clusters
-fit_reordered <- reorder_lucidM(fit, reference = c(2,2,2))
+fit_reordered <- reorder_lucid_parallel(fit, reference = c(2,2,2))
 ```
 
-### Sankey diagram
+### Sankey Diagram
 The full code for the `plot_lucid_in_parellel_plotly` function is provided in @sec-code_plot_lucid_int
 
 ```{r sankey diagram plotly lucid in parallel, message = FALSE, warning = FALSE,fig.height= 12, fig.width= 10}
@@ -172,9 +176,14 @@ lucid_pips <- lucid_pips %>%
 
 For late integration, LUCID in serial is implemented, which successively links multiple single omics LUCID models using the Early Integration LUCID model. Let $G$ be a $N \times P$ matrix with columns representing genetic/environmental exposures, and rows representing the observations; there is an ordered collection of $m$ omics data, denoted by $Z_1$, . . . , $Z_a$, . . . , $Z_m$ with corresponding dimensions $p_1$, . . . , $p_a$, . . . , $p_m$. Successive omics layers $Z_a$ are linked by using each observations' posterior inclusion probability (PIP) for latent clusters $X_a$ in the initial LUCID model to be the "exposure" variable for each successive model. The omics layers are ordered in a sequential fashion based on the biological relationships between omics layers. For the first model, an unsupervised Early Integration LUCID model using $G$ as the exposure and $Z_1$ as the omics layer. The PIPs of the non-reference clusters were extracted and used as the input for the exposure for the following unsupervised Early Integration LUCID model. This procedure is iterated until the last omics layer $Z_m$, for which a supervised Early Integration LUCID model is used to conduct integrated clustering while using PIPs from the previous LUCID model and information on the outcome $Y$.
 
-```{r lucid in serial setup, include = FALSE, echo = FALSE}
+Set up the project for analysis.
+
+```{r lucid in serial setup, include = TRUE, echo = TRUE}
 source(fs::path(dir_proj, "functions","plot_lucid_in_serial.R"))
 ```
+
+
+### Analysis: LUCID with 3 omics layers in serial
 
 When using `estimate_lucid()` to fit LUCID in serial model, we specify `lucid_model = "serial"`, and `K` is a list with the same length as the number of ordered omics layers and each element in the list is an integer representing number of latent clusters for the corresponding omics layer. `G`, `Z`, `Y` are the inputs for exposure, omics data matrix, and the outcome, respectively. Note that here Z is list of omics layers (vectors). `CoY` are the covariates to be adjusted for the $X$ to $Y$ association and `CoG` are the covariates to be adjusted for the $G$ to $X$ association. We specify `useY = TRUE` to construct supervised LUCID in serial model. We specify `family = "normal"` since the outcome is continuous. If the outcome is binary, we would specify `family = "binary"`. We specify `Rho_Z_Mu = 10` and `Rho_Z_Cov = .3` to use LASSO penalty to regularize cluster-specific means and variance for $Z$. We will get a selection of $Z$ features for each layer, and then we refit the LUCID in serial model with only selected $Z$ features to construct the final model.
 
