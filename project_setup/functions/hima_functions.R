@@ -327,11 +327,10 @@ hima_intermediate_integration <- function(exposure,
            pte = (indirect)/gamma, 
            sig = if_else(lcl>0|ucl<0, 1, 0))
   
-    # Filter to significant features only and scale % total effect to 100
+  # Filter to significant features only and scale % total effect to 100
   intermediate_int_res <- intermediate_int_res %>% 
     filter(sig == 1) %>%
     mutate(pte = 100*pte/sum(pte))
-  
   
   # Rename feature name
   intermediate_int_res <- intermediate_int_res %>% 
@@ -340,7 +339,13 @@ hima_intermediate_integration <- function(exposure,
                   beta = beta_bootstrap, 
                   `TE (%)` = pte)
   
-  return(intermediate_int_res)
+  # Return message if intermediate_int_res has zero rows
+  if(nrow(intermediate_int_res) == 0){
+    return(message("No significant features identified."))
+  } else {
+    return(intermediate_int_res)
+  } 
+  
 }
 
 
