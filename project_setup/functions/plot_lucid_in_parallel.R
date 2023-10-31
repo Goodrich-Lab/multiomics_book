@@ -28,19 +28,19 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
   if(!is.null(n_z_ftrs_to_plot)){
     top_ftrs <- vector("list", n_layers)
     for(i in seq_along(top_ftrs)){
-      top_ftrs[[i]] <- lucidus_fit$res_Mu_Sigma$Mu[[i]] %>%
+      top_ftrs[[i]] <- lucidus_fit$res_Mu[[i]] %>%
         as_tibble(rownames = "name") %>%
         # rownames_to_column("name") %>%
         mutate(effect_size = abs(V1) + abs(V2)) %>%
         arrange(desc(effect_size))
       top_ftr_nms <- top_ftrs[[i]]$name[1:n_z_ftrs_to_plot[i]]
-      lucidus_fit$res_Mu_Sigma$Mu[[i]] <- 
-        lucidus_fit$res_Mu_Sigma$Mu[[i]][
-          rownames(lucidus_fit$res_Mu_Sigma$Mu[[i]]) %in% top_ftr_nms, ]
+      lucidus_fit$res_Mu[[i]] <- 
+        lucidus_fit$res_Mu[[i]][
+          rownames(lucidus_fit$res_Mu[[i]]) %in% top_ftr_nms, ]
     }
   }
   
-  mu_lst <- purrr::map(lucidus_fit$res_Mu_Sigma$Mu, 
+  mu_lst <- purrr::map(lucidus_fit$res_Mu, 
                        ~as_tibble(.x, rownames = "name"))
   names(mu_lst) <- paste0("layer", c(1:n_layers))
   dimZ <- purrr::map(mu_lst, ncol) %>% as.numeric()-1
@@ -85,16 +85,16 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
     dplyr::select(source, target, value, color_group) %>%
     as.data.frame()
   
-  valueXtoZ <- c(lapply(lucidus_fit$res_Mu_Sigma$Mu, 
+  valueXtoZ <- c(lapply(lucidus_fit$res_Mu, 
                         function(x)x[, 1]) %>% 
                    unlist(), 
-                 lapply(lucidus_fit$res_Mu_Sigma$Mu, 
+                 lapply(lucidus_fit$res_Mu, 
                         function(x)x[, 2]) %>% 
                    unlist())
   
   valueXtoY <- c(rep(0, n_layers), 
                  # rep(lucidus_fit$res_Delta$Delta$mu[1] / n_layers, n_layers),
-                 lucidus_fit$res_Delta$Gamma$mu[-1])
+                 lucidus_fit$res_Gamma$Gamma$mu[-1])
   
   # n features in each layer
   XtoZ <- data.frame(source = c(rep("Cluster 1 (Layer 1)", n_features[1]),
@@ -106,7 +106,7 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
                                 rep("Cluster 2 (Layer 3)", n_features[3]) 
                                 # rep("Cluster 2 (Layer 4)", n_features[4])
   ), 
-  target = rep(c(lapply(lucidus_fit$res_Mu_Sigma$Mu,
+  target = rep(c(lapply(lucidus_fit$res_Mu,
                         rownames) %>% unlist()),
                K[1]), 
   value = abs(valueXtoZ), 
@@ -175,17 +175,17 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
   # Join links and nodes for color names -----
   links <- links %>%
     left_join(nodes %>% 
-                         dplyr::select(id, name), 
-                       by = c("source" = "name")) %>%
+                dplyr::select(id, name), 
+              by = c("source" = "name")) %>%
     rename(source_id = id) %>% 
     dplyr::select(source_id, everything()) %>%
     left_join(nodes %>% 
-                         dplyr::select(id, name), 
-                       by = c("target" = "name")) %>%
+                dplyr::select(id, name), 
+              by = c("target" = "name")) %>%
     rename(target_id = id) %>% 
     dplyr::select(source_id,source, target_id,everything()) 
   
-    
+  
   # Manually change colors ----
   links <- links  %>%
     mutate(
@@ -225,7 +225,7 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
              str_detect(name, "cg")|
                str_detect(name, "tc")|
                str_detect(name, "miR")| 
-             str_detect(name, "Outcome") ~ 2/3))
+               str_detect(name, "Outcome") ~ 2/3))
   
   (fig <- plot_ly(
     type = "sankey",
@@ -266,4 +266,5 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
   
   fig
 }
+
 

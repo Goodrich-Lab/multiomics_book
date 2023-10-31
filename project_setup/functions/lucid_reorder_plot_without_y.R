@@ -158,3 +158,47 @@ plot_lucid_without_outcome <- function(x,
 # # you can also re-name exposure names and the omic feature name
 # plot_lucid_without_outcome(fit,
 #            G_name = paste0("PFAS_", 1:10))
+
+
+# ----------- reorder LUCID in Parallel model by specifying reference cluster ------------
+# note: only works for K = 2 in each omic layer
+# reference = c(1,1,2)
+# lucidus_fit <- fit_reordered
+reorder_lucid_parallel <- function(lucidus_fit,
+                                   reference = NULL) {
+  if(is.null(reference)) {
+    warning("no reference specified, return the original model")
+    return(lucidus_fit)
+  }
+  
+  n_omic <- length(reference)
+  
+  # reorder beta
+  GtoX <- lucidus_fit$res_Beta$Beta
+  lucidus_fit$res_Beta$Beta <- lapply(1:n_omic, function(i) {
+    (-1)^(reference[i] - 1) * GtoX[[i]] # if reference = 1, no changes; 
+    # if reference = 2, flip the reference and negate the estimates
+  })
+  # reorder mu
+  XtoZ <- lucidus_fit$res_Mu
+  lucidus_fit$res_Mu <- lapply(1:n_omic, function(i) {
+    x <- c(1, 2) # order of clusters
+    if(reference[i] == 2) {
+      x <- c(2, 1)
+      XtoZ[[i]][, x]
+    } else{
+      XtoZ[[i]][, x]
+    }
+  }) 
+  # reorder gamma
+  XtoY <- lucidus_fit$res_Gamma$Gamma$mu
+  XtoY[1] <- XtoY[1] + sum(XtoY[-1] * (reference - 1)) # reference level using the new reference
+  XtoY[-1] <- (-1)^(reference - 1) * XtoY[-1] # if reference = 2, flip the estimates
+  lucidus_fit$res_Gamma$Gamma$mu <- XtoY
+  lucidus_fit$res_Gamma$fit$coefficients <- XtoY
+  
+  # return the object using the new reference
+  return(lucidus_fit)
+}
+
+

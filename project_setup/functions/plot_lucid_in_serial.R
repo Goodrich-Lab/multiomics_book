@@ -15,9 +15,9 @@ get_sankey_df <- function(x,
   pars <- x$pars
   dimG <- length(var.names$Gnames)
   dimZ <- length(var.names$Znames)
-  valueGtoX <- as.vector(t(x$pars$beta[, -1]))
-  valueXtoZ <- as.vector(t(x$pars$mu))
-  valueXtoY <- as.vector(x$pars$gamma$beta)[1:K]
+  valueGtoX <- as.vector(t(x$res_Beta[, -1]))
+  valueXtoZ <- as.vector(t(x$res_Mu))
+  valueXtoY <- as.vector(x$res_Gamma$beta)[1:K]
   
   # GtoX
   GtoX <- data.frame(
@@ -71,7 +71,22 @@ get_sankey_df <- function(x,
   
   sankey_df = list(links = links, 
                    nodes = nodes)
-
+  
+  # p <- sankeyNetwork(
+  #   Links = sankey_df$links, 
+  #   Nodes = sankey_df$nodes, 
+  #   Source = "IDsource", 
+  #   Target = "IDtarget",
+  #   Value = "value", 
+  #   NodeID = "name", 
+  #   colourScale = JS(sprintf("d3.scaleOrdinal()\n .domain(%s)\n .range(%s)\n ", 
+  #                            jsonlite::toJSON(color_scale$domain), 
+  #                            jsonlite::toJSON(color_scale$range))), 
+  #   LinkGroup = "group", 
+  #   NodeGroup = "group", 
+  #   sinksRight = FALSE, 
+  #   fontSize = fontsize)
+  # p
   return(sankey_df)
 }
 
@@ -241,9 +256,9 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   ### 5.1.1 Arrange by magnitude ----
   omics_priority <- links_all_1 %>% 
     filter(str_detect(source, "Profile 0"), 
-                    str_detect(target, "Profile 0", negate = TRUE), 
-                    str_detect(target, "Profile 1", negate = TRUE), 
-                    str_detect(target, "outcome", negate = TRUE)) %>%
+           str_detect(target, "Profile 0", negate = TRUE), 
+           str_detect(target, "Profile 1", negate = TRUE), 
+           str_detect(target, "outcome", negate = TRUE)) %>%
     group_by(source) %>%
     arrange(desc(group), desc(value), .by_group = TRUE) %>%
     mutate(omics_order = row_number()) %>%
@@ -291,14 +306,15 @@ sankey_in_serial <- function(lucid_fit1, lucid_fit2, lucid_fit3, color_pal_sanke
   nodes_new <- node_ids %>%
     dplyr::select(name) %>%
     left_join(bind_rows(nodes1_methylation_new, 
-                                 nodes2_miRNA_new,
-                                 nodes3_transcript_new))
+                        nodes2_miRNA_new,
+                        nodes3_transcript_new))
   # remove duplicates 
   nodes_new_nodup <- nodes_new[!base::duplicated(nodes_new),] %>%
     base::as.data.frame()
   
   
   # 6. Plotly Version ----
+  library(plotly)
   
   # Add color scheme to nodes
   nodes_new_plotly <- nodes_new_nodup %>% 

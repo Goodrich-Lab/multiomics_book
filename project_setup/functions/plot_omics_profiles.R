@@ -14,7 +14,7 @@
 
 plot_omics_profiles <- function(fit, integration_type) {
   if(integration_type == "Early"){
-    M_mean = as.data.frame(fit$pars$mu)
+    M_mean = as.data.frame(fit$res_Mu)
     M_mean$cluster = as.factor(1:2)
     # Reshape the data
     M_mean_melt <- M_mean %>% 
@@ -46,9 +46,9 @@ plot_omics_profiles <- function(fit, integration_type) {
             axis.line.y = element_line(color = "black"),) +
       scale_fill_manual(values = c("#2fa4da", "#A77E69", "#e7b6c1"))
   } else if(integration_type == "Intermediate"){
-    M_mean = as_tibble(fit$res_Mu_Sigma$Mu[[1]], rownames = "variable") %>%
-      bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[2]], rownames = "variable")) %>%
-      bind_rows(as_tibble(fit$res_Mu_Sigma$Mu[[3]], rownames = "variable"))
+    M_mean = as_tibble(fit$res_Mu[[1]], rownames = "variable") %>%
+      bind_rows(as_tibble(fit$res_Mu[[2]], rownames = "variable")) %>%
+      bind_rows(as_tibble(fit$res_Mu[[3]], rownames = "variable"))
     
     # Reorder results because mirna order is reversed
     M_mean1 <- M_mean %>% 

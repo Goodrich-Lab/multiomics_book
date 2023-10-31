@@ -25,12 +25,11 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
                             fontsize = 10) {
     K <- x$K
     var.names <- x$var.names
-    pars <- x$pars
     dimG <- length(var.names$Gnames)
     dimZ <- length(var.names$Znames)
-    valueGtoX <- as.vector(t(x$pars$beta[, -1]))
-    valueXtoZ <- as.vector(t(x$pars$mu))
-    valueXtoY <- as.vector(x$pars$gamma$beta)[1:K]
+    valueGtoX <- as.vector(t(x$res_Beta[, -1]))
+    valueXtoZ <- as.vector(t(x$res_Mu))
+    valueXtoY <- as.vector(x$res_Gamma$beta)[1:K]
     
     # GtoX
     GtoX <- data.frame(
