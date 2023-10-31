@@ -7,7 +7,6 @@ source(fs::path(dir_proj, "load_simu_data.R"))
 source(fs::path(dir_proj, "functions", "hima_functions.R"))
 source(fs::path(dir_proj, "functions", "plot_hima_function.R"))
 
-# options(knitr.table.format = "html")
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 

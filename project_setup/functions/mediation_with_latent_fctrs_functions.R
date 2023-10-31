@@ -307,7 +307,7 @@ med_lf_intermediate <- function(exposure,
            te_direction = if_else(beta < 0, 
                                   -1 * `% total effect`, 
                                   `% total effect`)) %>%
-    mutate(lf_named = str_replace(toTitleCase(lf_num), "_", " Comp. "),
+    mutate(lf_named = str_replace(str_to_title(lf_num), "_", " Comp. "),
            lf_ordered = forcats::fct_reorder(lf_named, `te_direction`)) %>%
     rename(Alpha = alpha, 
            Beta = beta,

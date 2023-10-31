@@ -1,7 +1,21 @@
 # Software {#sec-software}
 
+## *Installing R packages*
 
-## *R packages*
+```{r read_libraries, include=FALSE}
+source(fs::path(here::here(),"project_setup","directories.R"))
+knitr::read_chunk("project_setup/libraries.R")
+```
+
+The following code will download all the packages needed to run the analyses in this book.
+```{r install_packages, message = FALSE, warning=FALSE, collapse=FALSE}
+#| code-fold: show
+```
+
+
+## *R development environment*
+
+The following table lists the package versions and corresponding repository of all the R packages that were used to develop the code in this book. 
 
 \renewcommand{\arraystretch}{0.8} <!-- decrease line spacing for the table -->
 ```{r packages, echo=FALSE, message=FALSE, warning=FALSE, fig.align="center", out.width='100%', results='asis'}
@@ -11,7 +25,6 @@ source(fs::path(dir_proj,"libraries.R"))
 
 # get session info
 df_packages <- devtools::session_info()$packages %>% 
-  # unlist(.) %>% 
   as.data.frame(.) %>% 
   remove_rownames(.) %>% 
   mutate(attached = if_else(attached == TRUE, "Attached", "Loaded")) %>%
