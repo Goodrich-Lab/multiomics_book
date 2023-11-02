@@ -4,8 +4,9 @@
 source(fs::path(here::here(),"project_setup","directories.R"))
 source(fs::path(dir_proj,"libraries.R"))
 source(fs::path(dir_proj, "load_simu_data.R"))
-source(fs::path(dir_proj, "functions", "hima_functions.R"))
-source(fs::path(dir_proj, "functions", "plot_hima_function.R"))
+# source(fs::path(dir_proj, "functions", "hima_functions.R"))
+# source(fs::path(dir_proj, "functions", "plot_hima_function.R"))
+library(EnvirOmix)
 
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
@@ -19,14 +20,15 @@ High dimensional mediation with early multiomic integration (@fig-1, panel a) id
 #| fig-cap: "High dimensional mediation analysis with early integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
 
 # Run Analysis
-result_hima_early <- hima_early_integration(exposure = exposure,
-                                            outcome = outcome, 
-                                            omics_lst = omics_lst, 
-                                            covs = covs,
-                                            Y.family = "gaussian", 
-                                            M.family = "gaussian")
+result_hima_early <- hidimum(exposure = exposure,
+                             outcome = outcome, 
+                             omics_lst = omics_lst, 
+                             covs = covs,
+                             Y.family = "gaussian", 
+                             M.family = "gaussian", 
+                             integration = "early")
 # Plot Result
-(plot_hima(result_hima_early))
+(plot_hidimum(result_hima_early))
 ```
 
 \newpage   
@@ -80,20 +82,21 @@ The full code for the `hima_intermediate_integration` function is provided in @s
 
 ```{r 2. intermediate integration analysis, cache=TRUE, message=FALSE, results='hide'}
 # Run Analysis
-result_hima_intermediate <- hima_intermediate_integration(
+result_hima_intermediate <- hidimum(
   omics_lst = omics_lst,
   covs = covs,
   outcome = outcome,
   exposure = exposure,
   n_boot = 12,
-  Y.family = "gaussian")
+  Y.family = "gaussian", 
+  integration = "intermediate")
 ```
 
 ```{r 2. plot for hima int,fig.height= 5, fig.width= 6}
 #| label: fig-hima_int
 #| fig-cap: "High dimensional mediation analysis with intermediate integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
 # plot
-(plot_hima(result_hima_intermediate))
+(plot_hidimum(result_hima_intermediate))
 ```
 
 \newpage   
@@ -110,14 +113,15 @@ Combining all omics layers before analysis identifies the strongest mediating fe
 #| fig-cap: "High dimensional mediation analysis with late integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
 #| 
 # Run Analysis
-result_hima_late <- hima_late_integration(exposure = exposure,
-                                          outcome = outcome, 
-                                          omics_lst = omics_lst, 
-                                          covs = covs, 
-                                          Y.family = "gaussian", 
-                                          M.family = "gaussian")
+result_hima_late <- hidimum(exposure = exposure,
+                            outcome = outcome, 
+                            omics_lst = omics_lst, 
+                            covs = covs, 
+                            Y.family = "gaussian", 
+                            M.family = "gaussian", 
+                            integration = "late")
 
 # plot
-(plot_hima(result_hima_late))
+(plot_hidimum(result_hima_late))
 ```
 
