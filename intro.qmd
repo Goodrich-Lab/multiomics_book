@@ -2,15 +2,13 @@
 
 ## R Packages
 
-Before starting, you will need the following R packages. 
-
 ```{r read_libraries, include=FALSE}
 source(fs::path(here::here(),"project_setup","directories.R"))
 knitr::read_chunk("project_setup/libraries.R")
 ```
 
-The following is a list of packages that are used throughout this book that need to be loaded before any analysis. A complete list of all the packages used in the book can be found in [Chapter @sec-software].
-```{r packages_loaded, message = FALSE, warning=FALSE, collapse=FALSE}
+The following is a list of packages that are used throughout this book that need to be loaded before any analysis. A complete list of all the packages used in the book, as well as code to download these packages, can be found in [Chapter @sec-software].
+```{r load_packages, message = FALSE, warning=FALSE, collapse=FALSE}
 #| code-fold: show
 ```
 
@@ -110,7 +108,7 @@ annotation <- data.frame(
   ftr_name = colnames(cormat),
   index = 1:ncol(cormat)) %>%
   left_join(meta_df, by = "ftr_name") %>%
-  mutate(omic_layer = toTitleCase(omic_layer))
+  mutate(omic_layer = str_to_title(omic_layer))
 
 # Make Plot
 Heatmap(cormat, 
