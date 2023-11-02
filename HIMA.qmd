@@ -17,7 +17,7 @@ High dimensional mediation with early multiomic integration (@fig-1, panel a) id
 
 ```{r 1. early integration, fig.height= 5, fig.width= 6}
 #| label: fig-hima_early
-#| fig-cap: "High dimensional mediation analysis with early integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
+#| fig-cap: "High dimensional mediation analysis with early integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TME (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
 
 # Run Analysis
 result_hima_early <- hidimum(exposure = exposure,
@@ -94,7 +94,7 @@ result_hima_intermediate <- hidimum(
 
 ```{r 2. plot for hima int,fig.height= 5, fig.width= 6}
 #| label: fig-hima_int
-#| fig-cap: "High dimensional mediation analysis with intermediate integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
+#| fig-cap: "High dimensional mediation analysis with intermediate integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TME (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
 # plot
 (plot_hidimum(result_hima_intermediate))
 ```
@@ -110,7 +110,7 @@ Combining all omics layers before analysis identifies the strongest mediating fe
 
 ```{r 3. late integration analysis,fig.height= 5, fig.width= 6}
 #| label: fig-hima_late
-#| fig-cap: "High dimensional mediation analysis with late integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
+#| fig-cap: "High dimensional mediation analysis with late integration and multiple omic layers identifies individual molecular features linking maternal mercury with childhood liver injury. Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TME (%) represents the percent total effect mediated calculated as alpha*beta/gamma." 
 #| 
 # Run Analysis
 result_hima_late <- hidimum(exposure = exposure,

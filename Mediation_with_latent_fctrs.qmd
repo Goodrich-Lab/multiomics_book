@@ -36,7 +36,7 @@ result_med_with_latent_fctrs_early <-
 ### Plot Early Integration
 ```{r 1b. plot early integration, message=FALSE}
 #| label: fig-lf_early
-#| fig-cap: "Mediation analysis with latent factors and early integration identifies joing components which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint component." 
+#| fig-cap: "Mediation analysis with latent factors and early integration identifies joing components which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TME (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint component." 
 #| fig-width: 4
 #| fig-height: 7
 
@@ -74,7 +74,7 @@ result_med_with_latent_fctrs_JIVE <-
 
 ```{r plot JIVE mediation,message = FALSE, warning = FALSE}
 #| label: fig-lf_intermediate
-#| fig-cap: "Mediation analysis with latent factors and intermediate integration identifies joint and individual variance componets which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint and individual components." 
+#| fig-cap: "Mediation analysis with latent factors and intermediate integration identifies joint and individual variance componets which mediate the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TME (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and the joint and individual components." 
 #| fig-width: 4
 #| fig-height: 7.2
 
@@ -101,7 +101,7 @@ result_med_with_latent_fctrs_late <- lafamum(exposure,
 ### Plot Late Integration
 ```{r plot pca late integration, message = FALSE, warning = FALSE}
 #| label: fig-lf_late
-#| fig-cap: "Mediation analysis with latent factors and late integration identifies features in each omics layer individually which mediates the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TE (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and components." 
+#| fig-cap: "Mediation analysis with latent factors and late integration identifies features in each omics layer individually which mediates the association between maternal mercury and childhood liver injury. Panel A shows the mediation effects, where Alpha represents the coefficient estimates of the exposure to the mediator, Beta indicates the coefficient estimates of the mediators to the outcome, and TME (%) represents the percent total effect mediated calculated as alpha*beta/gamma. Panel B shows the individual correlation between the omic feature and components." 
 #| fig-width: 4
 #| fig-height: 7
 
