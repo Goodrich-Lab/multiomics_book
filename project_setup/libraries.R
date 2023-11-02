@@ -1,4 +1,17 @@
 ## ---- install_packages ----
+
+# Check if devtools, EpiOmix and LUCIDus are installed, and if not, install them
+if(!requireNamespace("devtools")) install.packages("devtools")
+if(!requireNamespace("LUCIDus")) install.packages("LUCIDus")
+if(!requireNamespace("EnvirOmix")){
+  devtools::install_github("Goodrich-Lab/EnvirOmix")
+}
+
+
+
+
+
+
 # List all CRAN packages used in this book:
 cran_packages <- c("tidyverse",
                    "tools",
@@ -44,30 +57,30 @@ for(package_name in bioconductor_packages){
 
 ## ---- load_packages ----
 
-# General Packages:
-library(tidyverse) 
-# library(tools) 
-library(parallel) 
-library(boot)  
-library(table1) 
-# Load plotting packages:
-library(ggplot2)
-library(cowplot) 
-library(ComplexHeatmap) 
-library(ggh4x)
-# Packages for High Dimensional Mediation:
-library(HIMA)
-library(xtune)
-library(RMediation)
-library(glmnet)
-# Packages for Mediation with Latent Factors:
-library(r.jive)
-# Packages for Quasi-mediation:
-library(LUCIDus)
-library(networkD3)
-library(plotly)
-library(htmlwidgets)
-library(jsonlite)
+# # General Packages:
+# library(tidyverse) 
+# # library(tools) 
+# library(parallel) 
+# library(boot)  
+# library(table1) 
+# # Load plotting packages:
+# library(ggplot2)
+# library(cowplot) 
+# library(ComplexHeatmap) 
+# library(ggh4x)
+# # Packages for High Dimensional Mediation:
+# library(HIMA)
+# library(xtune)
+# library(RMediation)
+# library(glmnet)
+# # Packages for Mediation with Latent Factors:
+# library(r.jive)
+# # Packages for Quasi-mediation:
+# library(LUCIDus)
+# library(networkD3)
+# library(plotly)
+# library(htmlwidgets)
+# library(jsonlite)
 
 ## ---- set_theme ----
 ggplot2::theme_set(cowplot::theme_cowplot())
