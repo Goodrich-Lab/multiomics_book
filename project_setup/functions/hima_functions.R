@@ -104,7 +104,7 @@ hima_early_integration <- function(exposure,
 #' lcl, ucl, gamma, pte_intermediate, sig_intermediate
 #' 
 #' @examples
-#' calculate_mediation(omics = list(omics_1, omics_2),
+#' hima_intermediate_integration(omics = list(omics_1, omics_2),
 #'                     covs = covariate_data, 
 #'                     outcome = outcome_data, 
 #'                     exposure = exposure_data. 
