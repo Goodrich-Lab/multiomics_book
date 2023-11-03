@@ -2,9 +2,9 @@ project:
   type: book
 
 book:
-  title: "Precision Health with Multi-Omics and Environmental Data: A Prime"
-  author: "Goodrich JA, Wang H, Jia Q, and Conti D."
-  date: "8/20/2023"
+  title: "Precision Health with Multi-Omics and Environmental Data: A Primer"
+  author: "Jesse A. Goodrich, Hongxu Wang, Qiran Jia, & David Conti"
+  date: "11/02/2023"
   chapters:
     - index.qmd
     - intro.qmd
