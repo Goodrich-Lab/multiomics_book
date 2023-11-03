@@ -2,8 +2,8 @@ project:
   type: book
 
 book:
-  title: "Supplemental Materials: Integrating Multi-Omics with Environmental data for Precision Health"
-  author: "Goodrich JA, Wang H, Jia Q, et. al"
+  title: "Precision Health with Multi-Omics and Environmental Data: A Prime"
+  author: "Goodrich JA, Wang H, Jia Q, and Conti D."
   date: "8/20/2023"
   chapters:
     - index.qmd

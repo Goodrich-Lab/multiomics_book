@@ -1,17 +1,16 @@
 # Supplemental Code {#sec-code}
 
-## High Dimensional Mediation Analysis Code
+## Code for plotting Integrated/Quasi Mediation Analysis Results
 
-
-## Mediation with Latent Factors Analysis Code
-
-## Integrated/Quasi Mediation Analysis Code
+The following code is provided as an example of how to plot the results of 
+the integrated/quasi-mediation analysis. Since the results of these models depend critically upon the structure of the data used for the models, these functions may require alterations to obtain informative figures when analyzing other datasets. 
 
 ```{r read-in_quasi_mediation, include=FALSE}
 knitr::read_chunk("project_setup/functions/plot_omics_profiles.R")
 knitr::read_chunk("project_setup/functions/plot_lucid_early.R")
 knitr::read_chunk("project_setup/functions/plot_lucid_in_parallel.R")
 knitr::read_chunk("project_setup/functions/plot_lucid_in_serial.R")
+knitr::read_chunk("project_setup/functions/lucid_reorder_plot_without_y.R")
 ```
 
 ### Early Integration of omics datasets {#sec-code_plot_lucid_early}
@@ -30,3 +29,6 @@ knitr::read_chunk("project_setup/functions/plot_lucid_in_serial.R")
 ```{r plot_Omics_Profiles, eval=FALSE}
 ```
 
+### Change the Reference Cluster for Different LUCID Models
+```{r reorder clusters from LUCID, eval=FALSE}
+```

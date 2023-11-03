@@ -1,6 +1,6 @@
 
 
-#---------------------------- 1. reorder cluster estimated from LUCID ------------------
+#----- reorder clusters from LUCID ------------------
 #' reorder cluster estimated from LUCID
 #'
 #' @param model a model returned the function lucid
@@ -58,8 +58,7 @@ reorder_lucid <- function(model,
 # the exposure effect should be around 1/2
 
 
-#---------------------------- 2. change variable name in the sankey diagram ------------------
-
+#' 2. change variable name in the sankey diagram ------------------
 #' @title Visualize LUCID model through a Sankey diagram
 #' @description In the Sankey diagram, each node either represents a variable (exposure,
 #' omics or outcome) or a latent cluster. Each line represents an association. The
@@ -160,7 +159,7 @@ plot_lucid_without_outcome <- function(x,
 #            G_name = paste0("PFAS_", 1:10))
 
 
-# ----------- reorder LUCID in Parallel model by specifying reference cluster ------------
+#' reorder LUCID in Parallel model by specifying reference cluster ------------
 # note: only works for K = 2 in each omic layer
 # reference = c(1,1,2)
 # lucidus_fit <- fit_reordered

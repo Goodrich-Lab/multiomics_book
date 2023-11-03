@@ -4,15 +4,28 @@
 #' Given an object of class from LUCID
 #'
 #' @param fit an object of class from LUCID
-#' @param integration_type type of integreation,, "Early" or "Intermediate"
+#' @param integration_type type of integration, "Early" or "Intermediate"
 #'
 #' @return a figure of Omics profiles for each cluster using LUCID
 #'
 #' @import dplyr
 #' @importFrom ggplot2 ggplot
-
-
-plot_omics_profiles <- function(fit, integration_type) {
+#' 
+plot_omics_profiles <- function(fit, integration_type, omics_lst_data) {
+  
+  # Combines omics data into one dataframe
+  omics_lst_df <- purrr::map(omics_lst_data, ~tibble::as_tibble(.x, rownames = "name"))
+  
+  # Get metadata file
+  meta_df <- imap_dfr(omics_lst_df,
+                      ~tibble(omic_layer = .y, ftr_name = names(.x))) |>
+    filter(ftr_name != "name") |>
+    mutate(omic_num = case_when(str_detect(omic_layer, "meth") ~ 1,
+                                str_detect(omic_layer, "transc") ~ 2,
+                                str_detect(omic_layer, "miR") ~ 3,
+                                str_detect(omic_layer, "pro") ~ 4,
+                                str_detect(omic_layer, "met") ~ 5))
+  
   if(integration_type == "Early"){
     M_mean = as.data.frame(fit$res_Mu)
     M_mean$cluster = as.factor(1:2)

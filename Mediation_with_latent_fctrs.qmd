@@ -2,14 +2,17 @@
 
 We define mediation with latent factors as a two step approach, in which we first perform dimensionality reduction on the omics data and then use the factors/clusters as latent mediator for the mediation analysis between the exposure and the outcome. 
 
-## Set up project for Mediation Analysis with Latent factors 
-```{r set up data, include = TRUE, echo = TRUE, message=FALSE, warning=FALSE}
-source(fs::path(here::here(),"project_setup","directories.R"))
-source(fs::path(dir_proj, "libraries.R"))
-source(fs::path(dir_proj, "load_simu_data.R"))
-library(EnvirOmix)
+## Load data and packages for Mediation Analysis with Latent factors 
 
-# options(knitr.table.format = "html")
+Before starting, load the data and packages using the following code. 
+
+```{r 0. setup, include = FALSE, echo = FALSE, message=FALSE, warning=FALSE}
+source(fs::path(here::here(),"project_setup","directories.R"))
+source(fs::path(dir_proj,"libraries.R"))
+knitr::read_chunk("project_setup/load_simu_data.R")
+```
+
+```{r load_data, message = FALSE, warning=FALSE, collapse=FALSE}
 ```
 
 
