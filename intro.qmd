@@ -17,11 +17,6 @@ In order to replicate the style of the figures in this book, you will also have 
 #| code-fold: show
 ```
 
-
-## Custom Functions   
-
-The analyses in this book rely on several custom functions. The code for  functions are provided in [Chapter @sec-code]. 
-
 \newpage   
 
 ## The Data
@@ -35,10 +30,9 @@ The data used in this project is based off of simulated data from the Human Earl
 -  **Exposure**: *hs_hg_m_resid*, representing maternal mercury levels\
 -  **Outcome**: *ck18_scaled*, representing child liver enzyme levels, a major risk factor for non-alcoholic fatty liver disease (NAFLD).  
 
-You can read this data into R using the following code:  
+This data is provided in the EnvirOmics package, which you can access in R using the following code:  
 
-```{r load_data, collapse=FALSE}
-# readRDS("https://raw.githubusercontent.com/Goodrich-Lab/multiomics_book/blob/main/data/simulate_Hg_ck18_screened_scaled_omics.RDS")
+```{r load_data, collapse=FALSE} 
 ```
 
 

@@ -49,7 +49,7 @@ get_sankey_df <- function(x,
     group = as.factor(c(rep("exposure", 
                             dimG), rep("lc", K), rep("biomarker", dimZ), "outcome")))
   
-  ## the following two lines were used to exclude covars from the plot #HW added
+  ## the following two lines were used to exclude covars from the plot 
   links <- links %>% filter(!grepl("cohort", source) & 
                               !grepl("age", source) & 
                               !grepl("fish", source) &

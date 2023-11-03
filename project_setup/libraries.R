@@ -1,16 +1,9 @@
 ## ---- install_packages ----
-
-# Check if devtools, EpiOmix and LUCIDus are installed, and if not, install them
-if(!requireNamespace("devtools")) install.packages("devtools")
-if(!requireNamespace("LUCIDus")) install.packages("LUCIDus")
-if(!requireNamespace("EnvirOmix")){
+# Download EnvirOmix package if not already installed:
+if(!requireNamespace("EnvirOmix", quietly = TRUE)){
+  if(!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
   devtools::install_github("Goodrich-Lab/EnvirOmix")
 }
-
-
-
-
-
 
 # List all CRAN packages used in this book:
 cran_packages <- c("tidyverse",
@@ -22,17 +15,11 @@ cran_packages <- c("tidyverse",
                    "ggplot2",
                    "cowplot",
                    "ggh4x",
-                   "HIMA",
-                   "xtune",
-                   "RMediation",
-                   "glmnet",
-                   "r.jive",
                    "LUCIDus",
                    "networkD3",
                    "plotly",
                    "htmlwidgets",
                    "jsonlite")
-
 
 # Install cran packages if not already installed:
 for(package_name in cran_packages){
@@ -45,7 +32,6 @@ for(package_name in cran_packages){
 bioconductor_packages <- c("BiocGenerics", 
                            "ComplexHeatmap", 
                            "IRanges",
-                           "qvalue", 
                            "S4Vectors")
 
 # Install bioconductor packages if not already installed:
@@ -56,31 +42,22 @@ for(package_name in bioconductor_packages){
 }
 
 ## ---- load_packages ----
-
-# # General Packages:
-# library(tidyverse) 
-# # library(tools) 
-# library(parallel) 
-# library(boot)  
-# library(table1) 
-# # Load plotting packages:
-# library(ggplot2)
-# library(cowplot) 
-# library(ComplexHeatmap) 
-# library(ggh4x)
-# # Packages for High Dimensional Mediation:
-# library(HIMA)
-# library(xtune)
-# library(RMediation)
-# library(glmnet)
-# # Packages for Mediation with Latent Factors:
-# library(r.jive)
-# # Packages for Quasi-mediation:
-# library(LUCIDus)
-# library(networkD3)
-# library(plotly)
-# library(htmlwidgets)
-# library(jsonlite)
+# General Packages:
+library(EnvirOmix)
+library(tidyverse)
+library(table1)
+# Load plotting packages:
+library(ggplot2)
+library(cowplot)
+library(ComplexHeatmap)
+library(ggh4x)
+# Packages for Quasi-mediation:
+#LUCIDus Version 3.0.1 is required for this analysis:
+library(LUCIDus)
+library(networkD3)
+library(plotly)
+library(htmlwidgets)
+library(jsonlite)
 
 ## ---- set_theme ----
 ggplot2::theme_set(cowplot::theme_cowplot())

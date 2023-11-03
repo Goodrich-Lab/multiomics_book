@@ -1,6 +1,5 @@
 ## ---- plot_LUCID_in_Parallel ----
 #' Plot Sankey Diagram for LUCID in parallel
-
 #' @param lucidus_fit  an object of class from LUCID
 #' @param sankey_colors a matrix including colors for each item in related sankey diagram
 #' @param text_size  size of the text in sankey diagram
@@ -14,7 +13,6 @@
 #' @importFrom purrr map
 #' @importFrom tidyr as_tibble
 #' @importFrom dplyr left_join
-
 plot_lucid_in_parallel_plotly<- function(lucidus_fit,
                                          sankey_colors,
                                          text_size = 10, 
@@ -29,8 +27,8 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
     top_ftrs <- vector("list", n_layers)
     for(i in seq_along(top_ftrs)){
       top_ftrs[[i]] <- lucidus_fit$res_Mu[[i]] %>%
-        as_tibble(rownames = "name") %>%
-        # rownames_to_column("name") %>%
+        as.data.frame() %>%
+        rownames_to_column("name") %>%
         mutate(effect_size = abs(V1) + abs(V2)) %>%
         arrange(desc(effect_size))
       top_ftr_nms <- top_ftrs[[i]]$name[1:n_z_ftrs_to_plot[i]]
@@ -41,7 +39,8 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
   }
   
   mu_lst <- purrr::map(lucidus_fit$res_Mu, 
-                       ~as_tibble(.x, rownames = "name"))
+                       ~as.data.frame(.x) %>%
+                         rownames_to_column("name"))
   names(mu_lst) <- paste0("layer", c(1:n_layers))
   dimZ <- purrr::map(mu_lst, ncol) %>% as.numeric()-1
   n_features <- purrr::map(mu_lst, nrow) %>% as.numeric()
@@ -268,3 +267,28 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
 }
 
 
+
+# Set Color Palettes 
+col_pal <- RColorBrewer::brewer.pal(n = 8, name = "Dark2")
+
+# Set Sankey Colors ----
+# Color pallet for sankey diagrams
+sankey_colors <- matrix(c("exposure", col_pal[6],
+                          "lc1",      col_pal[1],
+                          "lc2",      col_pal[2],
+                          "lc3",      col_pal[3],
+                          "lc4",      col_pal[4],
+                          "layer1",   col_pal[1],
+                          "layer2",   col_pal[2],
+                          "layer3",   col_pal[3],
+                          "layer4",   col_pal[4],
+                          "Outcome",  col_pal[8],
+                          "TRUE",     "#6372e0", # Blue
+                          "FALSE",    "#d1d4ff", # Light grey
+                          "pos_clus_to_out", "red", 
+                          "neg_clus_to_out", "#e4e5f2"), 
+                        byrow = TRUE, nrow = 14)
+
+# Change to dataframe
+colnames(sankey_colors) <- c("domain", "range")
+sankey_colors <- as.data.frame(sankey_colors)
