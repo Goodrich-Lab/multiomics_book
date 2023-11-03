@@ -1,7 +1,8 @@
 ## ---- plot_LUCID_in_Parallel ----
 #' Plot Sankey Diagram for LUCID in parallel
 #' @param lucidus_fit  an object of class from LUCID
-#' @param sankey_colors a matrix including colors for each item in related sankey diagram
+#' @param sankey_colors a matrix including colors for 
+#' each item in related sankey diagram
 #' @param text_size  size of the text in sankey diagram
 #' @param n_z_ftrs_to_plot an vector with numbers of features to show 
 #' in the sankey diagram for each omic layer
@@ -50,7 +51,9 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
     rowwise() %>%
     mutate(sum = sum(abs(V1)+abs(V2)), 
            pos_c2 = if_else(V2>0, "pos", "neg")) %>%
-    group_by(color_group, pos_c2) %>% arrange(-sum, .by_group = TRUE) %>% ungroup() %>% 
+    group_by(color_group, pos_c2) %>% 
+    arrange(-sum, .by_group = TRUE) %>% 
+    ungroup() %>% 
     mutate(rnum = row_number()) %>%
     group_by(name) %>% slice_head() %>% ungroup() %>%
     arrange(color_group, rnum) %>%
@@ -141,9 +144,11 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
         str_detect(source, "Layer 2") ~ "lc2", 
         str_detect(source, "Layer 3") ~ "lc3", 
         str_detect(source, "Layer 4") ~ "lc4",
-        # source == "Outcome" ~ str_sub(target, start = -3, end = -2),  # removed when moving outcome to right
+        # removed when moving outcome to right:
+        # source == "Outcome" ~ str_sub(target, start = -3, end = -2),  
         TRUE ~ "exposure"), 
-      # Source group_ for color (one of: exposure, : lc1-lc4 (for omics layers), outcome, or other 
+      # Source group_ for color (one of: exposure, : 
+      # lc1-lc4 (for omics layers), outcome, or other 
       color_group_node = if_else(source == "Outcome", 
                                  "Outcome", 
                                  source_layer)) %>%
@@ -208,23 +213,24 @@ plot_lucid_in_parallel_plotly<- function(lucidus_fit,
   
   ## change node names
   nodes <- nodes %>%
-    mutate(name = case_when(name == "value" ~ "<b>Hg</b>",
-                            name == "Cluster 1 (Layer 1)" ~ "<b>Methylation\nProfile 0</b>",
-                            name == "Cluster 2 (Layer 1)" ~ "<b>Methylation\nProfile 1</b>",
-                            name == "Cluster 1 (Layer 2)" ~ "<b>Transcriptome\nProfile 0</b>",
-                            name == "Cluster 2 (Layer 2)" ~ "<b>Transcriptome\nProfile 1</b>",
-                            name == "Cluster 1 (Layer 3)" ~ "<b>miRNA\nProfile 0</b>",
-                            name == "Cluster 2 (Layer 3)" ~ "<b>miRNA\nProfile 1</b>",
-                            TRUE ~ name),
-           x = case_when(
-             name == "Hg" ~ 0,
-             str_detect(name, "Methylation") |
-               str_detect(name, "Transcript") | 
-               str_detect(name, "miRNA") ~ 1/3, 
-             str_detect(name, "cg")|
-               str_detect(name, "tc")|
-               str_detect(name, "miR")| 
-               str_detect(name, "Outcome") ~ 2/3))
+    mutate(name = case_when(
+      name == "value" ~ "<b>Hg</b>",
+      name == "Cluster 1 (Layer 1)" ~ "<b>Methylation\nProfile 0</b>",
+      name == "Cluster 2 (Layer 1)" ~ "<b>Methylation\nProfile 1</b>",
+      name == "Cluster 1 (Layer 2)" ~ "<b>Transcriptome\nProfile 0</b>",
+      name == "Cluster 2 (Layer 2)" ~ "<b>Transcriptome\nProfile 1</b>",
+      name == "Cluster 1 (Layer 3)" ~ "<b>miRNA\nProfile 0</b>",
+      name == "Cluster 2 (Layer 3)" ~ "<b>miRNA\nProfile 1</b>",
+      TRUE ~ name),
+      x = case_when(
+        name == "Hg" ~ 0,
+        str_detect(name, "Methylation") |
+          str_detect(name, "Transcript") | 
+          str_detect(name, "miRNA") ~ 1/3, 
+        str_detect(name, "cg")|
+          str_detect(name, "tc")|
+          str_detect(name, "miR")| 
+          str_detect(name, "Outcome") ~ 2/3))
   
   (fig <- plot_ly(
     type = "sankey",

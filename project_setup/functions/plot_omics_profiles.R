@@ -14,7 +14,8 @@
 plot_omics_profiles <- function(fit, integration_type, omics_lst_data) {
   
   # Combines omics data into one dataframe
-  omics_lst_df <- purrr::map(omics_lst_data, ~tibble::as_tibble(.x, rownames = "name"))
+  omics_lst_df <- purrr::map(omics_lst_data, 
+                             ~tibble::as_tibble(.x, rownames = "name"))
   
   # Get metadata file
   meta_df <- imap_dfr(omics_lst_df,

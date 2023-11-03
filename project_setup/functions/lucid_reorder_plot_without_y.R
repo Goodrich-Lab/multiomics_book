@@ -80,14 +80,14 @@ reorder_lucid <- function(model,
 #' 
 
 plot_lucid_without_outcome <- function(x,
-                       G_color = "dimgray",
-                       X_color = "#eb8c30",
-                       Z_color = "#2fa4da",
-                       G_name = NULL,
-                       Z_name = NULL,
-                       pos_link_color = "#67928b",
-                       neg_link_color = "#d1e5eb",
-                       fontsize = 7
+                                       G_color = "dimgray",
+                                       X_color = "#eb8c30",
+                                       Z_color = "#2fa4da",
+                                       G_name = NULL,
+                                       Z_name = NULL,
+                                       pos_link_color = "#67928b",
+                                       neg_link_color = "#d1e5eb",
+                                       fontsize = 7
 ) {
   K <- x$K
   var.names <- x$var.names
@@ -100,17 +100,21 @@ plot_lucid_without_outcome <- function(x,
   if(is.null(G_name)) {
     G_name = x$var.names$Gnames
   }
-  GtoX <- data.frame(source = rep(G_name, K),
-                     target = paste0("Latent Cluster", as.vector(sapply(1:K, function(x) rep(x, dimG)))),
-                     value = abs(valueGtoX),
-                     group = as.factor(valueGtoX > 0))
+  GtoX <- data.frame(
+    source = rep(G_name, K),
+    target = paste0("Latent Cluster", 
+                    as.vector(sapply(1:K, function(x) rep(x, dimG)))),
+    value = abs(valueGtoX),
+    group = as.factor(valueGtoX > 0))
   if(is.null(Z_name)) {
     Z_name = var.names$Znames
   }
-  XtoZ <- data.frame(source = paste0("Latent Cluster", as.vector(sapply(1:K, function(x) rep(x, dimZ)))),
-                     target = rep(Z_name, K),
-                     value = abs(valueXtoZ),
-                     group = as.factor(valueXtoZ > 0))
+  XtoZ <- data.frame(
+    source = paste0("Latent Cluster", 
+                    as.vector(sapply(1:K, function(x) rep(x, dimZ)))),
+    target = rep(Z_name, K),
+    value = abs(valueXtoZ),
+    group = as.factor(valueXtoZ > 0))
   # if(is.null(Y_name)) {
   #   Y_name = var.names$Ynames
   # }
@@ -118,16 +122,18 @@ plot_lucid_without_outcome <- function(x,
   #                    target = rep(Y_name, K),
   #                    value = abs(valueXtoY),
   #                    group = as.factor(valueXtoY > 0))
-
+  
   links <- rbind(GtoX, XtoZ) #, XtoY
-  nodes <- data.frame(name = unique(c(as.character(links$source), as.character(links$target))),
+  nodes <- data.frame(name = unique(c(as.character(links$source), 
+                                      as.character(links$target))),
                       group = as.factor(c(rep("exposure", dimG), 
                                           rep("lc", K), 
                                           rep("biomarker", dimZ))))
   links$IDsource <- match(links$source, nodes$name)-1 
   links$IDtarget <- match(links$target, nodes$name)-1 
-  color_scale <- data.frame(domain = c("exposure", "lc", "biomarker", "TRUE", "FALSE"),
-                            range = c(G_color, X_color, Z_color, pos_link_color, neg_link_color))
+  color_scale <- data.frame(
+    domain = c("exposure", "lc", "biomarker", "TRUE", "FALSE"),
+    range = c(G_color, X_color, Z_color, pos_link_color, neg_link_color))
   
   p <- sankeyNetwork(Links = links, 
                      Nodes = nodes,
@@ -191,8 +197,8 @@ reorder_lucid_parallel <- function(lucidus_fit,
   }) 
   # reorder gamma
   XtoY <- lucidus_fit$res_Gamma$Gamma$mu
-  XtoY[1] <- XtoY[1] + sum(XtoY[-1] * (reference - 1)) # reference level using the new reference
-  XtoY[-1] <- (-1)^(reference - 1) * XtoY[-1] # if reference = 2, flip the estimates
+  XtoY[1] <- XtoY[1] + sum(XtoY[-1] * (reference - 1)) # level w/ new reference
+  XtoY[-1] <- (-1)^(reference - 1) * XtoY[-1] # if ref = 2, flip estimates
   lucidus_fit$res_Gamma$Gamma$mu <- XtoY
   lucidus_fit$res_Gamma$fit$coefficients <- XtoY
   

@@ -66,7 +66,8 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
     
     # XtoY
     XtoY <- data.frame(source = paste0("Latent Cluster", 1:K), 
-                       target = rep(var.names$Ynames, K), value = abs(valueXtoY), 
+                       target = rep(var.names$Ynames, K), 
+                       value = abs(valueXtoY), 
                        group = as.factor(valueXtoY > 0))
     links <- rbind(GtoX, XtoZ_sub, XtoY)
     # links <- rbind(GtoX, XtoZ, XtoY)
@@ -75,7 +76,8 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
       name = unique(c(as.character(links$source), 
                       as.character(links$target))), 
       group = as.factor(c(rep("exposure",
-                              dimG), rep("lc", K), rep("biomarker", nrow(XtoZ_sub)/2), "outcome")))
+                              dimG), rep("lc", K), 
+                          rep("biomarker", nrow(XtoZ_sub)/2), "outcome")))
     # group = as.factor(c(rep("exposure", 
     # dimG), rep("lc", K), rep("biomarker", dimZ), "outcome")))
     ## the following two lines were used to exclude covars from the plot
@@ -151,12 +153,13 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
   
   nodes_new_plotly1 <- nodes_new_plotly %>%
     # Modify names of features for plotting
-   dplyr::select(group, color, x, name)%>% 
-    mutate(name = case_when(name == "value" ~ "<b>Hg</b>",
-                            name == "Latent Cluster1" ~ "<b>Joint Omics\nProfile 0</b>",
-                            name == "Latent Cluster2" ~ "<b>Joint Omics\nProfile 1</b>",
-                            TRUE ~ name))
-    
+    dplyr::select(group, color, x, name)%>% 
+    mutate(name = case_when(
+      name == "value" ~ "<b>Hg</b>",
+      name == "Latent Cluster1" ~ "<b>Joint Omics\nProfile 0</b>",
+      name == "Latent Cluster2" ~ "<b>Joint Omics\nProfile 1</b>",
+      TRUE ~ name))
+  
   
   ## 6.2 Get links for Plotly, set color ----
   links_new <- links1  %>%
@@ -172,7 +175,7 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
         ##############
         # Exposure
         str_detect(source, "Hg") &  group == TRUE  ~  "red",
-            # Outcome
+        # Outcome
         str_detect(target, "outcome") &  group == TRUE  ~  "red",
         # Methylation 
         str_detect(target, "tc") &  group == TRUE  ~  "#bf9000",
@@ -188,8 +191,8 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
         group == TRUE ~  "#706C6C")) # Positive association
   
   links_new1<- links_new %>%
-   dplyr::select(colnames(links_new), target)
-    
+    dplyr::select(colnames(links_new), target)
+  
   plotly_link <- list(
     source = links_new1$IDsource,
     target = links_new1$IDtarget,
@@ -215,7 +218,7 @@ sankey_early_integration <- function(lucid_fit1, text_size = 15) {
           # 0.9,
           # biomaker
           0.98
-  ))
+    ))
   
   
   ## 6.3 Plot Figure ----
