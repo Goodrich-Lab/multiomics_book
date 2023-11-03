@@ -31,8 +31,13 @@ df_packages <- devtools::session_info()$packages %>%
   arrange(attached) %>% 
   select(package, loadedversion, attached, date, source)
 
-colnames(df_packages) <- c("Package", "Version", "Attached or Loaded",
+colnames(df_packages) <- c("Package", "Version", "Dependency",
                            "Date/Publication", "Source")
+
+df_packages <- df_packages |>
+  mutate(Source = if_else(str_detect(Source, "EnvirOmix"), 
+                          "Github (Goodrich-Lab/EnvirOmix)", 
+                          Source))
 
 kableExtra::kable(df_packages, 
                   booktabs = T, 
@@ -42,7 +47,6 @@ kableExtra::kable(df_packages,
   kableExtra::kable_styling(full_width = F,
                             latex_options = c("repeat_header", "striped"), 
                             position = "center")
-
 
 ```
 \renewcommand{\arraystretch}{1} <!-- reset row height/line spacing -->
